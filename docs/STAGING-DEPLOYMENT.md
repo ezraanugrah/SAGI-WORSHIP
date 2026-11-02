@@ -1,6 +1,6 @@
 # Initial staging deployment audit
 
-Date: 2 November 2026. Status: **LOCAL AUDIT COMPLETE; UPLOAD BLOCKED BY ACCOUNT SELECTION. NOT PRODUCTION APPROVAL.**
+Date: 2 November 2026. Status: **PRIVATE GITHUB PUSH VERIFIED; VERCEL SCOPE CONFIRMATION PENDING. PRODUCTION HOLD.**
 
 ## Deployment continuation
 
@@ -8,7 +8,18 @@ The user subsequently confirmed private destination `ezraanugrah/SAGI-WORSHIP` a
 
 The pre-upload candidate audit was repeated: 446 files, approximately 7.9 MB total, no file over 1 MiB, no symlinks and no credential-pattern matches. Candidate extensions and binary files were inventoried. Documentation images show the application and synthetic test materials; licensed PDF support assets retain license notices. Browser databases/profiles, backup archives, environment files, build output, dependencies and disposable test artifacts are excluded. No personal dataset or real Scripture corpus was found among the source fixtures. Explicit staging and a final staged-file audit are still required before upload. The original audit below is retained as the historical record.
 
-The user authorized an initial private GitHub repository and a Vercel testing/staging deployment. No repository or deployment has been created, and nothing has been uploaded.
+## Verified GitHub result and Vercel blocker
+
+- GitHub CLI API verified login `ezraanugrah`, ID `173744606`.
+- Created https://github.com/ezraanugrah/SAGI-WORSHIP and independently verified visibility **PRIVATE**.
+- Pushed branch `staging`; remote ref independently verified as `096967142b6892929bbec8e9b3181c61b7f413d5`, the initial audited source commit. No force push or history rewrite. The repository default branch is `staging`.
+- Vercel CLI 65.9.0 authenticated as `ezrasaja9-8810`. Available scope is `jg`, slug `jg-ef1a`, Hobby plan. User metadata alone did not establish the GitHub connection. Confirmation of this actual scope was requested before project creation.
+- No Vercel project, Git connection or deployment was created; no hosted smoke checks were executed. Protection availability/cost and actual GitHub integration still need verification before publishing. Do not import with a flow that silently publishes the default branch as production.
+- The previously completed local checks remain applicable: no application source, dependencies, schema or PWA policy changed in this continuation. Production status remains HOLD, including the existing security/manual QA gates.
+
+The sections below preserve the pre-upload audit and its then-outstanding gates as historical evidence; the verified result above supersedes their account-selection and GitHub-upload status.
+
+The user authorized an initial private GitHub repository and a Vercel testing/staging deployment. At the original audit checkpoint no repository or deployment had been created, and nothing had been uploaded.
 
 ## Local checks executed
 
