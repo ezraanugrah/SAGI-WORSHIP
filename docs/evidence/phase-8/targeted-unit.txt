@@ -1,0 +1,13 @@
+
+> sagi-worship@0.7.0 test
+> vitest run src/backup/phase8.test.ts
+
+
+ RUN  v4.1.12 /Users/macbookpro/Documents/SAGI
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  08:53:44
+   Duration  825ms (transform 328ms, setup 0ms, import 417ms, tests 124ms, environment 0ms)
+

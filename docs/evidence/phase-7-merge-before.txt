@@ -1,0 +1,154 @@
+
+> sagi-worship@0.7.0 test
+> vitest run src/backup/mergeRegression.test.ts
+
+
+ RUN  v4.1.12 /Users/macbookpro/Documents/SAGI
+
+ ❯ src/backup/mergeRegression.test.ts (4 tests | 4 failed) 51ms
+   × aggregate regression: keep-existing skips incoming schedules when equal song parents hide different sections 36ms
+   × aggregate regression: keep-both duplicates equal song and schedule parents when section dependencies differ 4ms
+   × aggregate regression: schedule child assignment conflicts skip the whole existing aggregate or duplicate all items 4ms
+   × aggregate regression: conflicting children cannot bypass unsafe override rejection 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/backup/mergeRegression.test.ts > aggregate regression: keep-existing skips incoming schedules when equal song parents hide different sections
+AssertionError: expected [ { store: 'schedules', …(1) }, …(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "store": "schedules",
++     "value": {
++       "createdAt": "2026-11-02T00:00:00.000Z",
++       "id": "schedule",
++       "itemIds": [
++         "item1",
++         "item2",
++       ],
++       "name": "Service",
++       "revision": 1,
++       "updatedAt": "2026-11-02T00:00:00.000Z",
++     },
++   },
++   {
++     "store": "schedule_items",
++     "value": {
++       "createdAt": "2026-11-02T00:00:00.000Z",
++       "id": "item1",
++       "scheduleId": "schedule",
++       "songId": "song",
++       "type": "song",
++       "updatedAt": "2026-11-02T00:00:00.000Z",
++     },
++   },
++   {
++     "store": "schedule_items",
++     "value": {
++       "createdAt": "2026-11-02T00:00:00.000Z",
++       "id": "item2",
++       "scheduleId": "schedule",
++       "songId": "song",
++       "type": "song",
++       "updatedAt": "2026-11-02T00:00:00.000Z",
++     },
++   },
++ ]
+
+ ❯ src/backup/mergeRegression.test.ts:25:110
+     23|   const before = structuredClone(destination);
+     24|   const plan = await makePlan(source, destination, "existing", "unused…
+     25|   expect(plan.rows.filter(r => ["songs", "song_sections", "schedules",…
+       |                                                                                                              ^
+     26|   expect(plan.summary.join(" ")).toContain("Lewati dependensi");
+     27|   expect(destination).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/backup/mergeRegression.test.ts > aggregate regression: keep-both duplicates equal song and schedule parents when section dependencies differ
+Error: Backup: record tidak valid/tidak didukung: songs/song
+ ❯ fail src/backup/models.ts:41:9
+     39| };
+     40| export function fail(message: string): never {
+     41|   throw new Error(`Backup: ${message}`);
+       |         ^
+     42| }
+     43| export const hashPattern = /^[a-f0-9]{64}$/;
+ ❯ validateRows src/backup/validation.ts:474:17
+ ❯ makePlan src/recovery/restorePlan.ts:294:9
+ ❯ src/backup/mergeRegression.test.ts:33:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/backup/mergeRegression.test.ts > aggregate regression: schedule child assignment conflicts skip the whole existing aggregate or duplicate all items
+Error: Backup: record tidak valid/tidak didukung: schedule_items/5f4b11ee-fc96-4ccb-a497-4fd624ec0531
+ ❯ fail src/backup/models.ts:41:9
+     39| };
+     40| export function fail(message: string): never {
+     41|   throw new Error(`Backup: ${message}`);
+       |         ^
+     42| }
+     43| export const hashPattern = /^[a-f0-9]{64}$/;
+ ❯ validateRows src/backup/validation.ts:474:17
+ ❯ makePlan src/recovery/restorePlan.ts:294:9
+ ❯ src/backup/mergeRegression.test.ts:56:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/backup/mergeRegression.test.ts > aggregate regression: conflicting children cannot bypass unsafe override rejection
+AssertionError: promise resolved "{ …(8) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "destination": "unused",
++   "fingerprint": "0a60fff4eba4c6583cc7ee3c031879c5073ef27e0ad80e06046e4b59f40ac754",
++   "id": "d68cc219-9cf4-4c05-b8e5-366fc1e95e96",
++   "incomingFingerprint": "de78858a866d63fa2ee684b80e629f49b6590acb3e22eb331e4a49ba6c0af738",
++   "mode": "existing",
++   "rows": [
++     {
++       "store": "slide_overrides",
++       "value": {
++         "format": 1,
++         "frameId": "frame",
++         "id": "phase3:fixture",
++         "revision": 1,
++         "sourceSignature": "fixture",
++         "style": {
++           "font": "Arial",
++           "fontSize": 64,
++           "lines": 6,
++           "safeMargin": 8,
++           "theme": "black",
++         },
++         "text": "Synthetic override",
++       },
++     },
++   ],
++   "stage": "unused",
++   "summary": [
++     "1 record dipublikasikan; 0 media library",
++     "Payload masuk 0.0 MiB; staging dan publikasi memerlukan ruang tambahan. Estimasi browser bukan jaminan quota.",
++     "Pertahankan tujuan; lewati song_sections|section",
++   ],
+  }
+
+ ❯ src/backup/mergeRegression.test.ts:70:73
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  08:40:37
+   Duration  646ms (transform 244ms, setup 0ms, import 289ms, tests 51ms, environment 0ms)
+

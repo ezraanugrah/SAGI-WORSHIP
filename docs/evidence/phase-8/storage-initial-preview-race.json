@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-02T01:57:57.351Z",
+  "status": "FAIL",
+  "levels": [
+    {
+      "images": 8,
+      "originalBytes": 7221271,
+      "assets": 8,
+      "blobBytes": 8033489,
+      "payloads": 16,
+      "searchMilliseconds": 36.83224000000018,
+      "heapUsed": 15124748
+    },
+    {
+      "images": 24,
+      "originalBytes": 21664456,
+      "assets": 24,
+      "blobBytes": 24101089,
+      "payloads": 48,
+      "searchMilliseconds": 48.03619499999968,
+      "heapUsed": 72889632
+    },
+    {
+      "images": 48,
+      "originalBytes": 43328573,
+      "assets": 48,
+      "blobBytes": 48201930,
+      "payloads": 96,
+      "searchMilliseconds": 62.64965899999879,
+      "heapUsed": 102247020
+    }
+  ],
+  "checks": [
+    {
+      "label": "48 independently decoded synthetic PNG files imported",
+      "status": "PASS"
+    },
+    {
+      "label": "actual decoding/playback synthetic-h264-aac.mp4",
+      "status": "PASS"
+    }
+  ],
+  "scope": "short synthetic workload; no system-disk exhaustion; not a storage ceiling or soak qualification",
+  "browser": "156.0.8078.79",
+  "heapBefore": 4138540,
+  "media": [
+    {
+      "file": "synthetic-h264-aac.mp4",
+      "bytes": 311263,
+      "secondsObserved": 1.1
+    }
+  ],
+  "error": "Error: actual decoding/playback synthetic-vp8-vorbis.webm\n    at check (file:///Users/macbookpro/Documents/SAGI/qa/phase8-storage.mjs:6:39)\n    at file:///Users/macbookpro/Documents/SAGI/qa/phase8-storage.mjs:43:3"
+}

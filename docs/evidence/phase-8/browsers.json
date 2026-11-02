@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-02T01:56:48.665Z",
+  "os": "darwin",
+  "release": "25.6.0",
+  "arch": "x64",
+  "node": "v26.0.0",
+  "probes": [
+    {
+      "name": "Chrome macOS",
+      "status": "PASS",
+      "scope": "launch and application shell/capability probe only",
+      "version": "156.0.8078.79",
+      "capabilities": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+        "webLocks": true,
+        "serviceWorker": true,
+        "savePicker": true,
+        "screenDetails": true,
+        "storageEstimate": true,
+        "mp4H264": "probably",
+        "webmVP8": "probably"
+      }
+    },
+    {
+      "name": "Edge macOS",
+      "status": "BLOCKED",
+      "error": "browserType.launch: Chromium distribution 'msedge' is not found at /Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge\nRun \"npx playwright install msedge\""
+    },
+    {
+      "name": "Playwright Chromium",
+      "status": "PASS",
+      "scope": "launch and application shell/capability probe only",
+      "version": "156.0.8078.4",
+      "capabilities": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "webLocks": true,
+        "serviceWorker": true,
+        "savePicker": true,
+        "screenDetails": true,
+        "storageEstimate": true,
+        "mp4H264": "probably",
+        "webmVP8": "probably"
+      }
+    },
+    {
+      "name": "Playwright Firefox",
+      "status": "BLOCKED",
+      "error": "browserType.launch: Executable doesn't exist at /Users/macbookpro/Library/Caches/ms-playwright/firefox-1555/firefox/Nightly.app/Contents/MacOS/firefox\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+    },
+    {
+      "name": "Playwright WebKit",
+      "status": "BLOCKED",
+      "error": "browserType.launch: Executable doesn't exist at /Users/macbookpro/Library/Caches/ms-playwright/webkit-2370/pw_run.sh\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+    }
+  ]
+}

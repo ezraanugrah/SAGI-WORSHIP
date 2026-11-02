@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-02T01:56:10.680Z",
+  "os": "darwin",
+  "release": "25.6.0",
+  "arch": "x64",
+  "node": "v26.0.0",
+  "probes": [
+    {
+      "name": "Chrome macOS",
+      "status": "BLOCKED",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4174/\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4174/\", waiting until \"load\"\u001b[22m\n"
+    },
+    {
+      "name": "Edge macOS",
+      "status": "BLOCKED",
+      "error": "browserType.launch: Chromium distribution 'msedge' is not found at /Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge\nRun \"npx playwright install msedge\""
+    },
+    {
+      "name": "Playwright Chromium",
+      "status": "BLOCKED",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4174/\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4174/\", waiting until \"load\"\u001b[22m\n"
+    },
+    {
+      "name": "Playwright Firefox",
+      "status": "BLOCKED",
+      "error": "browserType.launch: Executable doesn't exist at /Users/macbookpro/Library/Caches/ms-playwright/firefox-1555/firefox/Nightly.app/Contents/MacOS/firefox\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+    },
+    {
+      "name": "Playwright WebKit",
+      "status": "BLOCKED",
+      "error": "browserType.launch: Executable doesn't exist at /Users/macbookpro/Library/Caches/ms-playwright/webkit-2370/pw_run.sh\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+    }
+  ]
+}

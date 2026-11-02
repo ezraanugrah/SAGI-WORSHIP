@@ -1,0 +1,33 @@
+{
+  "origin": "http://127.0.0.1:61296",
+  "date": "2026-11-02T01:59:58.609Z",
+  "status": "FAIL",
+  "checks": [
+    {
+      "label": "build A HTML loaded",
+      "status": "PASS"
+    },
+    {
+      "label": "operator remains on A while update waits",
+      "status": "PASS"
+    },
+    {
+      "label": "projector remains on A while update waits",
+      "status": "PASS"
+    },
+    {
+      "label": "pending update preserves frozen audience frame",
+      "status": "PASS"
+    },
+    {
+      "label": "pending update preserves all durable records",
+      "status": "PASS"
+    },
+    {
+      "label": "waiting build activates with all application windows closed",
+      "status": "PASS"
+    }
+  ],
+  "browser": "156.0.8078.79",
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.\n    at /Users/macbookpro/Documents/SAGI/qa/phase8-update.mjs:66:13"
+}

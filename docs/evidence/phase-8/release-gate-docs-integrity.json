@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-02T02:26:33.657Z",
+  "scope": "Documentation and read-only integrity review only; no manual test execution",
+  "checkedSourceBuildDependencyFiles": 307,
+  "changedFiles": [],
+  "testedArtifactMismatches": [],
+  "manualTests": 24,
+  "incompleteTestTemplates": [],
+  "riskRows": 9,
+  "brokenLocalLinks": [],
+  "manualTestsMarkedPassed": false
+}

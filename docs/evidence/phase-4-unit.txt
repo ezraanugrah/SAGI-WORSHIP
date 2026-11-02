@@ -1,0 +1,13 @@
+
+> sagi-worship@0.4.0 test
+> vitest run
+
+
+ RUN  v4.1.12 /Users/macbookpro/Documents/SAGI
+
+
+ Test Files  7 passed (7)
+      Tests  76 passed (76)
+   Start at  23:27:14
+   Duration  1.11s (transform 1.12s, setup 0ms, import 1.98s, tests 702ms, environment 2ms)
+

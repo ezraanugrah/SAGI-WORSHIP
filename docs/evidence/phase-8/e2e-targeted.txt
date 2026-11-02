@@ -1,0 +1,17 @@
+
+> sagi-worship@0.7.0 test:e2e
+> playwright test --grep Phase 8 --output=test-results/phase8-targeted-final
+
+[WebServer] (node:41351) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 2 workers
+
+(node:41355) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › e2e/phase8.spec.ts:42:1 › Phase 8 equal-parent aggregate conflict stays safe through browser backup, preview and atomic merge (3.6s)
+  ✓  1 [chromium] › e2e/phase8.spec.ts:161:1 › Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery (3.9s)
+
+  2 passed (7.3s)

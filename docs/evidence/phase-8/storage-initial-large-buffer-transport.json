@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-02T01:59:19.223Z",
+  "status": "FAIL",
+  "levels": [
+    {
+      "images": 8,
+      "originalBytes": 7221271,
+      "assets": 8,
+      "blobBytes": 8033489,
+      "payloads": 16,
+      "searchMilliseconds": 74.62755299999844,
+      "heapUsed": 15053568
+    },
+    {
+      "images": 24,
+      "originalBytes": 21664456,
+      "assets": 24,
+      "blobBytes": 24101089,
+      "payloads": 48,
+      "searchMilliseconds": 67.71151499999905,
+      "heapUsed": 35152868
+    },
+    {
+      "images": 48,
+      "originalBytes": 43328573,
+      "assets": 48,
+      "blobBytes": 48201930,
+      "payloads": 96,
+      "searchMilliseconds": 74.50649200000043,
+      "heapUsed": 85210340
+    }
+  ],
+  "checks": [
+    {
+      "label": "48 independently decoded synthetic PNG files imported",
+      "status": "PASS"
+    },
+    {
+      "label": "actual decoding/playback synthetic-h264-aac.mp4",
+      "status": "PASS"
+    },
+    {
+      "label": "actual decoding/playback synthetic-vp8-vorbis.webm",
+      "status": "PASS"
+    },
+    {
+      "label": "two-page synthetic PDF prepared",
+      "status": "PASS"
+    }
+  ],
+  "scope": "short synthetic workload; no system-disk exhaustion; not a storage ceiling or soak qualification",
+  "browser": "156.0.8078.79",
+  "heapBefore": 4111452,
+  "media": [
+    {
+      "file": "synthetic-h264-aac.mp4",
+      "bytes": 311263,
+      "secondsObserved": 1.1
+    },
+    {
+      "file": "synthetic-vp8-vorbis.webm",
+      "bytes": 107937,
+      "secondsObserved": 1.1
+    }
+  ],
+  "archiveBytes": 48787393,
+  "downloadMilliseconds": 2445.601870999999,
+  "error": "locator.setInputFiles: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('File backup', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"file\" accept=\".sagibak\" aria-label=\"File backup\"/>\u001b[22m\n\n    at async file:///Users/macbookpro/Documents/SAGI/qa/phase8-storage.mjs:60:2"
+}

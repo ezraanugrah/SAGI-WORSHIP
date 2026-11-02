@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-02T02:14:10.134Z",
+  "files": {
+    "dist/index.html": {
+      "bytes": 652,
+      "sha256": "4af16d95eb9961eb36e130859eb6b3b377a5a123a854fac19bf1aa77fc1c1c7f"
+    },
+    "dist/sw.js": {
+      "bytes": 18563,
+      "sha256": "01892f271208e89e510ae1dee962e83b626cd5028c0106bb2665af94728059ae"
+    },
+    "test-results/phase8-build-A/index.html": {
+      "bytes": 691,
+      "sha256": "5a7eec369324e5893577cc8cb1f94092d950793c4d5f4fd3ae7dc2ec0cbd2696"
+    },
+    "test-results/phase8-build-A/sw.js": {
+      "bytes": 18591,
+      "sha256": "039327f54751a299c999aeb77209a0caf597348a11212ae1729a31465cf1f2d8"
+    },
+    "test-results/phase8-build-B/index.html": {
+      "bytes": 691,
+      "sha256": "8e226a9826feb4bcfb4471b04311433ea5c390a4a477e3b33662717ceefe5b3a"
+    },
+    "test-results/phase8-build-B/sw.js": {
+      "bytes": 18591,
+      "sha256": "e879233b33be8050ce9d0398189345f2f0039b819ab472afcff424fab6d4e9d8"
+    },
+    "docs/evidence/phase-8/unit.txt": {
+      "bytes": 264,
+      "sha256": "0d5a04439a047a13073e588ad6eccdae2e0b9ed4b0381869e7e360a5da9808db"
+    },
+    "docs/evidence/phase-8/typecheck.txt": {
+      "bytes": 48,
+      "sha256": "c35a1ee35cca15fda8eebc06dccc943ad458e2a7d9aebd18c4265991eaa9fdec"
+    },
+    "docs/evidence/phase-8/build.txt": {
+      "bytes": 2341,
+      "sha256": "560f84ee77d438e6f4305c7bf31decd15609a72f6cd3b786da871bdd04daba95"
+    },
+    "docs/evidence/phase-8/e2e-chromium.txt": {
+      "bytes": 9978,
+      "sha256": "c4da870efa7c54b116e3db525630c2503e7cc7ada27a123e006d083287f348a7"
+    },
+    "docs/evidence/phase-8/e2e-chrome.txt": {
+      "bytes": 10246,
+      "sha256": "2a5825e66866d1e204aebd505a95868bd67979abd5be8640e8693898455fad30"
+    },
+    "docs/evidence/phase-8/update-activation-chrome.json": {
+      "bytes": 2090,
+      "sha256": "049fe1b93afb249ceae581cdf880af33b133ba7ec53f95bee5ee3dc4f4ff9011"
+    },
+    "docs/evidence/phase-8/update-activation-chromium.json": {
+      "bytes": 2089,
+      "sha256": "84f1073f2bd021eb8f9ced95cd371f0b9b2f8e40832401850e612412813201bb"
+    },
+    "docs/evidence/phase-8/storage.json": {
+      "bytes": 2561,
+      "sha256": "fa722c1ef0d081a6509bd1a8d3f7c15a40ccade0338489b00aa7453ccd6f29f7"
+    },
+    "docs/evidence/phase-8/runtime-audit.json": {
+      "bytes": 363,
+      "sha256": "0cfc28985989c959e54ec24326377614cc10ed6c9bdb5dd4f3fb8862d0d9a50a"
+    },
+    "docs/evidence/phase-8/full-audit.json": {
+      "bytes": 4957,
+      "sha256": "cef036f295206ec48d97418e85a597eeb6fc8160a1cb86ad4b1b8d2df503cdc8"
+    }
+  }
+}

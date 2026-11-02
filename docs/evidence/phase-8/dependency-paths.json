@@ -1,0 +1,278 @@
+[
+  {
+    "name": "deepmerge",
+    "version": "4.3.1",
+    "location": "node_modules/deepmerge",
+    "isWorkspace": false,
+    "dependents": [
+      {
+        "type": "prod",
+        "name": "deepmerge",
+        "spec": "^4.2.2",
+        "from": {
+          "name": "@rollup/plugin-node-resolve",
+          "version": "16.0.3",
+          "location": "node_modules/@rollup/plugin-node-resolve",
+          "isWorkspace": false,
+          "dependents": [
+            {
+              "type": "prod",
+              "name": "@rollup/plugin-node-resolve",
+              "spec": "^16.0.3",
+              "from": {
+                "name": "workbox-build",
+                "version": "7.4.1",
+                "location": "node_modules/workbox-build",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "prod",
+                    "name": "workbox-build",
+                    "spec": "^7.3.0",
+                    "from": {
+                      "name": "vite-plugin-pwa",
+                      "version": "1.1.0",
+                      "location": "node_modules/vite-plugin-pwa",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "dev",
+                          "name": "vite-plugin-pwa",
+                          "spec": "^1.1.0",
+                          "from": {
+                            "location": "/Users/macbookpro/Documents/SAGI"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "dev": true,
+    "optional": false,
+    "devOptional": false,
+    "peer": false,
+    "bundled": false,
+    "overridden": false
+  },
+  {
+    "name": "glob",
+    "version": "11.1.0",
+    "location": "node_modules/glob",
+    "isWorkspace": false,
+    "dependents": [
+      {
+        "type": "prod",
+        "name": "glob",
+        "spec": "^11.0.1",
+        "from": {
+          "name": "workbox-build",
+          "version": "7.4.1",
+          "location": "node_modules/workbox-build",
+          "isWorkspace": false,
+          "dependents": [
+            {
+              "type": "prod",
+              "name": "workbox-build",
+              "spec": "^7.3.0",
+              "from": {
+                "name": "vite-plugin-pwa",
+                "version": "1.1.0",
+                "location": "node_modules/vite-plugin-pwa",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "dev",
+                    "name": "vite-plugin-pwa",
+                    "spec": "^1.1.0",
+                    "from": {
+                      "location": "/Users/macbookpro/Documents/SAGI"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "dev": true,
+    "optional": false,
+    "devOptional": false,
+    "peer": false,
+    "bundled": false,
+    "overridden": false
+  },
+  {
+    "name": "minimatch",
+    "version": "5.1.9",
+    "location": "node_modules/filelist/node_modules/minimatch",
+    "isWorkspace": false,
+    "dependents": [
+      {
+        "type": "prod",
+        "name": "minimatch",
+        "spec": "^5.0.1",
+        "from": {
+          "name": "filelist",
+          "version": "1.0.6",
+          "location": "node_modules/filelist",
+          "isWorkspace": false,
+          "dependents": [
+            {
+              "type": "prod",
+              "name": "filelist",
+              "spec": "^1.0.4",
+              "from": {
+                "name": "jake",
+                "version": "10.9.4",
+                "location": "node_modules/jake",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "prod",
+                    "name": "jake",
+                    "spec": "^10.8.5",
+                    "from": {
+                      "name": "ejs",
+                      "version": "3.1.10",
+                      "location": "node_modules/ejs",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "prod",
+                          "name": "ejs",
+                          "spec": "^3.1.10",
+                          "from": {
+                            "name": "@trickfilm400/rollup-plugin-off-main-thread",
+                            "version": "3.0.0-pre1",
+                            "location": "node_modules/@trickfilm400/rollup-plugin-off-main-thread",
+                            "isWorkspace": false,
+                            "dependents": [
+                              {
+                                "type": "prod",
+                                "name": "@trickfilm400/rollup-plugin-off-main-thread",
+                                "spec": "^3.0.0-pre1",
+                                "from": {
+                                  "name": "workbox-build",
+                                  "version": "7.4.1",
+                                  "location": "node_modules/workbox-build",
+                                  "isWorkspace": false,
+                                  "dependents": [
+                                    {
+                                      "type": "prod",
+                                      "name": "workbox-build",
+                                      "spec": "^7.3.0",
+                                      "from": {
+                                        "name": "vite-plugin-pwa",
+                                        "version": "1.1.0",
+                                        "location": "node_modules/vite-plugin-pwa",
+                                        "isWorkspace": false,
+                                        "dependents": [
+                                          {
+                                            "type": "dev",
+                                            "name": "vite-plugin-pwa",
+                                            "spec": "^1.1.0",
+                                            "from": {
+                                              "location": "/Users/macbookpro/Documents/SAGI"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "dev": true,
+    "optional": false,
+    "devOptional": false,
+    "peer": false,
+    "bundled": false,
+    "overridden": false
+  },
+  {
+    "name": "minimatch",
+    "version": "10.2.6",
+    "location": "node_modules/minimatch",
+    "isWorkspace": false,
+    "dependents": [
+      {
+        "type": "prod",
+        "name": "minimatch",
+        "spec": "^10.1.1",
+        "from": {
+          "name": "glob",
+          "version": "11.1.0",
+          "location": "node_modules/glob",
+          "isWorkspace": false,
+          "dependents": [
+            {
+              "type": "prod",
+              "name": "glob",
+              "spec": "^11.0.1",
+              "from": {
+                "name": "workbox-build",
+                "version": "7.4.1",
+                "location": "node_modules/workbox-build",
+                "isWorkspace": false,
+                "dependents": [
+                  {
+                    "type": "prod",
+                    "name": "workbox-build",
+                    "spec": "^7.3.0",
+                    "from": {
+                      "name": "vite-plugin-pwa",
+                      "version": "1.1.0",
+                      "location": "node_modules/vite-plugin-pwa",
+                      "isWorkspace": false,
+                      "dependents": [
+                        {
+                          "type": "dev",
+                          "name": "vite-plugin-pwa",
+                          "spec": "^1.1.0",
+                          "from": {
+                            "location": "/Users/macbookpro/Documents/SAGI"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "dev": true,
+          "optional": false,
+          "devOptional": false,
+          "peer": false,
+          "bundled": false,
+          "overridden": false
+        }
+      }
+    ],
+    "dev": true,
+    "optional": false,
+    "devOptional": false,
+    "peer": false,
+    "bundled": false,
+    "overridden": false
+  }
+]

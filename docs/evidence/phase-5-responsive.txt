@@ -1,0 +1,14 @@
+
+> sagi-worship@0.5.0 test:e2e
+> playwright test e2e/phase5.spec.ts -g malformed inputs
+
+[WebServer] (node:7210) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:7214) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/phase5.spec.ts:258:1 › malformed inputs, unsupported PPTX, read-only secondary window and responsive layout (1.5s)
+
+  1 passed (3.4s)

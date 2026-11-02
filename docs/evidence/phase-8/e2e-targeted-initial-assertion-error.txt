@@ -1,0 +1,63 @@
+
+> sagi-worship@0.7.0 test:e2e
+> playwright test --grep Phase 8 --output=test-results/phase8-targeted
+
+[WebServer] (node:41098) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 2 workers
+
+(node:41116) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/phase8.spec.ts:42:1 › Phase 8 equal-parent aggregate conflict stays safe through browser backup, preview and atomic merge (3.5s)
+  ✘  2 [chromium] › e2e/phase8.spec.ts:161:1 › Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery (13.2s)
+
+
+  1) [chromium] › e2e/phase8.spec.ts:161:1 › Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('.slide-lines')
+    Expected: 0
+    Received: 1
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('.slide-lines') with timeout 10000ms
+      - waiting for locator('.slide-lines')
+        24 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      181 |   await controls.focus();
+      182 |   await page.keyboard.press("b");
+    > 183 |   await expect(output.locator(".slide-lines")).toHaveCount(0);
+          |                                                ^
+      184 |   await page.keyboard.press("b");
+      185 |   await expect(output.locator(".slide-lines")).toHaveText(lyric);
+      186 |   for (const width of [320, 768, 1440]) {
+        at /Users/macbookpro/Documents/SAGI/e2e/phase8.spec.ts:183:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/phase8-targeted/phase8-Phase-8-Unicode-key-f58e3-nd-explicit-frozen-recovery-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/phase8-targeted/phase8-Phase-8-Unicode-key-f58e3-nd-explicit-frozen-recovery-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/phase8-targeted/phase8-Phase-8-Unicode-key-f58e3-nd-explicit-frozen-recovery-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/phase8-targeted/phase8-Phase-8-Unicode-key-f58e3-nd-explicit-frozen-recovery-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/phase8-targeted/phase8-Phase-8-Unicode-key-f58e3-nd-explicit-frozen-recovery-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e/phase8.spec.ts:161:1 › Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery 
+  1 passed (18.0s)

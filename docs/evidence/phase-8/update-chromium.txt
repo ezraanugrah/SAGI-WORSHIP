@@ -1,0 +1,44 @@
+{
+  "origin": "http://127.0.0.1:61069",
+  "date": "2026-11-02T01:55:53.944Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "label": "build A HTML loaded",
+      "status": "PASS"
+    },
+    {
+      "label": "operator remains on A while update waits",
+      "status": "PASS"
+    },
+    {
+      "label": "projector remains on A while update waits",
+      "status": "PASS"
+    },
+    {
+      "label": "pending update preserves frozen audience frame",
+      "status": "PASS"
+    },
+    {
+      "label": "pending update preserves all durable records",
+      "status": "PASS"
+    },
+    {
+      "label": "build B preserves schema and all durable records",
+      "status": "PASS"
+    },
+    {
+      "label": "build B requires explicit recovery",
+      "status": "PASS"
+    },
+    {
+      "label": "build B restarts offline from cache",
+      "status": "PASS"
+    },
+    {
+      "label": "explicit recovery opens fresh projector offline",
+      "status": "PASS"
+    }
+  ],
+  "browser": "156.0.8078.4"
+}

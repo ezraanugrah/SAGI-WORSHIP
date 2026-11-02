@@ -1,0 +1,46 @@
+
+> sagi-worship@0.3.0 test:e2e
+> playwright test
+
+[WebServer] (node:68153) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 31 tests using 2 workers
+
+(node:68155) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/phase2.spec.ts:57:1 › songs create/edit/search/duplicate/delete and reload persistence (3.2s)
+  ✓   2 [chromium] › e2e/phase2.spec.ts:97:1 › all section types, repeated order, keyboard and drag ordering survive reload (3.5s)
+  ✓   3 [chromium] › e2e/phase2.spec.ts:145:1 › schedules create/rename/duplicate/delete, active persistence and source-safe item removal (2.4s)
+  ✓   5 [chromium] › e2e/phase2.spec.ts:224:1 › deleting a referenced song cleans all schedule references after explicit confirmation (2.0s)
+  ✓   4 [chromium] › e2e/phase2.spec.ts:191:1 › schedule drag ordering and keyboard alternative persist (4.0s)
+  ✓   7 [chromium] › e2e/phase2.spec.ts:277:1 › secondary tabs are read-only and regain writing only after owner closes and reload (2.2s)
+  ✓   6 [chromium] › e2e/phase2.spec.ts:250:1 › invalid edits preserve canonical songs and drafts recover after reload (3.6s)
+  ✓   8 [chromium] › e2e/phase2.spec.ts:311:1 › lock stealing revokes the original editor and cancels future autosaves (1.9s)
+  ✓   9 [chromium] › e2e/phase2.spec.ts:340:1 › malformed data is reported and preserved alongside usable healthy songs (1.7s)
+  ✓  11 [chromium] › e2e/phase2.spec.ts:421:3 › responsive song editor and schedule at 320px (1.9s)
+  ✓  10 [chromium] › e2e/phase2.spec.ts:368:1 › production shell, song edits, schedules and ordering persist fully offline (4.0s)
+  ✓  12 [chromium] › e2e/phase2.spec.ts:421:3 › responsive song editor and schedule at 768px (1.8s)
+  ✓  13 [chromium] › e2e/phase2.spec.ts:421:3 › responsive song editor and schedule at 1440px (2.0s)
+  ✓  14 [chromium] › e2e/phase2.spec.ts:465:1 › failed canonical autosave preserves a durable draft and retries safely (1.6s)
+  ✓  15 [chromium] › e2e/phase2.spec.ts:506:1 › Phase 1 preference records survive song and schedule operations (1.8s)
+  ✓  16 [chromium] › e2e/phase3.spec.ts:116:1 › two real windows preserve Preview/LIVE isolation and all visibility/navigation controls (2.4s)
+  ✓  17 [chromium] › e2e/phase3.spec.ts:168:1 › source autosave/deletion, preference changes and Settings navigation never change frozen LIVE (3.2s)
+  ✓  18 [chromium] › e2e/phase3.spec.ts:205:1 › scheduled navigation crosses repeated sections and schedule items using frozen order (3.3s)
+  ✓  19 [chromium] › e2e/phase3.spec.ts:247:1 › projector refresh starts black, receives a fresh snapshot, and close/reopen recovers (2.6s)
+  ✓  21 [chromium] › e2e/phase3.spec.ts:305:1 › duplicate, delayed, wrong-session and wrong-document messages cannot replace the latest frame (2.2s)
+  ✓  22 [chromium] › e2e/phase3.spec.ts:343:1 › operator restart never takes over; explicit Resume restores checkpoint and Discard leaves black (2.6s)
+  ✓  23 [chromium] › e2e/phase3.spec.ts:391:1 › checkpoint failure cannot disable emergency Black; checkpoint can be retried (2.0s)
+  ✓  20 [chromium] › e2e/phase3.spec.ts:266:1 › a refreshed projector stays black while messages are interrupted; established output holds its frame (9.0s)
+  ✓  24 [chromium] › e2e/phase3.spec.ts:431:1 › fullscreen/popup denial and BroadcastChannel fallback remain actionable (2.0s)
+  ✓  25 [chromium] › e2e/phase3.spec.ts:472:1 › presentation shortcuts require control focus and never intercept source/Preview text editing (2.1s)
+  ✓  26 [chromium] › e2e/phase3.spec.ts:504:1 › secondary operator and projector never acquire presentation authority or mutate sources (2.5s)
+  ✓  27 [chromium] › e2e/phase3.spec.ts:531:1 › two windows run, refresh, reconnect and recover checkpoints fully offline (2.5s)
+  ✓  28 [chromium] › e2e/phase3.spec.ts:564:3 › presentation layout and 16:9 projector fit at 320px (2.0s)
+  ✓  29 [chromium] › e2e/phase3.spec.ts:564:3 › presentation layout and 16:9 projector fit at 768px (2.0s)
+  ✓  30 [chromium] › e2e/phase3.spec.ts:564:3 › presentation layout and 16:9 projector fit at 1440px (2.1s)
+  ✓  31 [chromium] › e2e/phase3.spec.ts:587:1 › loss of writer ownership disables every LIVE command and retains the projector frame (2.1s)
+
+  31 passed (43.8s)

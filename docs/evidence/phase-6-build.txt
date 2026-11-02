@@ -1,0 +1,26 @@
+
+> sagi-worship@0.6.0 build
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1641 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/manifest.webmanifest                            0.39 kB
+dist/assets/search.worker-AE4FS8YZ.js                0.55 kB
+dist/index.html                                      0.65 kB │ gzip:   0.38 kB
+dist/assets/import.worker-D0PER1ky.js                5.00 kB
+dist/assets/pdf.worker.min-CjEcRF4W.mjs          1,264.34 kB
+dist/assets/index-GIdc4DxU.css                      39.75 kB │ gzip:   9.36 kB
+dist/assets/workbox-window.prod.es5-BBnX5xw4.js      5.75 kB │ gzip:   2.36 kB
+dist/assets/pdf-CfhDiWmk.js                        437.62 kB │ gzip: 130.96 kB
+dist/assets/index-Cp876a7w.js                      440.16 kB │ gzip: 133.68 kB
+✓ built in 3.75s
+
+PWA v1.1.0
+mode      generateSW
+precache  206 entries (5538.95 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-2fbc6a65.js

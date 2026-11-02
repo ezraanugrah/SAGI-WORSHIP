@@ -1,0 +1,30 @@
+
+> sagi-worship@0.7.0 build
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1652 modules transformed.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /Users/macbookpro/Documents/SAGI/src/media/models.ts is dynamically imported by /Users/macbookpro/Documents/SAGI/src/data/restoreRepository.ts but also statically imported by /Users/macbookpro/Documents/SAGI/src/backup/validation.ts, /Users/macbookpro/Documents/SAGI/src/components/SlideCanvas.tsx, /Users/macbookpro/Documents/SAGI/src/data/mediaRepository.ts, /Users/macbookpro/Documents/SAGI/src/data/presentationRepository.ts, /Users/macbookpro/Documents/SAGI/src/data/repository.ts, /Users/macbookpro/Documents/SAGI/src/domain/models.ts, /Users/macbookpro/Documents/SAGI/src/media/assetReader.ts, /Users/macbookpro/Documents/SAGI/src/media/integrity.ts, /Users/macbookpro/Documents/SAGI/src/media/pdfAdapter.ts, /Users/macbookpro/Documents/SAGI/src/media/validation.ts, /Users/macbookpro/Documents/SAGI/src/presentation/controller.ts, /Users/macbookpro/Documents/SAGI/src/presentation/models.ts, /Users/macbookpro/Documents/SAGI/src/presentation/protocol.ts, /Users/macbookpro/Documents/SAGI/src/projector/preflight.ts, /Users/macbookpro/Documents/SAGI/src/recovery/diagnostics.ts, /Users/macbookpro/Documents/SAGI/src/recovery/restorePlan.ts, /Users/macbookpro/Documents/SAGI/src/themes/models.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/manifest.webmanifest                            0.39 kB
+dist/assets/search.worker-AE4FS8YZ.js                0.55 kB
+dist/index.html                                      0.65 kB │ gzip:   0.38 kB
+dist/assets/import.worker-D0PER1ky.js                5.00 kB
+dist/assets/backup.worker-BvAJ7_DU.js               36.01 kB
+dist/assets/pdf.worker.min-CjEcRF4W.mjs          1,264.34 kB
+dist/assets/index-CG8ZLcJK.css                      39.96 kB │ gzip:   9.41 kB
+dist/assets/workbox-window.prod.es5-BBnX5xw4.js      5.75 kB │ gzip:   2.36 kB
+dist/assets/pdf-CfhDiWmk.js                        437.62 kB │ gzip: 130.96 kB
+dist/assets/index-ifxGyfRp.js                      481.35 kB │ gzip: 145.95 kB
+✓ built in 3.80s
+
+PWA v1.1.0
+mode      generateSW
+precache  207 entries (5614.56 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-2fbc6a65.js

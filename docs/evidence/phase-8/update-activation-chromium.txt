@@ -1,0 +1,96 @@
+{
+  "origin": "http://127.0.0.1:61956",
+  "date": "2026-11-02T02:11:17.049Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "label": "build A HTML loaded",
+      "status": "PASS"
+    },
+    {
+      "label": "operator remains on A while update waits",
+      "status": "PASS"
+    },
+    {
+      "label": "projector remains on A while update waits",
+      "status": "PASS"
+    },
+    {
+      "label": "pending update preserves frozen audience frame",
+      "status": "PASS"
+    },
+    {
+      "label": "pending update preserves all durable records",
+      "status": "PASS"
+    },
+    {
+      "label": "actual build B worker activates after last app client closes",
+      "status": "PASS"
+    },
+    {
+      "label": "build B preserves schema and all durable records",
+      "status": "PASS"
+    },
+    {
+      "label": "build B requires explicit recovery",
+      "status": "PASS"
+    },
+    {
+      "label": "build B restarts offline from cache",
+      "status": "PASS"
+    },
+    {
+      "label": "explicit recovery opens fresh projector offline",
+      "status": "PASS"
+    }
+  ],
+  "disposableProfile": "/var/folders/m4/m4g1cfm91q32kttg_mfykvbm0000gn/T/sagi-phase8-update-H7wMM4",
+  "browser": "156.0.8078.4",
+  "firstReopen": {
+    "marker": "B",
+    "fromServiceWorker": true
+  },
+  "workers": [
+    {
+      "url": "http://127.0.0.1:61956/sw.js",
+      "state": {
+        "build": "B",
+        "active": "activated",
+        "own": "activated"
+      }
+    }
+  ],
+  "registration": {
+    "active": "activated",
+    "controller": "activated"
+  },
+  "cachedHTML": [
+    {
+      "cache": "workbox-precache-v2-http://127.0.0.1:61956/",
+      "url": "http://127.0.0.1:61956/index.html?__WB_REVISION__=9ab4acbd043da6f366987aa3be956138",
+      "marker": "sagi-qa-build\" content=\"B\""
+    }
+  ],
+  "served": [
+    {
+      "url": "/",
+      "build": "A"
+    },
+    {
+      "url": "/sw.js",
+      "build": "A"
+    },
+    {
+      "url": "/index.html",
+      "build": "A"
+    },
+    {
+      "url": "/sw.js",
+      "build": "B"
+    },
+    {
+      "url": "/index.html",
+      "build": "B"
+    }
+  ]
+}

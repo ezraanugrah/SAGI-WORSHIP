@@ -1,0 +1,30 @@
+
+> sagi-worship@0.2.0 test:e2e
+> playwright test
+
+[WebServer] (node:63544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 15 tests using 2 workers
+
+(node:63547) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63546) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/phase2.spec.ts:57:1 › songs create/edit/search/duplicate/delete and reload persistence (3.2s)
+  ✓   2 [chromium] › e2e/phase2.spec.ts:97:1 › all section types, repeated order, keyboard and drag ordering survive reload (3.4s)
+  ✓   3 [chromium] › e2e/phase2.spec.ts:145:1 › schedules create/rename/duplicate/delete, active persistence and source-safe item removal (2.4s)
+  ✓   4 [chromium] › e2e/phase2.spec.ts:191:1 › schedule drag ordering and keyboard alternative persist (4.2s)
+  ✓   5 [chromium] › e2e/phase2.spec.ts:224:1 › deleting a referenced song cleans all schedule references after explicit confirmation (2.0s)
+  ✓   7 [chromium] › e2e/phase2.spec.ts:277:1 › secondary tabs are read-only and regain writing only after owner closes and reload (2.3s)
+  ✓   6 [chromium] › e2e/phase2.spec.ts:250:1 › invalid edits preserve canonical songs and drafts recover after reload (3.5s)
+  ✓   8 [chromium] › e2e/phase2.spec.ts:311:1 › lock stealing revokes the original editor and cancels future autosaves (1.9s)
+  ✓   9 [chromium] › e2e/phase2.spec.ts:340:1 › malformed data is reported and preserved alongside usable healthy songs (1.7s)
+  ✓  11 [chromium] › e2e/phase2.spec.ts:421:3 › responsive song editor and schedule at 320px (1.8s)
+  ✓  10 [chromium] › e2e/phase2.spec.ts:368:1 › production shell, song edits, schedules and ordering persist fully offline (4.0s)
+  ✓  12 [chromium] › e2e/phase2.spec.ts:421:3 › responsive song editor and schedule at 768px (1.9s)
+  ✓  13 [chromium] › e2e/phase2.spec.ts:421:3 › responsive song editor and schedule at 1440px (2.1s)
+  ✓  14 [chromium] › e2e/phase2.spec.ts:465:1 › failed canonical autosave preserves a durable draft and retries safely (1.5s)
+  ✓  15 [chromium] › e2e/phase2.spec.ts:506:1 › Phase 1 preference records survive song and schedule operations (1.7s)
+
+  15 passed (21.7s)

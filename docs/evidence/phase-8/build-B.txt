@@ -1,0 +1,30 @@
+
+> sagi-worship@0.7.0 build
+> tsc -b && vite build --config qa/phase8-build.config.mjs --outDir test-results/phase8-build-B
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1652 modules transformed.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /Users/macbookpro/Documents/SAGI/src/media/models.ts is dynamically imported by /Users/macbookpro/Documents/SAGI/src/data/restoreRepository.ts but also statically imported by /Users/macbookpro/Documents/SAGI/src/backup/validation.ts, /Users/macbookpro/Documents/SAGI/src/components/SlideCanvas.tsx, /Users/macbookpro/Documents/SAGI/src/data/mediaRepository.ts, /Users/macbookpro/Documents/SAGI/src/data/presentationRepository.ts, /Users/macbookpro/Documents/SAGI/src/data/repository.ts, /Users/macbookpro/Documents/SAGI/src/domain/models.ts, /Users/macbookpro/Documents/SAGI/src/media/assetReader.ts, /Users/macbookpro/Documents/SAGI/src/media/integrity.ts, /Users/macbookpro/Documents/SAGI/src/media/pdfAdapter.ts, /Users/macbookpro/Documents/SAGI/src/media/validation.ts, /Users/macbookpro/Documents/SAGI/src/presentation/controller.ts, /Users/macbookpro/Documents/SAGI/src/presentation/models.ts, /Users/macbookpro/Documents/SAGI/src/presentation/protocol.ts, /Users/macbookpro/Documents/SAGI/src/projector/preflight.ts, /Users/macbookpro/Documents/SAGI/src/recovery/diagnostics.ts, /Users/macbookpro/Documents/SAGI/src/recovery/restorePlan.ts, /Users/macbookpro/Documents/SAGI/src/themes/models.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+test-results/phase8-build-B/manifest.webmanifest                            0.39 kB
+test-results/phase8-build-B/assets/search.worker-AE4FS8YZ.js                0.55 kB
+test-results/phase8-build-B/index.html                                      0.69 kB │ gzip:   0.40 kB
+test-results/phase8-build-B/assets/import.worker-D0PER1ky.js                5.00 kB
+test-results/phase8-build-B/assets/backup.worker-BvAJ7_DU.js               36.01 kB
+test-results/phase8-build-B/assets/pdf.worker.min-CjEcRF4W.mjs          1,264.34 kB
+test-results/phase8-build-B/assets/index-CG8ZLcJK.css                      39.96 kB │ gzip:   9.41 kB
+test-results/phase8-build-B/assets/workbox-window.prod.es5-BBnX5xw4.js      5.75 kB │ gzip:   2.36 kB
+test-results/phase8-build-B/assets/pdf-CfhDiWmk.js                        437.62 kB │ gzip: 130.96 kB
+test-results/phase8-build-B/assets/index-C7aaZBnB.js                      482.62 kB │ gzip: 146.30 kB
+✓ built in 12.98s
+
+PWA v1.1.0
+mode      generateSW
+precache  207 entries (5615.84 KiB)
+files generated
+  test-results/phase8-build-B/sw.js
+  test-results/phase8-build-B/workbox-2fbc6a65.js

@@ -1,0 +1,29 @@
+{
+  "complete": true,
+  "bytes": 14117,
+  "parseMs": 3.699999988079071,
+  "totalMs": 153,
+  "results": [
+    {
+      "svgBytes": 625,
+      "renderMs": 66.19999998807907,
+      "foreignObject": false,
+      "externalHref": false,
+      "missingFamilyRetained": false
+    },
+    {
+      "svgBytes": 3772,
+      "renderMs": 53.70000001788139,
+      "foreignObject": false,
+      "externalHref": false,
+      "missingFamilyRetained": false
+    }
+  ],
+  "limitRejected": true,
+  "malformedRejected": true,
+  "heap": 10000000,
+  "errors": [],
+  "nonlocalRequests": [],
+  "offlineRerender": true,
+  "offlineImages": 2
+}

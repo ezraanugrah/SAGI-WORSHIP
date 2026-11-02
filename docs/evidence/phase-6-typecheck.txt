@@ -1,0 +1,4 @@
+
+> sagi-worship@0.6.0 typecheck
+> tsc --noEmit
+

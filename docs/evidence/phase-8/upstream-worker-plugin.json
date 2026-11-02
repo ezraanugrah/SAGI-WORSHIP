@@ -1,0 +1,11 @@
+{
+  "version": "4.0.0",
+  "dependencies": {
+    "ejs": "^7.0.1",
+    "json5": "^2.2.3",
+    "magic-string": "^0.30.21"
+  },
+  "engines": {
+    "node": ">=12"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-02T02:10:18.575Z",
+  "status": "PASS",
+  "levels": [
+    {
+      "images": 8,
+      "originalBytes": 7221271,
+      "assets": 8,
+      "blobBytes": 8033489,
+      "payloads": 16,
+      "searchMilliseconds": 42.36119000000008,
+      "heapUsed": 14405596
+    },
+    {
+      "images": 24,
+      "originalBytes": 21664456,
+      "assets": 24,
+      "blobBytes": 24101089,
+      "payloads": 48,
+      "searchMilliseconds": 58.13844499999959,
+      "heapUsed": 93028844
+    },
+    {
+      "images": 48,
+      "originalBytes": 43328573,
+      "assets": 48,
+      "blobBytes": 48201930,
+      "payloads": 96,
+      "searchMilliseconds": 48.105711000000156,
+      "heapUsed": 76096040
+    }
+  ],
+  "checks": [
+    {
+      "label": "48 independently decoded synthetic PNG files imported",
+      "status": "PASS"
+    },
+    {
+      "label": "actual decoding/playback synthetic-h264-aac.mp4",
+      "status": "PASS"
+    },
+    {
+      "label": "actual decoding/playback synthetic-vp8-vorbis.webm",
+      "status": "PASS"
+    },
+    {
+      "label": "two-page synthetic PDF prepared",
+      "status": "PASS"
+    },
+    {
+      "label": "stream adapter receives bounded real byte chunks",
+      "status": "PASS"
+    },
+    {
+      "label": "streamed bytes reopened and fully verified",
+      "status": "PASS"
+    },
+    {
+      "label": "restored asset count, payload count and byte totals match source",
+      "status": "PASS"
+    },
+    {
+      "label": "restored workload passes full-integrity Storage Health scan",
+      "status": "PASS"
+    },
+    {
+      "label": "complete synthetic workload staged and atomically restored in fresh context",
+      "status": "PASS"
+    }
+  ],
+  "scope": "short synthetic workload; no system-disk exhaustion; not a storage ceiling or soak qualification",
+  "browser": "156.0.8078.79",
+  "heapBefore": 3981952,
+  "media": [
+    {
+      "file": "synthetic-h264-aac.mp4",
+      "bytes": 311263,
+      "secondsObserved": 1.1
+    },
+    {
+      "file": "synthetic-vp8-vorbis.webm",
+      "bytes": 107937,
+      "secondsObserved": 1.1
+    }
+  ],
+  "archiveBytes": 48787385,
+  "downloadMilliseconds": 940.6239209999985,
+  "verifyMilliseconds": 826.2405089999993,
+  "heapAfterDownloadVerify": 66541948,
+  "streamed": {
+    "bytes": 48787385,
+    "maxChunk": 1769472
+  },
+  "restoreMilliseconds": 3169.1070480000017,
+  "destination": {
+    "assets": 51,
+    "blobBytes": 48677295,
+    "payloads": 102
+  },
+  "heapAfterWorkflows": 68525212,
+  "source": {
+    "assets": 51,
+    "blobBytes": 48677295,
+    "payloads": 102
+  }
+}
