@@ -1,6 +1,8 @@
 # Initial staging deployment audit
 
-Date: 2 November 2026. Status: **PRIVATE GITHUB PUSH VERIFIED; VERCEL SCOPE CONFIRMATION PENDING. PRODUCTION HOLD.**
+Date: 2 November 2026. Status: **PROTECTED VERCEL STAGING DEPLOYED; HOSTED REGRESSION 65 PASS / 1 FAIL. PRODUCTION HOLD.**
+
+The user confirmed the actual Vercel scope and deployment proceeded. See [the hosted verification report](HOSTED-STAGING-VERIFICATION.md) for the actual URL, protection checks, cloud build, offline/PDF/projector results and unresolved connection-state regression. The earlier checkpoints below are preserved as historical audit evidence.
 
 ## Deployment continuation
 
