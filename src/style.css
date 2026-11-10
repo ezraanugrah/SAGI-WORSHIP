@@ -3946,29 +3946,62 @@ footer > span:last-child {
 .sagi-ui .live-error {
   margin-top: 4px;
 }
-/* Live column: Live Output only, as large as the column allows (16:9). */
-.sagi-ui .output-area.live-output {
+/* Preview and Live columns: just the monitor, as large as the column allows (16:9). */
+.sagi-ui .output-area.output-fill {
   flex: 1 1 auto;
   min-height: 0;
   border-top: 0;
   padding: 8px 10px;
 }
-.sagi-ui .live-output .output-frame {
+.sagi-ui .output-fill .output-frame {
   flex: 1 1 auto;
   min-height: 120px;
   align-items: center;
   container-type: size;
 }
-.sagi-ui .live-output .output-frame .presentation-canvas {
+.sagi-ui .output-fill .output-frame .presentation-canvas {
   width: min(100cqw, calc(100cqh * 16 / 9));
 }
 @media (max-width: 760px) {
-  .sagi-ui .live-output .output-frame {
+  .sagi-ui .output-fill .output-frame {
     flex: 0 0 auto;
     min-height: 0;
     container-type: normal;
   }
-  .sagi-ui .live-output .output-frame .presentation-canvas {
+  .sagi-ui .output-fill .output-frame .presentation-canvas {
     width: 100%;
   }
+}
+
+/* "Edit teks" window over the workspace */
+.sagi-ui .edit-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 2px 9px;
+}
+.sagi-ui .dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8vh 16px 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+.sagi-ui .edit-dialog {
+  width: min(640px, 100%);
+  max-height: 84vh;
+  overflow: auto;
+  border: 1px solid var(--sg-edge);
+  background: var(--sg-panel);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+.sagi-ui .edit-dialog .slide-editor {
+  padding: 10px 12px 12px;
+}
+.sagi-ui .edit-dialog .slide-editor textarea {
+  font-size: 14px;
 }

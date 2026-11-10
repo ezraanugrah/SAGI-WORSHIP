@@ -1,4 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import {
+  previewReady,
+  closeTextEditor,
+  openTextEditor,
+} from "./previewHelpers";
 import { dragToWeek, openWeek } from "./dragHelpers";
 import { imageFile, videoFile } from "./mediaFixtures";
 import { signFixture } from "../src/scriptures/testFixtures";
@@ -20,9 +25,7 @@ async function song(page: Page) {
     .getByTestId("song-row")
     .getByRole("button", { name: /^Theme rehearsal/ })
     .click();
-  await expect(
-    page.getByRole("list", { name: "Daftar slide Preview" }),
-  ).toBeVisible();
+  await previewReady(page);
 }
 async function themes(page: Page) {
   await page.getByRole("tab", { name: /Themes/ }).click();
@@ -404,9 +407,11 @@ test("advanced resolution/scaling affects preparation only and themed Scripture 
   await expect(p.locator(".scripture-attribution")).toHaveText(
     data.translation.license.displayAttribution,
   );
+  await openTextEditor(page);
   await expect(
     page.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveAttribute("readonly", "");
+  await closeTextEditor(page);
   await page.getByRole("tab", { name: /Themes/ }).click();
   await page
     .getByRole("button", { name: "Pilih tema Typography", exact: true })

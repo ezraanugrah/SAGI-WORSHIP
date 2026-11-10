@@ -1,4 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import {
+  previewReady,
+  previewPosition,
+  openTextEditor,
+} from "./previewHelpers";
 import { imageFile, syntheticPDF } from "./mediaFixtures";
 import { activeSchedule, dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 
@@ -41,9 +46,7 @@ async function preview(page: Page, title: string) {
   await songRow(page, title)
     .getByRole("button", { name: new RegExp(`^${title}`) })
     .click();
-  await expect(
-    page.getByRole("list", { name: "Daftar slide Preview" }),
-  ).toBeVisible();
+  await previewReady(page);
 }
 
 test("status box shows READY, then LIVE, BLACK and CLEAR TEXT", async ({
@@ -219,7 +222,10 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
   );
   await expect(output.getByTestId("slide-alert")).toBeVisible();
   // The alert stays up when the next slide goes LIVE.
-  await page.getByRole("listitem", { name: /^Preview slide 2:/ }).click();
+  await page
+    .getByRole("button", { name: "Preview berikutnya", exact: true })
+    .click();
+  await expect(previewPosition(page)).toHaveText("Slide 2 of 2");
   await toolbar.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator(".slide-lines")).toHaveText(
     "Second toolbar line.",
@@ -256,18 +262,21 @@ test("Jadwal Ibadah expands the open item into slides and Live Output steps slid
   const slides = schedule.getByRole("list", { name: "Slide Expand song" });
   await expect(slides.getByRole("button")).toHaveCount(3);
   await slides.getByRole("button").nth(2).click();
-  await expect(
-    page.getByRole("listitem", { name: /^Preview slide 3:/ }),
-  ).toHaveAttribute("aria-current", "true");
+  await expect(slides.getByRole("button").nth(2)).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
   await expect(
     page.getByRole("region", { name: "Preview workspace" }),
   ).toContainText("Slide 3 of 3");
   await page
     .getByRole("button", { name: "Preview sebelumnya", exact: true })
     .click();
-  await expect(
-    page.getByRole("listitem", { name: /^Preview slide 2:/ }),
-  ).toHaveAttribute("aria-current", "true");
+  await expect(previewPosition(page)).toHaveText("Slide 2 of 3");
+  await expect(slides.getByRole("button").nth(1)).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   const live = page.getByRole("region", { name: "LIVE projector control" });
   await expect(live).toContainText("Slide 2 of 3");
@@ -336,9 +345,7 @@ test("Presentations tab lists only PDF presentations and drags them into the Wee
   await page
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
-  await expect(
-    page.getByRole("list", { name: "Daftar slide Preview" }),
-  ).toBeVisible();
+  await previewReady(page);
 });
 
 test("dropping a song before picking a Week fills Week 1", async ({ page }) => {
@@ -426,4 +433,48 @@ test("a newly added song is highlighted in Musik and dragged into Jadwal Ibadah 
   await song(page, "Yesus Baik", ["Yesus Baik synthetic line."]);
   await expect(page.getByLabel("Cari musik", { exact: true })).toHaveValue("");
   await expect(songRow(page, "Yesus Baik")).toBeInViewport();
+});
+
+test("Preview column is Preview Output only and text is edited in the Edit teks window", async ({
+  page,
+}) => {
+  await song(page, "Window song", [
+    "Window first line.",
+    "Window second line.",
+  ]);
+  await preview(page, "Window song");
+  const previewPane = page.getByRole("region", { name: "Preview workspace" });
+  // No slide list in Preview: just the monitor, Slide X of N, arrows, Edit teks.
+  await expect(previewPane.getByRole("list")).toHaveCount(0);
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
+  await expect(page.getByLabel("Teks slide sementara")).toHaveCount(0);
+  const dialog = await openTextEditor(page);
+  await expect(dialog.getByLabel("Teks slide sementara")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  // Unapplied changes ask before closing; Apply closes and updates Preview.
+  await openTextEditor(page);
+  await page.getByLabel("Teks slide sementara").fill("Edited in the window.");
+  await expect(
+    page.getByRole("button", { name: "Go Live", exact: true }),
+  ).toBeDisabled();
+  page.once("dialog", (d) => void d.dismiss());
+  await page
+    .getByRole("button", { name: "Tutup edit teks", exact: true })
+    .click();
+  await expect(page.getByLabel("Teks slide sementara")).toHaveValue(
+    "Edited in the window.",
+  );
+  await page
+    .getByRole("button", { name: "Apply Preview", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Edit teks sebelum LIVE" }),
+  ).toHaveCount(0);
+  await expect(previewPane.locator(".slide-lines")).toHaveText(
+    "Edited in the window.",
+  );
+  await expect(
+    page.getByRole("button", { name: "Go Live", exact: true }),
+  ).toBeEnabled();
 });

@@ -36,7 +36,7 @@ export function LiveControls({
     >
       <div className="pane-head">
         <h2 className="pane-title">
-          Live
+          Live Output
           <span className="pane-subject">
             {live
               ? ` - ${live.deck.frames[live.index]?.title || live.deck.label}`
@@ -55,8 +55,7 @@ export function LiveControls({
         </span>
       </div>
       {/* Live column = Live Output only (slides are chosen in Preview). */}
-      <div className="output-area live-output">
-        <div className="box-label">Live Output</div>
+      <div className="output-area output-fill">
         <div className="output-frame">
           <div className="presentation-canvas">
             <SlideCanvas

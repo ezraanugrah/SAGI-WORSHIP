@@ -1,4 +1,9 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import {
+  previewPosition,
+  closeTextEditor,
+  openTextEditor,
+} from "./previewHelpers";
 import { dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 import {
   imageFile,
@@ -117,6 +122,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
     .getByTestId("song-row")
     .getByRole("button", { name: /^Backup composition/ })
     .click();
+  await openTextEditor(page);
   await page
     .getByLabel("Teks slide sementara", { exact: true })
     .fill("Original portable override.");
@@ -151,11 +157,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
   await page
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
-  await expect(
-    page
-      .getByRole("list", { name: "Daftar slide Preview" })
-      .getByRole("listitem"),
-  ).toHaveCount(2);
+  await expect(previewPosition(page)).toHaveText(/ of 2$/);
   await page.getByRole("tab", { name: /Themes/ }).click();
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
   await page.getByLabel("Nama tema", { exact: true }).fill("Portable theme");
@@ -227,9 +229,11 @@ test("offline portable backup restores mixed image, theme, song and settings int
     .getByTestId("song-row")
     .getByRole("button", { name: /^Backup composition/ })
     .click();
+  await openTextEditor(target);
   await expect(
     target.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveValue("Original portable override.");
+  await closeTextEditor(target);
   await target.getByRole("tab", { name: /Scriptures/ }).click();
   await target.getByLabel("Referensi ayat", { exact: true }).fill("John 3:16");
   await target
@@ -249,11 +253,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
   await target
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
-  await expect(
-    target
-      .getByRole("list", { name: "Daftar slide Preview" })
-      .getByRole("listitem"),
-  ).toHaveCount(2);
+  await expect(previewPosition(target)).toHaveText(/ of 2$/);
   await target.getByRole("tab", { name: /Themes/ }).click();
   await expect(
     target.getByRole("button", {

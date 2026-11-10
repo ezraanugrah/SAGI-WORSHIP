@@ -1,4 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import {
+  closeTextEditor,
+  openTextEditor,
+  previewPosition,
+} from "./previewHelpers";
 import { dragToWeek, openWeek } from "./dragHelpers";
 import { fixtureDataset, signFixture } from "../src/scriptures/testFixtures";
 // Playwright runs in Node; keep Node-only globals out of the browser app type environment.
@@ -167,9 +172,11 @@ test("two windows retain frozen LIVE after deletion; mixed schedule duplication,
     .last()
     .locator(".item-inspect")
     .click();
+  await openTextEditor(page);
   await expect(
     page.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveAttribute("readonly", "");
+  await closeTextEditor(page);
   const p = await output(page);
   await expect(p.locator(".slide-lines")).toHaveCount(0);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
@@ -406,11 +413,10 @@ test("long exact Scripture text paginates without dropping text or attribution",
   ).toBeVisible();
   await select(page, "John 3:16");
   await page.getByRole("button", { name: "Preview ayat", exact: true }).click();
-  const frames = page
-    .getByRole("list", { name: "Daftar slide Preview" })
-    .getByRole("listitem");
-  await expect(frames.first()).toBeVisible();
-  const count = await frames.count();
+  await expect(previewPosition(page)).toHaveText(/^Slide 1 of \d+$/);
+  const count = Number(
+    (await previewPosition(page).textContent())!.split(" of ")[1],
+  );
   expect(count).toBeGreaterThan(1);
   const p = await output(page);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
@@ -461,9 +467,11 @@ test("footer overflow keeps the last valid frame and cannot block emergency Blac
     .selectOption({ label: "Overflow fixture · SYN (2.0)" });
   await select(page, "John 3:17");
   await page.getByRole("button", { name: "Preview ayat", exact: true }).click();
+  await openTextEditor(page);
   await expect(
     page.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveValue(data.verses[1].text);
+  await closeTextEditor(page);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(page.getByTestId("connection-status")).toHaveText("Error");
   await expect(p.locator(".slide-lines")).toHaveText(data.verses[0].text);

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { previewPosition, previewReady } from "./previewHelpers";
 import { dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 import {
   imageFile,
@@ -25,9 +26,7 @@ async function prepare(page: Page) {
   await page
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
-  await expect(
-    page.getByRole("list", { name: "Daftar slide Preview" }),
-  ).toBeVisible();
+  await previewReady(page);
 }
 async function output(page: Page) {
   const pending = page.waitForEvent("popup");
@@ -136,11 +135,7 @@ test("PDF rasterizes selected pages offline and mixed schedules duplicate/reorde
   );
   await expect(page.getByTestId("schedule-item")).toHaveCount(2);
   await prepare(page);
-  await expect(
-    page
-      .getByRole("list", { name: "Daftar slide Preview" })
-      .getByRole("listitem"),
-  ).toHaveCount(2);
+  await expect(previewPosition(page)).toHaveText(/ of 2$/);
   const p = await output(page);
   await live(page);
   await expect(p.locator(".media-canvas img")).toBeVisible();

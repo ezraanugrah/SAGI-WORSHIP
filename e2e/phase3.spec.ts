@@ -1,4 +1,9 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import {
+  previewPosition,
+  previewReady,
+  openTextEditor,
+} from "./previewHelpers";
 import { dragToWeek, openWeek } from "./dragHelpers";
 const first = "Original first verse for projector verification.",
   chorus = "Original chorus written for software verification.";
@@ -37,9 +42,7 @@ async function prepare(page: Page, title = "Projection composition") {
   await row(page, title)
     .getByRole("button", { name: new RegExp(`^${title}`) })
     .click();
-  await expect(
-    page.getByRole("list", { name: "Daftar slide Preview" }),
-  ).toBeVisible();
+  await previewReady(page);
 }
 async function openOutput(page: Page) {
   const popup = page.waitForEvent("popup");
@@ -111,8 +114,12 @@ test("two real windows preserve Preview/LIVE isolation and all visibility/naviga
   const output = await start(page),
     preview = page.getByRole("region", { name: "Preview workspace" }),
     live = page.getByRole("region", { name: "LIVE projector control" });
-  await preview.getByRole("listitem", { name: /Preview slide 2:/ }).click();
+  await preview
+    .getByRole("button", { name: "Preview berikutnya", exact: true })
+    .click();
+  await expect(previewPosition(preview)).toHaveText(/^Slide 2 of/);
   await expect(output.locator(".slide-lines")).toHaveText(first);
+  await openTextEditor(page);
   await preview
     .getByLabel("Teks slide sementara", { exact: true })
     .fill("Original temporary override.");
@@ -213,9 +220,7 @@ test("scheduled navigation crosses repeated sections and schedule items using fr
     .getByRole("button")
     .first()
     .click();
-  await expect(
-    page.getByRole("listitem", { name: /Preview slide/ }),
-  ).toHaveCount(4);
+  await expect(previewPosition(page)).toHaveText(/ of 4$/);
   const output = await openOutput(page);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   for (const text of [first, chorus, first, first]) {
@@ -481,6 +486,7 @@ test("presentation shortcuts never intercept source/Preview text editing", async
     "data-mode",
     "normal",
   );
+  await openTextEditor(page);
   await page.getByLabel("Teks slide sementara", { exact: true }).focus();
   await page.keyboard.press("c");
   await expect(output.getByTestId("slide-canvas")).toHaveAttribute(

@@ -1,8 +1,7 @@
 import { themeFor } from "../presentation/appearance";
-import { revealInPane } from "./revealInPane";
 import { backgroundIdentity } from "../themes/models";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
 import { SlideCanvas } from "./SlideCanvas";
 import {
   PresentationController,
@@ -78,7 +77,7 @@ export function PreviewWorkspace({
       JSON.stringify(style) !== JSON.stringify(preview.deck.style));
   useEffect(() => onDirty(dirty), [dirty, onDirty]);
   async function apply(reset = false) {
-    if (!preview || !style) return;
+    if (!preview || !style) return false;
     setSaving(true);
     try {
       await controller.apply(
@@ -88,8 +87,10 @@ export function PreviewWorkspace({
         style,
         reset,
       );
+      return true;
     } catch (e) {
       controller.report(e);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -103,10 +104,25 @@ export function PreviewWorkspace({
     controller.select(index);
   }
   const frameKind = preview?.deck.frames[preview.index].kind;
-  const current = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    revealInPane(current.current);
-  }, [preview?.deck.id, preview?.index]);
+  // Text editing before LIVE happens in a small window ("Edit teks").
+  const [editing, setEditing] = useState(false);
+  const discard = () => {
+    if (!preview) return;
+    setText(frameText(preview.deck, preview.index));
+    setStyle(clone(preview.deck.style));
+  };
+  useEffect(() => {
+    if (!preview || frameKind === "media") setEditing(false);
+  }, [preview, frameKind]);
+  const closeEditor = () => {
+    if (
+      dirty &&
+      !window.confirm("Buang perubahan Preview yang belum diterapkan?")
+    )
+      return;
+    discard();
+    setEditing(false);
+  };
   const editor = preview && frameKind !== "media" && (
     <fieldset
       className="slide-editor"
@@ -117,9 +133,10 @@ export function PreviewWorkspace({
         <p className="field-help">Teks Scripture baca-saja.</p>
       )}
       <textarea
+        autoFocus
         aria-label="Teks slide sementara"
         maxLength={30000}
-        rows={Math.min(6, Math.max(2, text.split("\n").length))}
+        rows={Math.min(10, Math.max(4, text.split("\n").length + 1))}
         readOnly={frameKind === "scripture"}
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -170,10 +187,7 @@ export function PreviewWorkspace({
           className="text-action discard"
           aria-label="Buang perubahan"
           disabled={!dirty}
-          onClick={() => {
-            setText(frameText(preview.deck, preview.index));
-            setStyle(clone(preview.deck.style));
-          }}
+          onClick={discard}
         >
           Buang
         </button>
@@ -181,14 +195,14 @@ export function PreviewWorkspace({
           className="button secondary"
           aria-label="Reset ke sumber"
           title="Kembalikan teks sumber"
-          onClick={() => void apply(true)}
+          onClick={() => void apply(true).then((ok) => ok && setEditing(false))}
         >
           Reset
         </button>
         <button
           className="button primary"
           disabled={!dirty}
-          onClick={() => void apply()}
+          onClick={() => void apply().then((ok) => ok && setEditing(false))}
         >
           Apply Preview
         </button>
@@ -202,15 +216,14 @@ export function PreviewWorkspace({
       </p>
     </fieldset>
   );
+  const frame = preview?.deck.frames[preview.index];
   return (
     <section className="panel preview" aria-label="Preview workspace">
       <div className="pane-head">
         <h2 className="pane-title">
-          Preview
+          Preview Output
           <span className="pane-subject">
-            {preview
-              ? ` - ${preview.deck.frames[preview.index]?.title || preview.deck.label}`
-              : ""}
+            {preview ? ` - ${frame?.title || preview.deck.label}` : ""}
           </span>
         </h2>
         {state.preparing && (
@@ -219,63 +232,9 @@ export function PreviewWorkspace({
           </span>
         )}
       </div>
-      <div className="pane-body slide-rows-wrap">
-        {preview ? (
-          <div
-            className="slide-rows"
-            role="list"
-            aria-label="Daftar slide Preview"
-          >
-            {preview.deck.frames.map((frame, index) => {
-              const chosen = index === preview.index;
-              return (
-                <div
-                  key={frame.id}
-                  ref={chosen ? current : undefined}
-                  role="listitem"
-                  tabIndex={0}
-                  aria-label={`Preview slide ${index + 1}: ${frame.title} ${frame.label}`}
-                  aria-current={chosen ? "true" : undefined}
-                  className={chosen ? "slide-row chosen" : "slide-row"}
-                  onClick={() => {
-                    if (!chosen) select(index);
-                  }}
-                  onKeyDown={(e) => {
-                    if (
-                      e.target === e.currentTarget &&
-                      (e.key === "Enter" || e.key === " ")
-                    ) {
-                      e.preventDefault();
-                      if (!chosen) select(index);
-                    }
-                  }}
-                >
-                  <span className="slide-num">{index + 1}</span>
-                  <div className="slide-main">
-                    <div className="slide-tag" data-kind={frame.kind ?? "song"}>
-                      {frame.label}
-                      <small>{frame.title}</small>
-                    </div>
-                    {chosen && editor ? (
-                      editor
-                    ) : (
-                      <div className="slide-text">
-                        {slideSummary(preview.deck, index)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="box-empty">
-            Pilih lagu atau item jadwal untuk menyiapkan slide.
-          </p>
-        )}
-      </div>
-      <div className="output-area">
-        <div className="box-label">Preview Output</div>
+      {/* Preview column = Preview Output only; slides are picked in the
+          Jadwal Ibadah or with the arrows. */}
+      <div className="output-area output-fill">
         <div className="output-frame">
           <div className="presentation-canvas">
             <SlideCanvas
@@ -288,10 +247,10 @@ export function PreviewWorkspace({
           </div>
         </div>
         <div className="output-foot">
-          <span>
+          <span data-testid="preview-position">
             {preview
               ? `Slide ${preview.index + 1} of ${preview.deck.frames.length}`
-              : "Belum ada slide"}
+              : ""}
           </span>
           <div className="step-buttons">
             <button
@@ -313,6 +272,19 @@ export function PreviewWorkspace({
               <ChevronRight size={15} />
             </button>
           </div>
+          <button
+            className="button secondary edit-open"
+            aria-haspopup="dialog"
+            title={
+              frameKind === "media"
+                ? "Slide media tidak punya teks"
+                : "Ubah teks slide ini sebelum Go Live"
+            }
+            disabled={!preview || frameKind === "media"}
+            onClick={() => setEditing(true)}
+          >
+            <Pencil size={13} /> Edit teks
+          </button>
         </div>
         {backgroundPlayback && (
           <div className="output-extra">
@@ -351,11 +323,43 @@ export function PreviewWorkspace({
           </p>
         )}
       </div>
+      {editing && editor && (
+        <div
+          className="dialog-backdrop"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") closeEditor();
+          }}
+        >
+          <div
+            className="edit-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit teks sebelum LIVE"
+          >
+            <div className="pane-head">
+              <h3 className="pane-title">
+                Edit teks
+                <span className="pane-subject">
+                  {frame ? ` - ${frame.title} · ${frame.label}` : ""}
+                </span>
+              </h3>
+              <button
+                className="pane-icon"
+                aria-label="Tutup edit teks"
+                onClick={closeEditor}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            {editor}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
-/** One-line description of a slide for the Preview/LIVE slide lists. */
+/** One-line description of a slide (Jadwal Ibadah slide list). */
 export function slideSummary(deck: Deck, index: number) {
   const frame = deck.frames[index];
   if (frame.kind === "media")

@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import { previewReady } from "./previewHelpers";
 import { imageFile } from "./mediaFixtures";
 
 // v0.7.1 regression tests for the dual-display audit (H1–H4).
@@ -44,9 +45,7 @@ async function prepare(page: Page) {
   await row(page)
     .getByRole("button", { name: new RegExp(`^${title}`) })
     .click();
-  await expect(
-    page.getByRole("list", { name: "Daftar slide Preview" }),
-  ).toBeVisible();
+  await previewReady(page);
 }
 async function openOutput(page: Page) {
   const popup = page.waitForEvent("popup");
