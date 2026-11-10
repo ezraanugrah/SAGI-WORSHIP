@@ -7,6 +7,7 @@ import { ScripturesLibrary } from "./ScripturesLibrary";
 import type { useScriptureServices } from "../hooks/useScriptures";
 import { useEffect, useCallback, useRef } from "react";
 import { PreviewWorkspace, slideSummary } from "./PreviewWorkspace";
+import { useAutoLive } from "../hooks/useAutoLive";
 import type { MediaSelection } from "../media/models";
 import { LiveControls } from "./LiveControls";
 import {
@@ -57,6 +58,10 @@ export function Phase2Dashboard({
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
   const [previewDirty, setPreviewDirty] = useState(false);
+  const [autoLive, setAutoLive] = useAutoLive(presentation, presentationState, {
+    editable,
+    dirty: previewDirty,
+  });
   const markDirty = useCallback((dirty: boolean) => setPreviewDirty(dirty), []);
   // The top-bar toolbar's Go Live follows the same "unapplied Preview" rule.
   useEffect(() => {
@@ -359,6 +364,8 @@ export function Phase2Dashboard({
             state={presentationState}
             editable={editable}
             onDirty={markDirty}
+            autoLive={autoLive}
+            onAutoLive={setAutoLive}
             videoDefaults={{
               loop: prefs.loopPreview,
               muted: prefs.muted,
@@ -467,6 +474,11 @@ export function Phase2Dashboard({
               />
             ) : tab === 4 ? (
               <ThemesLibrary
+                onUploadImage={async (file) => {
+                  const asset = await mediaServices.importImage(file);
+                  await reload();
+                  return asset;
+                }}
                 services={themeServices}
                 preview={presentationState.preview}
                 data={data}

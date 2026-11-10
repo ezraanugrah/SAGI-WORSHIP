@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ImagePlus } from "lucide-react";
 import { TypographyEditor } from "./TypographyEditor";
 import { SlideCanvas } from "./SlideCanvas";
 import {
@@ -13,6 +14,23 @@ import { layoutText } from "../presentation/appearance";
 import { browserMeasure } from "../presentation/layout";
 import type { Deck, Frame, ScriptureCaption } from "../presentation/models";
 import type { MediaAsset } from "../media/models";
+/** Theme spec with `asset` as a full-screen image background. */
+export function imageBackground(spec: ThemeSpec, a: MediaAsset): ThemeSpec {
+  return {
+    ...spec,
+    background: {
+      kind: "image",
+      asset: a.original,
+      poster: a.thumbnail,
+      libraryId: a.id,
+      fit: "cover",
+      x: 50,
+      y: 50,
+      dim: 0.35,
+      fallback: "#08090b",
+    },
+  };
+}
 export function ThemeEditor({
   initial,
   assets,
@@ -22,7 +40,10 @@ export function ThemeEditor({
   reducedMotion = true,
   contrastWarnings = true,
   sample,
+  onUploadImage,
 }: {
+  /** Import an image file (Themes "Upload gambar") and return it. */
+  onUploadImage?: (file: File) => Promise<MediaAsset>;
   initial?: ThemeSnapshot;
   assets: MediaAsset[];
   editable: boolean;
@@ -45,7 +66,9 @@ export function ThemeEditor({
     [error, setError] = useState(""),
     [saving, setSaving] = useState(false),
     [motion, setMotion] = useState(false),
-    [deck, setDeck] = useState<Deck | null>(null);
+    [deck, setDeck] = useState<Deck | null>(null),
+    [uploading, setUploading] = useState(false);
+  const upload = useRef<HTMLInputElement>(null);
   useEffect(() => {
     let active = true;
     void document.fonts.ready.then(() => {
@@ -152,7 +175,11 @@ export function ThemeEditor({
     else {
       const a = assets.find((a) => a.kind === kind);
       if (!a) {
-        setError("Impor media kompatibel terlebih dahulu.");
+        setError(
+          kind === "image"
+            ? "Belum ada gambar. Klik “Upload gambar” untuk memilih gambar."
+            : "Impor video di tab Media terlebih dahulu.",
+        );
         return;
       }
       if (kind === "video" && !reducedMotion) setMotion(true);
@@ -251,6 +278,41 @@ export function ThemeEditor({
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
+            {onUploadImage && (
+              <div className="theme-upload">
+                <button
+                  type="button"
+                  className="button secondary"
+                  disabled={!editable || uploading}
+                  onClick={() => upload.current?.click()}
+                >
+                  <ImagePlus size={14} />{" "}
+                  {uploading ? "Mengunggah…" : "Upload gambar"}
+                </button>
+                <input
+                  ref={upload}
+                  className="sr-only"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  aria-label="File gambar tema"
+                  disabled={!editable || uploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    setUploading(true);
+                    setError("");
+                    onUploadImage(file)
+                      .then((a) => setSpec(imageBackground(spec, a)))
+                      .catch((err) => setError((err as Error).message))
+                      .finally(() => setUploading(false));
+                  }}
+                />
+                <span className="field-help">
+                  JPG · PNG · WebP · jadi background tema
+                </span>
+              </div>
+            )}
             <label>
               Jenis background
               <select

@@ -12,6 +12,17 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     serviceWorkers: "allow",
+    // Older suites check that Preview and LIVE stay separate, so they run with
+    // "Langsung ke Live" off; tests for that switch turn it on themselves.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: "http://127.0.0.1:4174",
+          localStorage: [{ name: "sagi:auto-live", value: "off" }],
+        },
+      ],
+    },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

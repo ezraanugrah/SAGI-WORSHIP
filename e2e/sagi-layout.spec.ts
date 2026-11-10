@@ -478,3 +478,108 @@ test("Preview column is Preview Output only and text is edited in the Edit teks 
     page.getByRole("button", { name: "Go Live", exact: true }),
   ).toBeEnabled();
 });
+
+test("Langsung ke Live: Preview Output also appears in Live Output", async ({
+  page,
+}) => {
+  await song(page, "Mirror song", [
+    "Mirror line one.",
+    "Mirror line two.",
+    "Mirror line three.",
+  ]);
+  const toggle = page.getByRole("button", {
+    name: "Langsung ke Live",
+    exact: true,
+  });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  const status = page.getByTestId("app-status");
+  await preview(page, "Mirror song");
+  // Without pressing Go Live, the Preview slide is on Live Output.
+  await expect(status).toHaveText(/LIVE/);
+  await expect(live.locator(".slide-lines")).toHaveText("Mirror line one.");
+  const next = page.getByRole("button", {
+    name: "Preview berikutnya",
+    exact: true,
+  });
+  await next.click();
+  await expect(live).toContainText("Slide 2 of 3");
+  await expect(live.locator(".slide-lines")).toHaveText("Mirror line two.");
+  // Black stays on while moving to another slide.
+  await page.getByRole("button", { name: "Black", exact: true }).click();
+  await next.click();
+  await expect(live).toContainText("Slide 3 of 3");
+  await expect(status).toHaveText(/BLACK/);
+  await page.getByRole("button", { name: "Black", exact: true }).click();
+  await expect(live.locator(".slide-lines")).toHaveText("Mirror line three.");
+  // Unapplied text stays in Preview until Apply.
+  await openTextEditor(page);
+  await page.getByLabel("Teks slide sementara").fill("Mirror edited.");
+  await expect(live.locator(".slide-lines")).toHaveText("Mirror line three.");
+  await page
+    .getByRole("button", { name: "Apply Preview", exact: true })
+    .click();
+  await expect(live.locator(".slide-lines")).toHaveText("Mirror edited.");
+  // Switched off: Preview changes no longer reach LIVE; the choice is kept.
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await page
+    .getByRole("button", { name: "Preview sebelumnya", exact: true })
+    .click();
+  await expect(previewPosition(page)).toHaveText("Slide 2 of 3");
+  await expect(live).toContainText("Slide 3 of 3");
+  await toggle.click();
+  await expect(live).toContainText("Slide 2 of 3");
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Langsung ke Live", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("Themes can upload an image as a theme background", async ({ page }) => {
+  await page.getByRole("tab", { name: "Themes", exact: true }).click();
+  // "Upload gambar" next to "Buat tema": a new theme with that image.
+  await page
+    .getByLabel("Upload gambar untuk tema baru", { exact: true })
+    .setInputFiles(await imageFile(page, "altar.png", "#3b82f6"));
+  const editor = page.getByRole("region", { name: "Editor tema" });
+  await expect(editor).toBeVisible();
+  await expect(editor.getByLabel("Nama tema", { exact: true })).toHaveValue(
+    "altar",
+  );
+  await expect(
+    editor.getByLabel("Jenis background", { exact: true }),
+  ).toHaveValue("image");
+  await expect(
+    editor
+      .getByLabel("Media background", { exact: true })
+      .locator("option:checked"),
+  ).toHaveText("altar.png");
+  await editor
+    .getByRole("button", { name: "Simpan tema", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Pilih tema altar", exact: true }),
+  ).toBeVisible();
+  // Inside the editor: uploading the same image again reuses it from Media.
+  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
+  await page.getByLabel("Nama tema", { exact: true }).fill("Altar kedua");
+  await page
+    .getByLabel("File gambar tema", { exact: true })
+    .setInputFiles(await imageFile(page, "altar.png", "#3b82f6"));
+  await expect(
+    page.getByLabel("Jenis background", { exact: true }),
+  ).toHaveValue("image");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Pilih tema Altar kedua", exact: true }),
+  ).toBeVisible();
+  // The image lives once in the Media library.
+  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Pilih media altar.png", exact: true }),
+  ).toHaveCount(1);
+});

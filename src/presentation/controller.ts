@@ -510,7 +510,11 @@ export class PresentationController {
       throw new Error("Preview berubah saat Apply");
     this.update({ preview: captured });
   }
-  goLive() {
+  /**
+   * Send the Preview slide to LIVE. `keepMode` keeps Black/Clear Text as it
+   * is (used when LIVE follows Preview automatically).
+   */
+  goLive(options: { keepMode?: boolean } = {}) {
     this.authorize();
     if (this.state.recovery)
       throw new Error("Pilih Resume atau Discard checkpoint terlebih dahulu.");
@@ -519,13 +523,16 @@ export class PresentationController {
     if (!this.state.preview || this.state.preparing)
       throw new Error("Preview belum siap.");
     const preview = clone(this.state.preview);
-    if (mediaRefs(preview.deck).length) return this.mediaGoLive(preview);
+    const mode = options.keepMode
+      ? (this.state.live?.mode ?? "normal")
+      : "normal";
+    if (mediaRefs(preview.deck).length) return this.mediaGoLive(preview, mode);
     this.intent++;
     this.transition(
       this.withPausedVideo({
         deck: preview.deck,
         index: preview.index,
-        mode: "normal",
+        mode,
         ...this.keptAlert(),
       }),
     );
@@ -535,7 +542,7 @@ export class PresentationController {
     const alert = this.state.live?.alert;
     return alert ? { alert: { text: alert.text } } : {};
   }
-  private async mediaGoLive(preview: Preview) {
+  private async mediaGoLive(preview: Preview, mode: Live["mode"] = "normal") {
     const intent = ++this.intent;
     this.authorize();
     await this.repo
@@ -550,7 +557,7 @@ export class PresentationController {
       this.withPausedVideo({
         deck: preview.deck,
         index: preview.index,
-        mode: "normal",
+        mode,
         ...this.keptAlert(),
       }),
     );

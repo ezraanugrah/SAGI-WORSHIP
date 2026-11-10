@@ -296,6 +296,11 @@ test("corrupt media cannot replace valid audience output and Black works through
   await prepare(page);
   const p = await output(page);
   await live(page);
+  // Wait until the projector shows the first image before remembering it.
+  await expect(p.locator(".media-canvas")).toHaveAttribute(
+    "data-asset-id",
+    /.+/,
+  );
   const old = await p.locator(".media-canvas").getAttribute("data-asset-id");
   await image(page, "corrupt.png", "#00ff00");
   await prepare(page);

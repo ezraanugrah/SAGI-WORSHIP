@@ -4005,3 +4005,57 @@ footer > span:last-child {
 .sagi-ui .edit-dialog .slide-editor textarea {
   font-size: 14px;
 }
+.sagi-ui .auto-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 1px solid var(--sg-edge);
+  background: none;
+  color: var(--sg-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sagi-ui .auto-live.on {
+  border-color: var(--sg-orange);
+  background: #3a2a12;
+  color: var(--sg-orange);
+}
+.sagi-ui .output-foot {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.sagi-ui .section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sagi-ui .section-actions .button,
+.sagi-ui .theme-upload .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.sagi-ui .theme-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+/* Hidden file pickers stay 1px even inside forms that stretch inputs. */
+.sagi-ui input[type="file"].sr-only {
+  position: absolute;
+  width: 1px;
+  min-width: 0;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

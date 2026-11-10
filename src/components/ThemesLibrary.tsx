@@ -1,10 +1,13 @@
 import { frameText, type Preview } from "../presentation/models";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ImagePlus } from "lucide-react";
+import type { MediaAsset } from "../media/models";
+import { defaultType } from "../themes/models";
 import type { useThemes } from "../hooks/useThemes";
 import type { Workspace } from "../domain/models";
 import type { ThemeSnapshot, ThemeSpec } from "../themes/models";
 import { cssBackground } from "../themes/builtins";
-import { ThemeEditor } from "./ThemeEditor";
+import { ThemeEditor, imageBackground } from "./ThemeEditor";
 import { AssetThumbnail } from "./MediaLibrary";
 export function ThemesLibrary({
   services,
@@ -13,7 +16,10 @@ export function ThemesLibrary({
   onApply,
   onChanged,
   preview,
+  onUploadImage,
 }: {
+  /** Import an image file and return it (used for image backgrounds). */
+  onUploadImage?: (file: File) => Promise<MediaAsset>;
   services: ReturnType<typeof useThemes>;
   data: Workspace;
   editable: boolean;
@@ -57,17 +63,75 @@ export function ThemesLibrary({
   }
   const create = () =>
     setEditor({ id: `theme:${crypto.randomUUID()}`, revision: 0 });
+  const upload = useRef<HTMLInputElement>(null);
+  /** "Upload gambar": a new theme with the uploaded image as background. */
+  async function createFromImage(file: File) {
+    if (!onUploadImage) return;
+    setBusy(true);
+    setError("");
+    try {
+      const asset = await onUploadImage(file);
+      const id = `theme:${crypto.randomUUID()}`;
+      setEditor({
+        id,
+        revision: 0,
+        initial: {
+          id,
+          revision: 0,
+          name: file.name.replace(/\.[^.]+$/, "").slice(0, 80),
+          spec: imageBackground(
+            {
+              background: { kind: "solid", color: "#08090b" },
+              type: defaultType,
+            },
+            asset,
+          ),
+          signature: "",
+        },
+      });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <div className="themes-library">
       <div className="section-heading">
         <h3>Themes Library</h3>
-        <button
-          className="button primary"
-          disabled={!editable || busy || !!editor}
-          onClick={create}
-        >
-          Buat tema
-        </button>
+        <div className="section-actions">
+          {onUploadImage && (
+            <>
+              <button
+                className="button secondary"
+                disabled={!editable || busy || !!editor}
+                onClick={() => upload.current?.click()}
+              >
+                <ImagePlus size={14} /> Upload gambar
+              </button>
+              <input
+                ref={upload}
+                className="sr-only"
+                type="file"
+                accept=".jpg,.jpeg,.png,.webp"
+                aria-label="Upload gambar untuk tema baru"
+                disabled={!editable || busy || !!editor}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void createFromImage(file);
+                }}
+              />
+            </>
+          )}
+          <button
+            className="button primary"
+            disabled={!editable || busy || !!editor}
+            onClick={create}
+          >
+            Buat tema
+          </button>
+        </div>
       </div>
       {services.error && <p role="alert">{services.error}</p>}
       {error && <p role="alert">{error}</p>}
@@ -76,6 +140,7 @@ export function ThemesLibrary({
           key={editor.id}
           initial={editor.initial}
           assets={data.mediaAssets ?? []}
+          onUploadImage={onUploadImage}
           editable={editable && !busy}
           reducedMotion={services.settings.reducedMotion}
           contrastWarnings={services.settings.contrastWarnings}

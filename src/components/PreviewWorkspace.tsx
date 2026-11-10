@@ -1,7 +1,7 @@
 import { themeFor } from "../presentation/appearance";
 import { backgroundIdentity } from "../themes/models";
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, X, Zap } from "lucide-react";
 import { SlideCanvas } from "./SlideCanvas";
 import {
   PresentationController,
@@ -19,11 +19,16 @@ export function PreviewWorkspace({
   editable,
   onDirty,
   videoDefaults,
+  autoLive = false,
+  onAutoLive,
 }: {
   controller: PresentationController;
   state: PresentationState;
   editable: boolean;
   onDirty: (dirty: boolean) => void;
+  /** LIVE follows Preview automatically ("Langsung ke Live"). */
+  autoLive?: boolean;
+  onAutoLive?: (on: boolean) => void;
   videoDefaults?: { loop: boolean; muted: boolean; volume: number };
 }) {
   const preview = state.preview,
@@ -285,6 +290,21 @@ export function PreviewWorkspace({
           >
             <Pencil size={13} /> Edit teks
           </button>
+          {onAutoLive && (
+            <button
+              className={autoLive ? "auto-live on" : "auto-live"}
+              aria-pressed={autoLive}
+              title={
+                autoLive
+                  ? "Aktif: slide Preview langsung tampil di Live Output. Klik untuk menyiapkan tanpa tampil."
+                  : "Nonaktif: tampilkan ke jemaat dengan Go Live."
+              }
+              disabled={!editable}
+              onClick={() => onAutoLive(!autoLive)}
+            >
+              <Zap size={13} /> Langsung ke Live
+            </button>
+          )}
         </div>
         {backgroundPlayback && (
           <div className="output-extra">

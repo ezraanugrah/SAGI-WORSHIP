@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { WriterGate } from "../data/writer";
 import { MediaRepository } from "../data/mediaRepository";
 import { prepareFile } from "../media/importCoordinator";
+import type { MediaAsset } from "../media/models";
 export function useMedia(gate: WriterGate) {
   const [repo] = useState(() => new MediaRepository(gate)),
     [status, setStatus] = useState(""),
@@ -68,5 +69,41 @@ export function useMedia(gate: WriterGate) {
       }
     }
   }
-  return { repo, status, working, importFiles, cancel };
+  /**
+   * Import one image for a theme background and return it. An identical image
+   * already in the Media library is reused instead of being rejected.
+   */
+  async function importImage(file: File): Promise<MediaAsset> {
+    setWorking(true);
+    setStatus(`Memvalidasi ${file.name}`);
+    try {
+      const prepared = await prepareFile(file);
+      if (prepared.asset.kind !== "image")
+        throw new Error("Pilih file gambar (JPG, PNG, atau WebP).");
+      const existing = (await repo.list()).assets.find(
+        (a) => a.original.digest === prepared.asset.original.digest,
+      );
+      if (existing) {
+        setStatus(`${file.name}: sudah ada di Media, dipakai ulang`);
+        return existing;
+      }
+      const estimate = await navigator.storage?.estimate();
+      if (
+        estimate?.quota &&
+        estimate.usage !== undefined &&
+        estimate.quota - estimate.usage <
+          prepared.asset.original.size * 2 + 1048576
+      )
+        throw new Error("Storage tidak mencukupi; data lama dipertahankan.");
+      const asset = await repo.import(prepared);
+      setStatus(`${file.name}: tersimpan offline`);
+      return asset;
+    } catch (e) {
+      setStatus(`${file.name}: ${(e as Error).message}`);
+      throw e;
+    } finally {
+      setWorking(false);
+    }
+  }
+  return { repo, status, working, importFiles, importImage, cancel };
 }
