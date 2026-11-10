@@ -479,63 +479,27 @@ test("Preview column is Preview Output only and text is edited in the Edit teks 
   ).toBeEnabled();
 });
 
-test("Langsung ke Live: Preview Output also appears in Live Output", async ({
-  page,
-}) => {
-  await song(page, "Mirror song", [
-    "Mirror line one.",
-    "Mirror line two.",
-    "Mirror line three.",
-  ]);
-  const toggle = page.getByRole("button", {
-    name: "Langsung ke Live",
-    exact: true,
-  });
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+test("Live Output changes only when Go Live is clicked", async ({ page }) => {
+  await song(page, "Go Live song", ["Go Live line one.", "Go Live line two."]);
+  await expect(
+    page.getByRole("button", { name: "Langsung ke Live" }),
+  ).toHaveCount(0);
   const live = page.getByRole("region", { name: "LIVE projector control" });
   const status = page.getByTestId("app-status");
-  await preview(page, "Mirror song");
-  // Without pressing Go Live, the Preview slide is on Live Output.
-  await expect(status).toHaveText(/LIVE/);
-  await expect(live.locator(".slide-lines")).toHaveText("Mirror line one.");
-  const next = page.getByRole("button", {
-    name: "Preview berikutnya",
-    exact: true,
-  });
-  await next.click();
-  await expect(live).toContainText("Slide 2 of 3");
-  await expect(live.locator(".slide-lines")).toHaveText("Mirror line two.");
-  // Black stays on while moving to another slide.
-  await page.getByRole("button", { name: "Black", exact: true }).click();
-  await next.click();
-  await expect(live).toContainText("Slide 3 of 3");
-  await expect(status).toHaveText(/BLACK/);
-  await page.getByRole("button", { name: "Black", exact: true }).click();
-  await expect(live.locator(".slide-lines")).toHaveText("Mirror line three.");
-  // Unapplied text stays in Preview until Apply.
-  await openTextEditor(page);
-  await page.getByLabel("Teks slide sementara").fill("Mirror edited.");
-  await expect(live.locator(".slide-lines")).toHaveText("Mirror line three.");
+  await preview(page, "Go Live song");
+  // Preview alone never reaches LIVE.
+  await expect(status).toHaveText(/READY/);
+  await expect(live.locator(".slide-lines")).toHaveCount(0);
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(live.locator(".slide-lines")).toHaveText("Go Live line one.");
   await page
-    .getByRole("button", { name: "Apply Preview", exact: true })
+    .getByRole("button", { name: "Preview berikutnya", exact: true })
     .click();
-  await expect(live.locator(".slide-lines")).toHaveText("Mirror edited.");
-  // Switched off: Preview changes no longer reach LIVE; the choice is kept.
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
-  await page
-    .getByRole("button", { name: "Preview sebelumnya", exact: true })
-    .click();
-  await expect(previewPosition(page)).toHaveText("Slide 2 of 3");
-  await expect(live).toContainText("Slide 3 of 3");
-  await toggle.click();
-  await expect(live).toContainText("Slide 2 of 3");
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Langsung ke Live", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  await expect(previewPosition(page)).toHaveText("Slide 2 of 2");
+  await expect(live).toContainText("Slide 1 of 2");
+  await expect(live.locator(".slide-lines")).toHaveText("Go Live line one.");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(live.locator(".slide-lines")).toHaveText("Go Live line two.");
 });
 
 test("Themes can upload an image as a theme background", async ({ page }) => {

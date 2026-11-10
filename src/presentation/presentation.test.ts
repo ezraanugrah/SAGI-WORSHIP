@@ -204,28 +204,6 @@ describe("generation, authorization, immutable LIVE and recovery", () => {
     await controller.settled();
     expect((await storage.loadCheckpoint())?.live?.mode).toBe("black");
   });
-  it("goLive keeps Black/Clear Text only when asked (LIVE following Preview)", async () => {
-    await seed();
-    await controller.prepare(
-      await repo.load(),
-      { kind: "song", songId: "song" },
-      style,
-    );
-    controller.goLive();
-    controller.toggle("black");
-    controller.select(1);
-    controller.goLive({ keepMode: true });
-    expect(controller.snapshot().live).toMatchObject({
-      index: 1,
-      mode: "black",
-    });
-    controller.select(2);
-    controller.goLive();
-    expect(controller.snapshot().live).toMatchObject({
-      index: 2,
-      mode: "normal",
-    });
-  });
   it("shows a validated alert ticker that survives Go Live, navigation, Black and checkpoints", async () => {
     await seed();
     await controller.prepare(

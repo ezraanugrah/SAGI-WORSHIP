@@ -77,7 +77,8 @@ describe("controller.command applies shortcuts safely", () => {
     theme: "black",
     lines: 6,
   };
-  const measure: Measure = (text, s) => Array.from(text).length * s.fontSize * 0.6;
+  const measure: Measure = (text, s) =>
+    Array.from(text).length * s.fontSize * 0.6;
   let name: string,
     writer: ReturnType<typeof writerFixture>,
     repo: Repository,
