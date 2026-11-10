@@ -2353,8 +2353,9 @@ footer > span:last-child {
 .backup-impact { max-height: 320px; overflow: auto; border: 1px solid #343943; padding: 12px; }
 
 /* ------------------------------------------------------------------------
-   SagiWorship layout (feature/sagi-layout): charcoal panels, orange accent,
-   bold uppercase controls. Scoped to .sagi-ui so the projector window and
+   SagiWorship layout: charcoal panels, orange accent, bold uppercase
+   controls. Sizes are fluid (clamp) so the dashboard fits laptop screens
+   from 1280 px to full HD. Scoped to .sagi-ui so the projector window and
    older rules stay untouched.
    ------------------------------------------------------------------------ */
 .sagi-ui {
@@ -2362,16 +2363,27 @@ footer > span:last-child {
   --sg-side: #1c1e21;
   --sg-panel: #1d2023;
   --sg-inner: #141619;
+  --sg-row: #121316;
   --sg-raised: #2a2d32;
   --sg-raised-hover: #353940;
   --sg-text: #f1f1ef;
   --sg-muted: #9ba1a8;
   --sg-orange: #f0951f;
   --sg-font: Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif;
+  /* Fluid scale */
+  --sg-side-w: clamp(160px, 12vw, 220px);
+  --sg-gap: clamp(10px, 0.9vw, 16px);
+  --sg-pad: clamp(10px, 0.9vw, 14px);
+  --sg-fs: clamp(11px, 0.78vw, 13px);
+  --sg-fs-small: clamp(9px, 0.62vw, 11px);
+  --sg-fs-heading: clamp(13px, 1vw, 17px);
+  --sg-fs-big: clamp(12px, 1vw, 16px);
+  --sg-control-h: clamp(30px, 2.3vw, 36px);
+  --sg-live-btn-h: clamp(36px, 5.2vh, 52px);
   background: var(--sg-bg);
   color: var(--sg-text);
   font-family: var(--sg-font);
-  font-size: 13px;
+  font-size: var(--sg-fs);
 }
 .sagi-ui button:focus-visible,
 .sagi-ui a:focus-visible,
@@ -2380,38 +2392,41 @@ footer > span:last-child {
 .sagi-ui textarea:focus-visible {
   outline: 2px solid var(--sg-orange);
 }
+.sagi-ui button:disabled {
+  opacity: 0.5;
+}
 
 /* Sidebar */
 .sagi-ui .sidebar {
-  width: 236px;
+  width: var(--sg-side-w);
   background: var(--sg-side);
   border-right: 0;
-  padding: 40px 18px 22px;
+  padding: clamp(18px, 2.4vh, 32px) clamp(10px, 0.9vw, 16px) 16px;
 }
 .sagi-ui .brand {
-  padding: 0 8px;
-  margin-bottom: 34px;
+  padding: 0 6px;
+  margin-bottom: clamp(16px, 2.6vh, 28px);
 }
 .sagi-ui .brand-word {
-  font-size: 44px;
-  line-height: 1.14;
+  font-size: clamp(22px, 2vw, 34px);
+  line-height: 1.12;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #fff;
 }
 .sagi-ui .sidebar nav {
   display: grid;
-  gap: 16px;
+  gap: 8px;
 }
 .sagi-ui .nav {
   margin: 0;
-  padding: 19px 22px;
+  padding: clamp(9px, 1.3vh, 14px) clamp(12px, 1vw, 18px);
   border-radius: 0;
   background: var(--sg-raised);
   color: #fff;
-  font-size: 20px;
+  font-size: var(--sg-fs-big);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 .sagi-ui .nav:hover:not(.active) {
   background: var(--sg-raised-hover);
@@ -2423,39 +2438,76 @@ footer > span:last-child {
 .sagi-ui .version {
   font-size: 10px;
   color: var(--sg-muted);
-  padding: 0 8px;
+  padding: 0 6px;
 }
 .sagi-ui .main-shell {
-  margin-left: 236px;
-  width: calc(100% - 236px);
+  margin-left: var(--sg-side-w);
+  width: calc(100% - var(--sg-side-w));
 }
 
-/* Top bar with READY status */
+/* Top bar: projector controls + READY status */
 .sagi-ui .topbar {
   height: auto;
-  min-height: 112px;
+  min-height: 0;
   border-bottom: 0;
-  padding: 26px 24px 20px;
-  align-items: flex-start;
+  padding: clamp(10px, 1.4vh, 16px) var(--sg-gap);
+  align-items: center;
+  gap: 12px;
+}
+.sagi-ui .top-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
 }
 .sagi-ui .top-status {
-  gap: 12px;
+  gap: 8px;
   align-items: stretch;
 }
 .sagi-ui .status-pill {
-  font-size: 12px;
+  font-size: var(--sg-fs-small);
   color: #f0c27a;
+}
+.sagi-ui .projector-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.sagi-ui .projector-bar .button,
+.sagi-ui .projector-bar .text-action {
+  min-height: 30px;
+  padding: 6px 10px;
+  font-size: var(--sg-fs-small);
+}
+.sagi-ui .projector-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 2px;
+  color: var(--sg-orange);
+  font-size: var(--sg-fs-small);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sagi-ui .projector-screen select {
+  padding: 6px;
+  border: 0;
+  background: var(--sg-raised);
+  color: #fff;
 }
 .sagi-ui .ready-box {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-width: 260px;
-  padding: 20px 30px;
+  gap: 8px;
+  min-width: clamp(120px, 11vw, 210px);
+  padding: clamp(8px, 1.2vh, 14px) clamp(14px, 1.4vw, 24px);
   background: var(--sg-raised);
   color: #fff;
-  font-size: 22px;
+  font-size: clamp(13px, 1.1vw, 19px);
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -2473,16 +2525,17 @@ footer > span:last-child {
   color: var(--sg-orange);
 }
 .sagi-ui .top-status > .button {
-  min-height: auto;
+  min-height: 0;
+  font-size: var(--sg-fs-small);
 }
 .sagi-ui main {
-  padding: 0 24px 24px;
+  padding: 0 var(--sg-gap) var(--sg-gap);
 }
 .sagi-ui .heading {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .sagi-ui .heading h1 {
-  font-size: 26px;
+  font-size: clamp(18px, 1.6vw, 24px);
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -2495,9 +2548,9 @@ footer > span:last-child {
 }
 .sagi-ui .panel-heading {
   margin: 0;
-  padding: 18px 16px 12px;
+  padding: var(--sg-pad) var(--sg-pad) 8px;
   color: var(--sg-orange);
-  font-size: 19px;
+  font-size: var(--sg-fs-heading);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2505,26 +2558,27 @@ footer > span:last-child {
 .sagi-ui .panel-kicker,
 .sagi-ui .box-label {
   color: var(--sg-orange);
-  font-size: 11px;
+  font-size: var(--sg-fs-small);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .sagi-ui .panel-kicker {
-  margin: 0 0 12px 52px;
+  margin: 0 0 6px;
 }
 .sagi-ui .box-label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   padding: 0;
 }
 .sagi-ui .button {
   border-radius: 0;
-  font-size: 11px;
+  font-size: var(--sg-fs-small);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  min-height: 36px;
+  min-height: var(--sg-control-h);
+  padding: 6px 12px;
 }
 .sagi-ui .secondary {
   background: var(--sg-raised);
@@ -2540,6 +2594,8 @@ footer > span:last-child {
   filter: brightness(1.07);
 }
 .sagi-ui .icon-button {
+  min-width: 28px;
+  min-height: 28px;
   border-radius: 0;
   border-color: transparent;
   background: var(--sg-raised);
@@ -2553,12 +2609,12 @@ footer > span:last-child {
   color: #ffb4a6;
 }
 .sagi-ui .text-action {
-  background: none;
+  min-height: 28px;
+  padding: 5px 8px;
   border: 0;
-  padding: 8px 12px;
-  min-height: 34px;
+  background: none;
   color: var(--sg-orange);
-  font-size: 11px;
+  font-size: var(--sg-fs-small);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -2572,30 +2628,31 @@ footer > span:last-child {
 }
 .sagi-ui .field-help {
   color: var(--sg-muted);
+  font-size: var(--sg-fs-small);
 }
 
 /* Dashboard: Jadwal | Preview | LIVE */
 .sagi-ui .dashboard-grid {
   grid-template-columns:
-    minmax(250px, 0.95fr) minmax(400px, 1.6fr) minmax(360px, 1.6fr);
-  gap: 22px;
+    minmax(220px, 0.9fr) minmax(360px, 1.55fr) minmax(320px, 1.45fr);
+  gap: var(--sg-gap);
 }
 
 /* Jadwal ibadah */
 .sagi-ui .schedule-body {
-  padding: 20px 14px;
+  padding: var(--sg-pad);
 }
 .sagi-ui .schedule-select {
   appearance: none;
   width: 100%;
-  padding: 0 28px 0 0;
+  padding: 0 24px 0 0;
   border: 0;
   border-radius: 0;
   background: transparent
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ba1a8' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-    no-repeat right 4px center;
+    no-repeat right 2px center;
   color: #fff;
-  font-size: 26px;
+  font-size: clamp(16px, 1.4vw, 22px);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -2604,39 +2661,64 @@ footer > span:last-child {
   color: #111;
 }
 .sagi-ui .schedule-meta {
-  margin: 12px 0 14px;
+  margin: 6px 0 10px;
   color: var(--sg-muted);
-  font-size: 11px;
+  font-size: var(--sg-fs-small);
 }
 .sagi-ui .schedule-actions {
-  margin: 0 0 16px;
-  gap: 6px;
+  margin: 0 0 10px;
+  gap: 4px;
+}
+.sagi-ui .drop-zone {
+  margin: 0 0 10px;
+  padding: 10px;
+  border: 1px dashed #3a3e44;
+  background: var(--sg-row);
+  color: #c9ccd0;
+  font-size: var(--sg-fs-small);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.sagi-ui .schedule[data-dropping] .drop-zone {
+  border-color: var(--sg-orange);
+  background: #2b2215;
+  color: var(--sg-orange);
+}
+.sagi-ui .schedule[data-dropping] {
+  box-shadow: inset 0 0 0 2px var(--sg-orange);
 }
 .sagi-ui .schedule-empty {
-  margin: 48px 0;
+  margin: clamp(14px, 3vh, 32px) 0;
   text-align: center;
   color: #c9ccd0;
-  font-size: 14px;
+  font-size: var(--sg-fs);
   line-height: 1.5;
 }
 .sagi-ui .schedule-items > li {
-  background: var(--sg-inner);
+  margin-bottom: 6px;
+  padding: 8px;
   border: 0;
   border-radius: 0;
-  margin-bottom: 8px;
+  background: var(--sg-inner);
 }
 .sagi-ui .item-inspect {
   color: #fff;
 }
 .sagi-ui .item-inspect strong {
-  font-size: 13px;
+  font-size: var(--sg-fs);
   font-weight: 700;
 }
 .sagi-ui .item-inspect small {
   font-size: 10px;
   color: var(--sg-muted);
 }
+.sagi-ui .item-controls {
+  margin-top: 6px;
+}
 .sagi-ui .panel-note {
+  min-height: 0;
   border-top: 0;
   color: #6f757c;
   font-size: 10px;
@@ -2645,15 +2727,15 @@ footer > span:last-child {
 /* Preview */
 .sagi-ui .preview-columns {
   display: grid;
-  grid-template-columns: minmax(150px, 0.9fr) minmax(230px, 1.1fr);
-  gap: 16px;
-  padding: 0 14px 16px;
+  grid-template-columns: minmax(130px, 0.85fr) minmax(200px, 1.15fr);
+  gap: var(--sg-gap);
+  padding: 0 var(--sg-pad) var(--sg-pad);
   align-items: stretch;
 }
 .sagi-ui .preview-box {
   min-width: 0;
   margin: 0;
-  padding: 12px;
+  padding: 10px;
   border: 0;
   background: #25282c;
 }
@@ -2669,7 +2751,7 @@ footer > span:last-child {
 }
 .sagi-ui .preview-side {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   align-content: start;
   min-width: 0;
 }
@@ -2681,44 +2763,66 @@ footer > span:last-child {
 .sagi-ui .preview-side > .preview-box:first-child > .box-label,
 .sagi-ui .live-monitor > .box-label {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 10px;
   z-index: 2;
   margin: 0;
   pointer-events: none;
 }
+/* Canvases follow the screen height so panels fit on laptop screens; the
+   wrapper shrinks with them so the overlaid label stays inside the frame. */
+.sagi-ui .preview-side > .preview-box:first-child {
+  width: min(100%, calc(24vh * 16 / 9));
+  margin-inline: auto;
+}
 .sagi-ui .box-empty {
   color: var(--sg-muted);
-  font-size: 12px;
+  font-size: var(--sg-fs-small);
   line-height: 1.5;
 }
 .sagi-ui .slide-picker {
   grid-template-columns: 1fr;
-  max-height: 440px;
+  max-height: 34vh;
   padding: 0;
-  gap: 6px;
+  gap: 4px;
 }
 .sagi-ui .slide-picker button {
+  padding: 7px 8px;
   border: 1px solid transparent;
   border-radius: 0;
   background: #1e2125;
   color: #ececec;
-  font-size: 12px;
+  font-size: var(--sg-fs-small);
+}
+.sagi-ui .slide-picker small {
+  margin-top: 3px;
 }
 .sagi-ui .slide-picker .chosen {
   border-color: var(--sg-orange);
   background: #2b2215;
 }
 .sagi-ui .deck-position {
-  color: #c9ccd1;
-  font-size: 12px;
+  margin: 8px 0;
   align-items: center;
+  color: #c9ccd1;
+  font-size: var(--sg-fs-small);
+}
+.sagi-ui .preview-slides-box .preview-navigation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 8px 0 0;
+}
+.sagi-ui .preview-slides-box .preview-navigation .button {
+  padding: 6px 4px;
+  font-size: 9px;
+  letter-spacing: 0.02em;
 }
 .sagi-ui .preview-edit textarea,
 .sagi-ui .preview-style select,
 .sagi-ui .preview-style input,
 .sagi-ui .live-control-body select {
-  margin-top: 6px;
+  margin-top: 4px;
   border: 0;
   border-radius: 0;
   background: #15171a;
@@ -2726,17 +2830,31 @@ footer > span:last-child {
 }
 .sagi-ui .preview-edit textarea {
   width: 100%;
-  padding: 10px;
-  line-height: 1.5;
+  padding: 8px;
+  line-height: 1.45;
+  font-size: var(--sg-fs);
   resize: vertical;
 }
 .sagi-ui .edit-actions {
+  flex-wrap: wrap;
   justify-content: flex-end;
-  margin: 10px 0 0;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 0;
+}
+.sagi-ui .edit-actions .discard {
+  margin-right: auto;
+  padding-left: 0;
+  color: var(--sg-muted);
+  white-space: nowrap;
+}
+.sagi-ui .edit-actions .button {
+  flex: 0 0 auto;
 }
 .sagi-ui .preview-style {
   margin-top: 0;
-  grid-template-columns: 1fr 90px 1fr;
+  grid-template-columns: 1fr 70px 1fr;
+  gap: 8px;
 }
 .sagi-ui .preview-style label {
   display: block;
@@ -2749,8 +2867,8 @@ footer > span:last-child {
 .sagi-ui .preview-style select,
 .sagi-ui .preview-style input {
   width: 100%;
-  padding: 8px;
-  font-size: 12px;
+  padding: 6px;
+  font-size: var(--sg-fs-small);
   text-transform: none;
 }
 .sagi-ui .preview-note {
@@ -2763,30 +2881,31 @@ footer > span:last-child {
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
-  padding-right: 16px;
+  padding-right: var(--sg-pad);
 }
 .sagi-ui .live-heading .disconnected {
   color: var(--sg-muted);
-  font-size: 11px;
+  font-size: var(--sg-fs-small);
 }
 .sagi-ui .live-control-body {
-  padding: 0 16px 16px;
+  padding: 0 var(--sg-pad) var(--sg-pad);
 }
 .sagi-ui .live-monitor {
   position: relative;
-  margin-bottom: 26px;
+  width: min(100%, calc(32vh * 16 / 9));
+  margin: 0 auto clamp(10px, 1.6vh, 18px);
 }
 .sagi-ui .live-monitor .presentation-canvas {
   border: 2px solid #e9e9e9;
 }
 .sagi-ui .live-main-buttons {
   display: grid;
-  gap: 18px;
-  margin-bottom: 14px;
+  gap: clamp(8px, 1.2vh, 14px);
+  margin-bottom: 8px;
 }
 .sagi-ui .live-row {
   display: grid;
-  gap: 16px;
+  gap: clamp(8px, 0.8vw, 14px);
 }
 .sagi-ui .live-row.two {
   grid-template-columns: 1fr 1fr;
@@ -2795,12 +2914,12 @@ footer > span:last-child {
   grid-template-columns: 1fr 1.35fr 1fr;
 }
 .sagi-ui .live-btn {
-  min-height: 62px;
-  padding: 10px;
-  background: var(--sg-raised);
+  min-height: var(--sg-live-btn-h);
+  padding: 6px;
   border-color: transparent;
+  background: var(--sg-raised);
   color: #fff;
-  font-size: 18px;
+  font-size: var(--sg-fs-big);
 }
 .sagi-ui .live-btn:hover:enabled {
   background: var(--sg-raised-hover);
@@ -2815,27 +2934,29 @@ footer > span:last-child {
 .sagi-ui .deck-position .text-action {
   margin-left: auto;
 }
-.sagi-ui .projector-label {
-  margin: 18px 0 10px;
+.sagi-ui .live-control-body .field-help {
+  margin: 4px 0;
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 /* Library: SONGS / SCRIPTURES / MEDIA / THEMES */
 .sagi-ui .library {
-  margin-top: 30px;
+  margin-top: clamp(14px, 2vh, 24px);
 }
 .sagi-ui .tabs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 .sagi-ui .tabs button {
   justify-content: center;
-  padding: 13px 8px;
+  padding: clamp(8px, 1.1vh, 12px) 8px;
   border: 0;
   background: var(--sg-raised);
   color: #fff;
-  font-size: 18px;
+  font-size: var(--sg-fs-big);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2849,32 +2970,32 @@ footer > span:last-child {
 }
 .sagi-ui .songs-content {
   display: grid;
-  grid-template-columns: minmax(210px, 0.42fr) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(190px, 0.38fr) minmax(0, 1fr);
+  gap: var(--sg-gap);
   padding: 0;
   background: var(--sg-bg);
 }
 .sagi-ui .songs-side,
 .sagi-ui .songs-main {
   min-width: 0;
-  padding: 18px;
+  padding: var(--sg-pad);
   background: var(--sg-panel);
 }
 .sagi-ui .side-title {
-  margin: 4px 0 14px;
+  margin: 2px 0 10px;
   color: #fff;
-  font-size: 18px;
+  font-size: var(--sg-fs-big);
   font-weight: 700;
 }
 .sagi-ui .side-empty {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   color: var(--sg-muted);
-  font-size: 12px;
+  font-size: var(--sg-fs-small);
 }
 .sagi-ui .side-list {
   display: grid;
-  gap: 6px;
-  margin: 0 0 14px;
+  gap: 4px;
+  margin: 0 0 10px;
   padding: 0;
   list-style: none;
 }
@@ -2882,13 +3003,13 @@ footer > span:last-child {
 .sagi-ui .folder {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
-  padding: 13px 18px;
+  padding: 9px 12px;
   border: 0;
-  background: #121316;
+  background: var(--sg-row);
   color: #fff;
-  font-size: 14px;
+  font-size: var(--sg-fs);
   font-weight: 700;
   text-align: left;
 }
@@ -2911,84 +3032,94 @@ footer > span:last-child {
 }
 .sagi-ui .side-count {
   margin-left: auto;
-  font-size: 11px;
+  font-size: 10px;
   opacity: 0.85;
 }
 .sagi-ui .new-playlist {
   width: 100%;
-  margin: 18px 0 26px;
-  background: #121316;
+  margin: 10px 0 16px;
+  background: var(--sg-row);
   color: #fff;
-  font-size: 16px;
+  font-size: var(--sg-fs);
 }
 .sagi-ui .songs-toolbar {
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: var(--sg-muted);
 }
 .sagi-ui .songs-toolbar h3 {
   color: #fff;
-  font-size: 20px;
+  font-size: var(--sg-fs-heading);
   font-weight: 700;
 }
 .sagi-ui .songs-toolbar p {
-  margin-top: 6px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: var(--sg-fs-small);
 }
 .sagi-ui .songs-toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 .sagi-ui .songs-count {
   color: var(--sg-orange);
-  font-size: 12px;
+  font-size: var(--sg-fs-small);
   font-weight: 700;
 }
 .sagi-ui .song-search {
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
-  background: #121316;
+  margin-bottom: 8px;
+  background: var(--sg-row);
 }
 .sagi-ui .song-search input {
   flex: 1;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 9px 12px;
   border: 0;
   background: transparent;
   color: #fff;
-  font-size: 13px;
+  font-size: var(--sg-fs);
 }
 .sagi-ui .song-search .icon-button {
-  margin: 6px;
+  margin: 4px;
 }
 .sagi-ui .song-list {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 .sagi-ui .song-list > li {
-  padding: 10px 12px 10px 20px;
+  padding: 7px 8px 7px 14px;
   border-top: 0;
-  background: #121316;
+  background: var(--sg-row);
+}
+.sagi-ui .song-list > li[draggable="true"] {
+  cursor: grab;
+}
+.sagi-ui .song-inspect {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
 }
 .sagi-ui .song-inspect strong {
   color: #fff;
-  font-size: 15px;
+  font-size: var(--sg-fs-big);
 }
 .sagi-ui .song-inspect small {
-  margin-top: 8px;
+  margin-top: 4px;
   color: var(--sg-muted);
-  font-size: 11px;
+  font-size: var(--sg-fs-small);
 }
 .sagi-ui .song-actions {
+  flex-shrink: 1;
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 .sagi-ui .songs-empty {
-  padding: 30px 10px;
+  padding: 24px 10px;
   text-align: center;
   color: var(--sg-muted);
 }
@@ -2996,35 +3127,37 @@ footer > span:last-child {
   display: block;
   margin-bottom: 6px;
   color: #fff;
-  font-size: 14px;
+  font-size: var(--sg-fs-big);
 }
 .sagi-ui footer {
-  padding: 12px 24px;
+  padding: 10px var(--sg-gap);
   border-top: 0;
   color: #6f757c;
   font-size: 10px;
 }
 
 /* Responsive */
-@media (max-width: 1280px) {
+@media (max-width: 1180px) {
   .sagi-ui .dashboard-grid {
-    grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.6fr);
+    grid-template-columns: minmax(210px, 0.8fr) minmax(0, 1.6fr);
   }
   .sagi-ui .dashboard-grid > .live {
     grid-column: 1 / -1;
   }
+  .sagi-ui .live-control-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--sg-gap);
+    align-items: start;
+  }
+  .sagi-ui .live-control-body > :not(.live-monitor) {
+    grid-column: 2;
+  }
+  .sagi-ui .live-monitor {
+    grid-row: 1 / span 6;
+  }
 }
 @media (max-width: 1100px) {
-  .sagi-ui .sidebar {
-    width: 190px;
-  }
-  .sagi-ui .brand-word {
-    font-size: 34px;
-  }
-  .sagi-ui .main-shell {
-    margin-left: 190px;
-    width: calc(100% - 190px);
-  }
   .sagi-ui .preview-columns {
     grid-template-columns: 1fr;
   }
@@ -3036,26 +3169,26 @@ footer > span:last-child {
     flex-direction: row;
     align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 10px 16px;
   }
   .sagi-ui .brand {
     margin: 0;
   }
   .sagi-ui .brand-word {
-    font-size: 22px;
+    font-size: 20px;
   }
   .sagi-ui .brand-word br {
     display: none;
   }
   .sagi-ui .sidebar nav {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-left: auto;
   }
   .sagi-ui .nav {
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
   .sagi-ui .sidebar-bottom {
     display: none;
@@ -3065,35 +3198,38 @@ footer > span:last-child {
     width: 100%;
   }
   .sagi-ui .topbar {
-    min-height: 0;
-    padding: 14px 16px;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 10px 16px;
   }
   .sagi-ui .ready-box {
     min-width: 0;
-    padding: 12px 18px;
-    font-size: 16px;
+    font-size: 15px;
   }
   .sagi-ui main {
-    padding: 0 16px 20px;
+    padding: 0 16px 16px;
   }
   .sagi-ui .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+  .sagi-ui .live-control-body {
+    display: block;
+  }
+  .sagi-ui .live-monitor,
+  .sagi-ui .preview-side > .preview-box:first-child {
+    width: 100%;
   }
   .sagi-ui .songs-content {
     grid-template-columns: 1fr;
   }
   .sagi-ui .tabs button {
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 0.04em;
   }
 }
 @media (max-width: 560px) {
   .sagi-ui .tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .sagi-ui .live-btn {
-    min-height: 52px;
-    font-size: 14px;
   }
   .sagi-ui .live-row.three {
     grid-template-columns: 1fr 1fr;
@@ -3108,106 +3244,11 @@ footer > span:last-child {
   .sagi-ui .song-list > li {
     flex-wrap: wrap;
   }
-  .sagi-ui .preview-style {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-/* Top bar projector controls and song row text */
-.sagi-ui .top-left {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 16px;
-  min-width: 0;
-}
-.sagi-ui .projector-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.sagi-ui .projector-bar-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-right: 4px;
-  color: var(--sg-orange);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.sagi-ui .projector-screen select {
-  padding: 8px;
-  border: 0;
-  background: var(--sg-raised);
-  color: #fff;
-}
-.sagi-ui .song-inspect {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-}
-.sagi-ui .live-control-body .field-help {
-  font-size: 10px;
-  line-height: 1.5;
-}
-@media (max-width: 860px) {
-  .sagi-ui .topbar {
-    flex-direction: column-reverse;
-    gap: 12px;
-  }
-}
-.sagi-ui .edit-actions {
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 6px;
-}
-.sagi-ui .edit-actions .discard {
-  margin-right: auto;
-  padding-left: 0;
-  color: var(--sg-muted);
-}
-.sagi-ui .edit-actions .button {
-  flex: 0 0 auto;
-  padding: 8px 12px;
-}
-.sagi-ui .preview-slides-box .preview-navigation {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-.sagi-ui .preview-slides-box .preview-navigation .button {
-  padding: 8px 4px;
-  font-size: 9px;
-  letter-spacing: 0.02em;
-}
-.sagi-ui .live-monitor {
-  margin-bottom: 20px;
-}
-.sagi-ui .live-main-buttons {
-  gap: 16px;
-}
-.sagi-ui .live-btn {
-  min-height: 58px;
-}
-.sagi-ui button:disabled {
-  opacity: 0.5;
-}
-.sagi-ui .edit-actions {
-  flex-wrap: wrap;
-}
-.sagi-ui .edit-actions .discard {
-  white-space: nowrap;
-}
-.sagi-ui .song-actions {
-  flex-shrink: 1;
-  min-width: 0;
-}
-@media (max-width: 560px) {
   .sagi-ui .song-list > li .song-actions {
     flex: 1 1 100%;
     justify-content: flex-start;
+  }
+  .sagi-ui .preview-style {
+    grid-template-columns: 1fr 1fr;
   }
 }

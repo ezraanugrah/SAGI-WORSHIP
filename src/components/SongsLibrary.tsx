@@ -1,5 +1,7 @@
 import { Copy, Plus, Trash2, X } from "lucide-react";
 import { searchSongs, type Workspace, type Song } from "../domain/models";
+/** Drag payload type for a song dragged from Music into the active Week. */
+export const SONG_DRAG_TYPE = "application/x-sagi-song";
 /**
  * SONGS tab: Playlists (worship schedules, one is the active "Week") and
  * Folders on the left, the Music library on the right.
@@ -97,7 +99,7 @@ export function SongsLibrary({
         <div className="songs-toolbar">
           <div>
             <h3>Music</h3>
-            <p>Klik = Preview</p>
+            <p>Klik = Preview · Tarik = Tambah ke Week aktif</p>
           </div>
           <div className="songs-toolbar-actions">
             <span className="songs-count">
@@ -171,7 +173,16 @@ export function SongsLibrary({
         ) : (
           <ul className="song-list" aria-label="Daftar lagu">
             {songs.map((song) => (
-              <li key={song.id} data-testid="song-row">
+              <li
+                key={song.id}
+                data-testid="song-row"
+                draggable={editable && !busy && !!data.activeId}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(SONG_DRAG_TYPE, song.id);
+                  e.dataTransfer.setData("text/plain", song.title);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
+              >
                 <button className="song-inspect" onClick={() => onInspect(song)}>
                   <strong>{song.title}</strong>
                   <small>

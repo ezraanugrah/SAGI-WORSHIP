@@ -13,7 +13,13 @@ Tampilan dashboard disesuaikan dengan desain SagiWorship versi Unity. Tidak ada 
 - Panel **LIVE**: PROJECTOR PREVIEW, BLACK, CLEAR TEXT, ‹ PREV, GO LIVE, NEXT ›.
 - Tab **SONGS / SCRIPTURES / MEDIA / THEMES**; tab SONGS berisi Playlists (pilih Week aktif, + New playlist), Folders (Music), pencarian dengan tombol hapus, dan baris lagu PREVIEW / EDIT / HAPUS.
 - Tes: 3 tes E2E baru (`e2e/sagi-layout.spec.ts`); total 165 unit dan 75 E2E lulus.
-- Berikutnya: tahap 2 (tarik lagu ke Week) dan tahap 3 (Text Style lengkap).
+
+### Tahap 2 — tarik lagu ke Week dan ukuran ringkas
+
+- Lagu di daftar **Music** bisa ditarik ke panel **Jadwal Ibadah** (kotak "Tarik lagu dari Music ke sini" atau di atas daftar item) untuk ditambahkan ke Week aktif. Tombol "Ke jadwal" tetap tersedia untuk keyboard. Pengurutan item dengan tarik-lepas tetap berjalan.
+- Ukuran tampilan dibuat ringkas dan cair (huruf, tombol, sidebar, jarak mengikuti lebar layar; monitor Preview/LIVE mengikuti tinggi layar). Dashboard (tiga panel + tab) muat satu layar di 1280×720, 1366×768, 1440×900, dan 1920×1080; tanpa geser samping di HP.
+- Tes E2E seret-lepas ditambahkan.
+- Berikutnya: tahap 3 (Text Style lengkap).
 
 ## [0.7.1] — 10 November 2026
 

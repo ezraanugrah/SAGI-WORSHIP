@@ -256,6 +256,12 @@ export function Phase2Dashboard({
               );
           }}
           onActive={activate}
+          onAddSong={(s, songId) =>
+            act(
+              () => repo.addSong(s.id, songId, s.revision),
+              "Lagu ditambahkan ke jadwal.",
+            )
+          }
           onRemove={(s, itemId) =>
             act(
               () => repo.removeItem(s.id, itemId, s.revision),

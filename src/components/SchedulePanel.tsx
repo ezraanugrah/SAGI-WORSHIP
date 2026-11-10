@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { move, type Schedule, type Workspace } from "../domain/models";
+import { SONG_DRAG_TYPE } from "./SongsLibrary";
 export function SchedulePanel({
   data,
   editable,
@@ -26,6 +27,7 @@ export function SchedulePanel({
   slideCounts,
   form,
   onForm: setForm,
+  onAddSong,
 }: {
   data: Workspace;
   slideCounts?: Record<string, number>;
@@ -42,10 +44,18 @@ export function SchedulePanel({
   onRemove: (s: Schedule, itemId: string) => void;
   onReorder: (s: Schedule, ids: string[]) => void;
   onInspect: (songId: string) => void;
+  /** A song dragged from the SONGS tab was dropped on this Week. */
+  onAddSong: (s: Schedule, songId: string) => void;
 }) {
   const schedule = data.schedules.find((s) => s.id === data.activeId),
     [name, setName] = useState(""),
-    [announcement, setAnnouncement] = useState("");
+    [announcement, setAnnouncement] = useState(""),
+    [dropping, setDropping] = useState(false);
+  const acceptsSong = (e: React.DragEvent) =>
+    !!schedule &&
+    editable &&
+    !busy &&
+    Array.from(e.dataTransfer.types).includes(SONG_DRAG_TYPE);
   const drag = useRef<string | null>(null);
   const listRef = useRef<HTMLOListElement>(null),
     pendingFocus = useRef<{ itemId: string; direction: number } | null>(null);
@@ -80,7 +90,29 @@ export function SchedulePanel({
     if (form === "new") setName("");
   }, [form]);
   return (
-    <section className="panel schedule" aria-label="Jadwal ibadah">
+    <section
+      className="panel schedule"
+      aria-label="Jadwal ibadah"
+      data-dropping={dropping ? "true" : undefined}
+      onDragOver={(e) => {
+        if (!acceptsSong(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        setDropping(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+          setDropping(false);
+      }}
+      onDrop={(e) => {
+        setDropping(false);
+        const songId = e.dataTransfer.getData(SONG_DRAG_TYPE);
+        if (!songId || !schedule || !editable || busy) return;
+        e.preventDefault();
+        onAddSong(schedule, songId);
+        setAnnouncement("Lagu ditambahkan ke Week.");
+      }}
+    >
       <div className="schedule-body">
         <div className="panel-kicker">Jadwal ibadah</div>
         <label className="sr-only" htmlFor="active-schedule">
@@ -104,7 +136,7 @@ export function SchedulePanel({
         </select>
         <p className="schedule-meta">
           {schedule
-            ? `${schedule.itemIds.length} item · X = hapus dari Week`
+            ? `${schedule.itemIds.length} item · Drag dari SONGS · X = hapus dari Week`
             : "Pilih atau buat playlist di tab SONGS"}
         </p>
         <div className="schedule-actions">
@@ -207,11 +239,14 @@ export function SchedulePanel({
           </div>
         ) : (
           <>
+            <div className="drop-zone" data-testid="week-drop-zone">
+              Tarik lagu dari Music ke sini
+            </div>
             {schedule.itemIds.length === 0 ? (
               <p className="schedule-empty">
                 Belum ada lagu.
                 <br />
-                Pilih “Ke jadwal” pada lagu di tab SONGS.
+                Cari di tab SONGS lalu drag ke sini, atau pilih “Ke jadwal”.
               </p>
             ) : (
               <ol

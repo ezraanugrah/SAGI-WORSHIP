@@ -78,3 +78,27 @@ test("song search filters Music and the X button clears it", async ({ page }) =>
   await expect(search).toHaveValue("");
   await expect(page.getByTestId("song-row")).toHaveCount(2);
 });
+
+test("Tahap 2: songs dragged from Music land in the active Week without breaking item reordering", async ({ page }) => {
+  // Keep the Week and the Music list on screen together: Playwright's HTML5
+  // drag cannot scroll the page mid-drag (Chrome itself auto-scrolls).
+  await page.setViewportSize({ width: 1600, height: 1400 });
+  await playlist(page, "week1");
+  await song(page, "Trust In God", ["Synthetic drag line."]);
+  await song(page, "Been So Good", ["Second synthetic drag line."]);
+  const items = page.getByTestId("schedule-item");
+  const row = (title: string) => page.getByTestId("song-row").filter({ hasText: title });
+  await expect(row("Been So Good")).toHaveAttribute("draggable", "true");
+  await row("Trust In God").dragTo(page.getByTestId("week-drop-zone"));
+  await expect(items).toHaveCount(1);
+  await expect(items.first()).toContainText("Trust In God");
+  // Dropping on an existing item also adds the song (appended), not a reorder.
+  await row("Been So Good").dragTo(items.first());
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(1)).toContainText("Been So Good");
+  // Reordering Week items by drag still works and adds nothing.
+  await items.nth(1).dragTo(items.nth(0));
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toContainText("Been So Good");
+  await expect(page.getByRole("region", { name: "Jadwal ibadah" })).toContainText("2 item");
+});
