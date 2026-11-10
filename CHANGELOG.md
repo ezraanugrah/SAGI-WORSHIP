@@ -27,6 +27,26 @@ Tampilan dashboard disesuaikan dengan desain SagiWorship versi Unity. Tidak ada 
 - **Presentations**: daftar khusus PDF presentasi (hasil ekspor PowerPoint/Keynote/Google Slides) dengan impor, pilih halaman, Preview, dan Go Live. Memakai penyimpanan media yang sama; tanpa perubahan format data.
 - Berikutnya: Logo (nama gereja) dan Alerts (teks berjalan), lalu Text Style lengkap.
 
+### Tata letak workspace (Schedule | Preview | Live) dan Alerts
+
+Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data, IndexedDB, dan format backup tetap kompatibel (checkpoint lama tetap terbaca).
+
+- **Satu layar penuh**: sidebar kiri dihapus; menu Dashboard/Pengaturan pindah ke bar atas. Di laptop/desktop (≥1181 px) semua muat satu layar dan tiap panel bergulir sendiri; di layar kecil panel bertumpuk.
+- **Schedule** (kiri): judul "Schedule - nama Week", thumbnail per item, dan item yang sedang di-Preview terbuka menjadi daftar slide-nya (klik slide = pilih di Preview). Lagu dari Songs dan kartu dari Media/Presentations ditambahkan dengan **ditarik** ke Schedule.
+- **Preview** (tengah): daftar slide bernomor dengan label bagian dan teksnya; slide terpilih langsung bisa diedit (Apply Preview / Reset / Buang). Di bawahnya **Preview Output** dengan "Slide X of N" dan tombol ‹ ›.
+- **Live** (kanan): daftar slide LIVE (klik = lompat ke slide itu), **Live Output**, "Slide X of N", ‹ ›, dan baris diagnostik ringkas.
+- **Alerts** di toolbar: pesan berjalan di bagian bawah layar jemaat. Tetap tampil saat pindah slide atau Go Live berikutnya, tersembunyi saat Black, dihentikan dengan "Hentikan alert". Maksimal 300 karakter; ikut tersimpan di checkpoint dan backup.
+- **Library**: Songs dan Media/Presentations memakai daftar kategori di kiri dan isi di kanan; Media berupa grid thumbnail. Editor lagu terbuka sebagai jendela di atas workspace.
+- **Tanpa fitur ganda** (cukup satu):
+  - Go Live, Black, Clear Text, dan buka jendela proyektor hanya di toolbar kanan atas. Tombol di panel LIVE, "Restore", dan "Open Projector Window" dihapus; klik Black/Clear lagi untuk kembali normal.
+  - Layar/Fullscreen/Reconnect hanya di bar atas (tombol proyektor di Pengaturan dihapus).
+  - Pilih/buat Week hanya lewat Playlists di tab Songs (select dan tombol "Buat jadwal" di panel Schedule dihapus).
+  - Lagu ditambahkan hanya dengan ditarik ("Ke jadwal" dihapus); Preview lagu dengan klik judulnya ("Preview →" dihapus).
+  - Media ditambahkan dengan ditarik ("Tambahkan media ke jadwal" dihapus; halaman PDF yang dipilih ikut terbawa).
+  - Filter jenis media memakai daftar kategori (select "Jenis media" dihapus).
+- Logo ditunda sesuai permintaan.
+- Tes: unit test alert (validasi, Go Live/Black/navigasi, checkpoint, otorisasi) dan backup round-trip dengan alert; E2E diperbarui ke kontrol baru dan ditambah tes Alerts, daftar slide Schedule/LIVE, serta tarik media.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

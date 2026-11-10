@@ -7,6 +7,7 @@ import { usePresentation } from "./hooks/usePresentation";
 import { useWriter } from "./hooks/useWorkspace";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 import { ProjectorBar } from "./components/ProjectorBar";
+import type { ScreenChoice } from "./presentation/windowManager";
 import { LiveToolbar } from "./components/LiveToolbar";
 import { Phase2Dashboard } from "./components/Phase2Dashboard";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -69,6 +70,8 @@ export default function App() {
     usePresentation(gate);
   const wakeLock = useScreenWakeLock(!!presentationState.live);
   const [previewDirty, setPreviewDirty] = useState(false);
+  // Screen picked in the top bar; the toolbar's Live button opens there.
+  const [screen, setScreen] = useState<ScreenChoice | undefined>();
   const pending = useRef(Promise.resolve());
   useEffect(() => {
     const refresh = () => {
@@ -165,22 +168,25 @@ export default function App() {
   }
   const live = presentationState.live;
   const appStatus = !live
-    ? { state: "ready", label: presentationState.preparing ? "MENYIAPKAN" : "READY" }
+    ? {
+        state: "ready",
+        label: presentationState.preparing ? "MENYIAPKAN" : "READY",
+      }
     : live.mode === "black"
       ? { state: "black", label: "BLACK" }
       : live.mode === "clearText"
         ? { state: "clear", label: "CLEAR TEXT" }
         : { state: "live", label: "LIVE" };
   return (
-    <div className="app-shell sagi-ui">
-      <aside className="sidebar">
+    <div className="app-shell sagi-ui" data-page={page}>
+      <header className="topbar">
         <a href="#/" className="brand" aria-label="SAGI Worship Dashboard">
           <span className="brand-word">
-            Sagi <br />
-            Worship
+            Sagi<b>Worship</b>
           </span>
+          <span className="version">v0.7.1</span>
         </a>
-        <nav aria-label="Navigasi utama">
+        <nav className="menu" aria-label="Navigasi utama">
           <a className={page === "dashboard" ? "nav active" : "nav"} href="#/">
             Dashboard
           </a>
@@ -191,45 +197,36 @@ export default function App() {
             Pengaturan
           </a>
         </nav>
-        <div className="sidebar-bottom">
-          <div className="version">
-            SAGI WORSHIP <span>v0.7.1</span>
-          </div>
-        </div>
-      </aside>
-      <div className="main-shell">
-        <header className="topbar">
-          <div className="top-left">
-            {page === "dashboard" && (
-              <ProjectorBar
-                controller={presentation}
-                editable={editable && loaded}
-              />
-            )}
-            {!online && (
-              <span className="status-pill">
-                <i className="dot amber" />
-                Tanpa internet
-              </span>
-            )}
-          </div>
-          <div className="top-status">
-            <LiveToolbar
-              controller={presentation}
-              state={presentationState}
-              editable={editable && loaded}
-              dirty={previewDirty}
-            />
-            <span
-              className="ready-box"
-              role="status"
-              data-testid="app-status"
-              data-state={appStatus.state}
-            >
-              <i aria-hidden="true">*</i> {appStatus.label}
+        <ProjectorBar
+          controller={presentation}
+          editable={editable && loaded}
+          onScreen={setScreen}
+        />
+        <div className="top-status">
+          {!online && (
+            <span className="status-pill">
+              <i className="dot amber" />
+              Tanpa internet
             </span>
-          </div>
-        </header>
+          )}
+          <LiveToolbar
+            controller={presentation}
+            state={presentationState}
+            editable={editable && loaded}
+            dirty={previewDirty}
+            screen={screen}
+          />
+          <span
+            className="ready-box"
+            role="status"
+            data-testid="app-status"
+            data-state={appStatus.state}
+          >
+            <i aria-hidden="true">*</i> {appStatus.label}
+          </span>
+        </div>
+      </header>
+      <div className="main-shell">
         <main>
           {page === "settings" && (
             <div className="heading">
@@ -480,7 +477,8 @@ export default function App() {
                   </button>
                   <div className="settings-rule" />
                   <p className="field-help">
-                    Gunakan panel Backup & Recovery untuk salinan eksternal dan pemulihan.
+                    Gunakan panel Backup & Recovery untuk salinan eksternal dan
+                    pemulihan.
                   </p>
                   <button
                     className="text-button reset"
@@ -534,7 +532,10 @@ export default function App() {
                 <div className="settings-content shortcuts">
                   {[
                     ["← / →", "Slide sebelumnya / berikutnya"],
-                    ["PageUp / PageDown", "Slide sebelumnya / berikutnya (clicker)"],
+                    [
+                      "PageUp / PageDown",
+                      "Slide sebelumnya / berikutnya (clicker)",
+                    ],
                     ["Space", "Slide berikutnya"],
                     ["B atau .", "Black / Restore"],
                     ["C", "Clear text / Restore"],

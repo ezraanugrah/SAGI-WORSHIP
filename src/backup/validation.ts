@@ -82,7 +82,15 @@ async function exactCheckpoint(c: any) {
   if (!validCheckpoint(c)) fail("checkpoint tidak valid/tidak didukung");
   if (!c.live) return;
   const l = c.live;
-  fields(l, ["deck", "index", "mode", "playback", "backgroundPlayback"]);
+  fields(l, [
+    "deck",
+    "index",
+    "mode",
+    "playback",
+    "backgroundPlayback",
+    "alert",
+  ]);
+  if (l.alert) fields(l.alert, ["text"]);
   const d = l.deck;
   fields(d, [
     "id",

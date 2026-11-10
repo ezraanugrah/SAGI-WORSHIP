@@ -89,7 +89,15 @@ export type Live = {
   playback?: Playback;
   backgroundPlayback?: Playback;
   mode: "normal" | "black" | "clearText";
+  /** Scrolling alert shown over the slide (hidden while Black). */
+  alert?: { text: string };
 };
+export const ALERT_MAX = 300;
+const textOverlay = (v: unknown, max: number) =>
+  object(v) &&
+  Object.keys(v).length === 1 &&
+  string(v.text, max) &&
+  v.text.trim().length > 0;
 export type Checkpoint = {
   id: "phase3:checkpoint";
   format: 1 | 2 | 3 | 4;
@@ -357,7 +365,8 @@ export function validLive(v: unknown): v is Live {
       (validPlayback(v.playback) &&
         v.deck.frames[v.index].kind === "media" &&
         v.deck.frames[v.index].id === v.playback.frameId)) &&
-    ["normal", "black", "clearText"].includes(v.mode as string)
+    ["normal", "black", "clearText"].includes(v.mode as string) &&
+    (v.alert === undefined || textOverlay(v.alert, ALERT_MAX))
   );
 }
 export function validCheckpoint(v: unknown): v is Checkpoint {

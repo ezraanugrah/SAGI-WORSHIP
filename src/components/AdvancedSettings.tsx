@@ -1,5 +1,4 @@
 import type { PresentationController } from "../presentation/controller";
-import { listScreens, type ScreenChoice } from "../presentation/windowManager";
 import { useEffect, useState } from "react";
 import type { useThemes } from "../hooks/useThemes";
 import { validAdvanced, advancedDefaults } from "../themes/models";
@@ -7,15 +6,13 @@ export function AdvancedSettings({
   services,
   editable,
   onCalibration,
-  controller,
 }: {
   services: ReturnType<typeof useThemes>;
   editable: boolean;
   onCalibration: () => void;
-  controller: PresentationController;
+  /** Kept for callers; projector windows are opened from the top bar. */
+  controller?: PresentationController;
 }) {
-  const [screens, setScreens] = useState<ScreenChoice[]>([]),
-    [screen, setScreen] = useState("");
   const [draft, setDraft] = useState(services.settings),
     [error, setError] = useState(""),
     [saving, setSaving] = useState(false);
@@ -157,74 +154,13 @@ export function AdvancedSettings({
       </button>
       {error && <p role="status">{error}</p>}
       {services.error && <p role="alert">{services.error}</p>}
-      <div className="media-filters">
-        <button
-          className="button secondary"
-          disabled={!editable}
-          onClick={async () => {
-            try {
-              setScreens(await listScreens());
-              setError("");
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          Pilih layar dari Settings
-        </button>
-        {screens.length > 0 && (
-          <label>
-            Layar tujuan Settings
-            <select
-              aria-label="Layar tujuan Settings"
-              value={screen}
-              onChange={(e) => setScreen(e.target.value)}
-            >
-              <option value="">Manual</option>
-              {screens.map((s, i) => (
-                <option key={i} value={i}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <button
-          className="button secondary"
-          disabled={!editable}
-          onClick={() => {
-            try {
-              controller.windows.open(
-                screen === "" ? undefined : screens[Number(screen)],
-              );
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          Open projector dari Settings
-        </button>
-        <button
-          className="button secondary"
-          disabled={!editable}
-          onClick={() => {
-            try {
-              controller.windows.fullscreen();
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          Fullscreen dari Settings
-        </button>
-      </div>
       <button className="button secondary" onClick={onCalibration}>
         Siapkan kalibrasi di Preview
       </button>
       <p className="field-help">
         Kalibrasi tetap di Preview; tampilkan ke audience hanya dengan Go Live.
-        Gunakan Open Projector/Fullscreen pada panel LIVE; jika izin layar
-        ditolak, pindahkan jendela secara manual. Media, pin, dan quota tersedia
+        Buka proyektor dengan tombol Live di kanan atas (Layar/Fullscreen di
+        kiri atas); jika izin layar ditolak, pindahkan jendela secara manual. Media, pin, dan quota tersedia
         di Data & penyimpanan serta Media Library. Audio foreground tetap
         memakai kontrol Phase 5.
       </p>

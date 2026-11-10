@@ -19,12 +19,20 @@ async function song(page: Page) {
   const editor = page.getByRole("region", { name: "Editor lagu" });
   await editor.getByLabel("Judul lagu", { exact: true }).fill(title);
   await editor.getByLabel("Lirik bagian 1", { exact: true }).fill(first);
-  await editor.getByRole("button", { name: "Tambah bagian", exact: true }).click();
-  await editor.getByLabel("Jenis bagian 2", { exact: true }).selectOption("Chorus");
+  await editor
+    .getByRole("button", { name: "Tambah bagian", exact: true })
+    .click();
+  await editor
+    .getByLabel("Jenis bagian 2", { exact: true })
+    .selectOption("Chorus");
   await editor.getByLabel("Label bagian 2", { exact: true }).fill("Chorus");
   await editor.getByLabel("Lirik bagian 2", { exact: true }).fill(chorus);
-  await editor.getByRole("button", { name: "Tambah bagian", exact: true }).click();
-  await editor.getByLabel("Jenis bagian 3", { exact: true }).selectOption("Bridge");
+  await editor
+    .getByRole("button", { name: "Tambah bagian", exact: true })
+    .click();
+  await editor
+    .getByLabel("Jenis bagian 3", { exact: true })
+    .selectOption("Bridge");
   await editor.getByLabel("Label bagian 3", { exact: true }).fill("Bridge");
   await editor.getByLabel("Lirik bagian 3", { exact: true }).fill(bridge);
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
@@ -42,9 +50,7 @@ async function prepare(page: Page) {
 }
 async function openOutput(page: Page) {
   const popup = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const output = await popup;
   await expect(output.getByTestId("projector")).toBeVisible();
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
@@ -150,7 +156,10 @@ test("H2: LIVE keeps the operator and audience displays awake, and not before", 
   await expect.poll(async () => (await wake(page)).active).toBe(1);
   await expect.poll(async () => (await wake(output)).active).toBe(1);
   // Black is still part of the LIVE session: the screen stays awake.
-  await page.getByRole("button", { name: "Black", exact: true }).first().click();
+  await page
+    .getByRole("button", { name: "Black", exact: true })
+    .first()
+    .click();
   await expect(mode(output)).toHaveAttribute("data-mode", "black");
   expect((await wake(output)).active).toBe(1);
   expect((await wake(page)).active).toBe(1);
@@ -178,14 +187,19 @@ test("H3: a background image is verified once by the projector, not on every sli
     .getByLabel("File media", { exact: true })
     .setInputFiles(await imageFile(page));
   await expect(
-    page.getByRole("button", { name: "Pilih media synthetic.png", exact: true }),
+    page.getByRole("button", {
+      name: "Pilih media synthetic.png",
+      exact: true,
+    }),
   ).toBeVisible();
   await song(page);
   await prepare(page);
   await page.getByRole("tab", { name: /Themes/ }).click();
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
   await page.getByLabel("Nama tema", { exact: true }).fill("Stability image");
-  await page.getByLabel("Jenis background", { exact: true }).selectOption("image");
+  await page
+    .getByLabel("Jenis background", { exact: true })
+    .selectOption("image");
   await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
   await page
     .getByRole("button", { name: "Pilih tema Stability image", exact: true })
@@ -214,9 +228,9 @@ test("H3: a background image is verified once by the projector, not on every sli
     .getByRole("button", { name: "Slide sebelumnya LIVE", exact: true })
     .click();
   await expect(themed).toHaveText(first);
-  await live.getByRole("button", { name: "Clear Text", exact: true }).click();
+  await page.getByRole("button", { name: "Clear Text", exact: true }).click();
   await expect(mode(output)).toHaveAttribute("data-mode", "clearText");
-  await live.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Clear Text", exact: true }).click();
   await expect(themed).toHaveText(first);
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   expect(await reads()).toBe(initial);
@@ -228,7 +242,9 @@ test("H4: LIVE shortcuts work anywhere in the operator window, with clicker keys
 }) => {
   const output = await start(page);
   // Focus nowhere in particular (as after clicking an empty area).
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.evaluate(() =>
+    (document.activeElement as HTMLElement | null)?.blur(),
+  );
   // Each press moves exactly one slide (a double execution would skip one).
   await page.keyboard.press("ArrowRight");
   await expect(lines(output)).toHaveText(chorus);
@@ -267,7 +283,9 @@ test("H4: shortcuts stay off while typing or inside an editor", async ({
     .getByRole("button", { name: `Edit ${title}`, exact: true })
     .click();
   const editor = page.getByRole("region", { name: "Editor lagu" });
-  await editor.getByRole("button", { name: "Tambah bagian", exact: true }).focus();
+  await editor
+    .getByRole("button", { name: "Tambah bagian", exact: true })
+    .focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("PageDown");
   await page.keyboard.press("b");

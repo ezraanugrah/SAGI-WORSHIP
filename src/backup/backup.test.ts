@@ -154,7 +154,7 @@ it("round trips exportable Scripture, themes, signatures, frozen checkpoint and 
     (t) => t.length * 30,
   );
   await new PresentationRepository(w.gate, name).checkpoint(
-    { deck, index: 0, mode: "normal" },
+    { deck, index: 0, mode: "normal", alert: { text: "Parkir penuh" } },
     "old-session",
     2,
     0,
@@ -170,10 +170,12 @@ it("round trips exportable Scripture, themes, signatures, frozen checkpoint and 
     rows.some((r) => r.store === "themes" && r.value.id === theme.id),
   ).toBe(true);
   expect(rows.filter((r) => r.store === "scripture_verses")).toHaveLength(7);
-  expect(
-    (await new PresentationRepository(w.gate, dest).loadCheckpoint())
-      ?.sessionId,
-  ).not.toBe("old-session");
+  const restored = await new PresentationRepository(
+    w.gate,
+    dest,
+  ).loadCheckpoint();
+  expect(restored?.sessionId).not.toBe("old-session");
+  expect(restored?.live?.alert).toEqual({ text: "Parkir penuh" });
 });
 it("excludes restricted dataset and whole affected schedule/checkpoint without leaking verse text", async () => {
   const p = await preparedFixture();
@@ -861,12 +863,10 @@ it("aggregate merge publishes a mixed schedule while preserving destination, tom
   await tx
     .objectStore("song_sections")
     .put({ ...section, text: "Destination lyrics stay unchanged" });
-  await tx
-    .objectStore("settings")
-    .put({
-      id: "phase2:deleted:song:unrelated",
-      deletedAt: new Date().toISOString(),
-    });
+  await tx.objectStore("settings").put({
+    id: "phase2:deleted:song:unrelated",
+    deletedAt: new Date().toISOString(),
+  });
   await tx.done;
   db.close();
   const before = await readSnapshot(dest);

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { dragToWeek } from "./dragHelpers";
 import { imageFile, videoFile } from "./mediaFixtures";
 import { signFixture } from "../src/scriptures/testFixtures";
 const buffer = (
@@ -61,9 +62,7 @@ async function apply(page: Page) {
 }
 async function output(page: Page) {
   const pending = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const p = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   return p;
@@ -272,7 +271,7 @@ test("video backgrounds are silent, independently controlled and paused after Bl
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
-  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
@@ -312,13 +311,13 @@ test("video backgrounds are silent, independently controlled and paused after Bl
 test("theme assignment deletion discloses affected records and requires explicit replacement", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page.getByLabel("Nama jadwal", { exact: true }).fill("Themed service");
   await page
     .getByRole("button", { name: "Simpan jadwal", exact: true })
     .click();
   await song(page);
-  await page.getByRole("button", { name: "Ke jadwal", exact: true }).click();
+  await dragToWeek(page.getByTestId("song-row").first());
   await create(page, "Assigned theme", "gradient");
   await page
     .getByLabel("Item jadwal untuk tema", { exact: true })

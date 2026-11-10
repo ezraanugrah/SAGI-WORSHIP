@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import { dragToWeek } from "./dragHelpers";
 const first = "Original first verse for projector verification.",
   chorus = "Original chorus written for software verification.";
 function row(page: Page, title: string) {
@@ -42,9 +43,7 @@ async function prepare(page: Page, title = "Projection composition") {
 }
 async function openOutput(page: Page) {
   const popup = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const output = await popup;
   await expect(output.getByTestId("projector")).toBeVisible();
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
@@ -64,7 +63,7 @@ async function checkpoint(page: Page) {
   await expect(page.getByText(/Checkpoint tersimpan · LIVE/)).toBeVisible();
 }
 async function seededSchedule(page: Page) {
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page
     .getByLabel("Nama jadwal", { exact: true })
     .fill("Projection service");
@@ -138,7 +137,7 @@ test("two real windows preserve Preview/LIVE isolation and all visibility/naviga
   await expect(output.locator(".slide-lines")).toHaveText(
     "Original temporary override.",
   );
-  await live.getByRole("button", { name: "Black", exact: true }).click();
+  await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect(output.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",
     "black",
@@ -150,13 +149,14 @@ test("two real windows preserve Preview/LIVE isolation and all visibility/naviga
     "data-mode",
     "black",
   );
-  await live.getByRole("button", { name: "Clear Text", exact: true }).click();
+  await page.getByRole("button", { name: "Clear Text", exact: true }).click();
   await expect(output.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",
     "clearText",
   );
   await expect(output.locator(".slide-lines")).toBeHidden();
-  await live.getByRole("button", { name: "Restore", exact: true }).click();
+  // Clicking the pressed Clear Text again returns to normal.
+  await page.getByRole("button", { name: "Clear Text", exact: true }).click();
   await expect(output.locator(".slide-lines")).toHaveText(first);
   await expect(output.locator(".slide-lines")).toBeVisible();
   await live
@@ -209,9 +209,7 @@ test("scheduled navigation crosses repeated sections and schedule items using fr
   await song(page, "Second composition", false);
   await seededSchedule(page);
   for (const title of ["Projection composition", "Second composition"]) {
-    await row(page, title)
-      .getByRole("button", { name: "Ke jadwal", exact: true })
-      .click();
+    await dragToWeek(row(page, title));
     await expect(page.getByTestId("schedule-item")).toHaveCount(
       title === "Projection composition" ? 1 : 2,
     );
@@ -368,7 +366,7 @@ test("operator restart never takes over; explicit Resume restores checkpoint and
     "data-mode",
     "black",
   );
-  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect(newOutput.locator(".slide-lines")).toHaveText(first);
   await checkpoint(page);
   await page.reload();
@@ -411,9 +409,7 @@ test("checkpoint failure cannot disable emergency Black; checkpoint can be retri
     .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
     .click();
   await expect(page.getByText(/Checkpoint gagal:/)).toBeVisible();
-  await page
-    .getByRole("button", { name: "Emergency Black", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect(output.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",
     "black",
@@ -451,9 +447,7 @@ test("fullscreen/popup denial and BroadcastChannel fallback remain actionable", 
     return true;
   });
   expect(original).toBe(true);
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   await expect(page.getByText(/Popup diblokir/)).toBeVisible();
   await page.evaluate(() => {
     window.open = (
@@ -510,7 +504,7 @@ test("secondary operator and projector never acquire presentation authority or m
   await secondary.goto("/");
   await expect(
     secondary.getByRole("button", {
-      name: "Open Projector Window",
+      name: "Live",
       exact: true,
     }),
   ).toBeDisabled();
@@ -599,7 +593,7 @@ test("loss of writer ownership disables every LIVE command and retains the proje
     );
   });
   await expect(
-    page.getByRole("button", { name: "Emergency Black", exact: true }),
+    page.getByRole("button", { name: "Black", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Go Live", exact: true }),

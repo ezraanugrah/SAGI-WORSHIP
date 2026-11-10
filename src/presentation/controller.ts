@@ -17,6 +17,7 @@ import {
   clone,
   frameText,
   validLive,
+  ALERT_MAX,
   validStyle,
   overrideSignature,
   type Style,
@@ -525,8 +526,14 @@ export class PresentationController {
         deck: preview.deck,
         index: preview.index,
         mode: "normal",
+        ...this.keptAlert(),
       }),
     );
+  }
+  /** A running alert stays on screen when the operator goes live with new material. */
+  private keptAlert() {
+    const alert = this.state.live?.alert;
+    return alert ? { alert: { text: alert.text } } : {};
   }
   private async mediaGoLive(preview: Preview) {
     const intent = ++this.intent;
@@ -544,6 +551,7 @@ export class PresentationController {
         deck: preview.deck,
         index: preview.index,
         mode: "normal",
+        ...this.keptAlert(),
       }),
     );
   }
@@ -733,11 +741,12 @@ export class PresentationController {
     this.authorize();
     const live = this.state.live;
     this.intent++;
-    if (live)
+    const hides = mode === "black";
+    if (live) {
       this.transition({
         ...live,
         mode,
-        ...(live.backgroundPlayback && mode === "black"
+        ...(live.backgroundPlayback && hides
           ? {
               backgroundPlayback: {
                 ...live.backgroundPlayback,
@@ -746,7 +755,7 @@ export class PresentationController {
               },
             }
           : {}),
-        ...(live.playback && mode === "black"
+        ...(live.playback && hides
           ? {
               playback: {
                 ...live.playback,
@@ -760,6 +769,19 @@ export class PresentationController {
             }
           : {}),
       });
+    }
+  }
+  /** Shows (or with null/empty text, stops) the scrolling alert. */
+  alert(text: string | null) {
+    this.authorize();
+    const live = this.state.live;
+    if (!live)
+      throw new Error("Go Live terlebih dahulu untuk menampilkan alert.");
+    const value = text?.trim() ?? "";
+    if (value.length > ALERT_MAX)
+      throw new Error(`Alert maksimal ${ALERT_MAX} karakter.`);
+    const { alert: _previousAlert, ...rest } = live;
+    this.transition(value ? { ...rest, alert: { text: value } } : rest);
   }
   toggle(mode: "black" | "clearText") {
     this.authorize();

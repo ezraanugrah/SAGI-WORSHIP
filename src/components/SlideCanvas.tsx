@@ -18,10 +18,13 @@ export function SlideCanvas({
   nonce,
   onFeedback,
   backgroundPlayback,
+  alert,
 }: {
   deck: Deck | null;
   index?: number;
   mode?: Live["mode"];
+  /** Scrolling alert text over the slide (hidden while Black). */
+  alert?: string;
   onRendered?: (error?: string) => void;
   role?: "preview" | "monitor" | "audience";
   playback?: Playback;
@@ -157,6 +160,15 @@ export function SlideCanvas({
               {caption.total > 1 ? ` · ${caption.part}/${caption.total}` : ""}
             </div>
             <div className="scripture-attribution">{caption.attribution}</div>
+          </div>
+        )}
+        {alert && mode !== "black" && (
+          <div className="slide-alert" data-testid="slide-alert">
+            <span
+              style={{ animationDuration: `${Math.max(12, alert.length * 0.22)}s` }}
+            >
+              {alert}
+            </span>
           </div>
         )}
       </div>

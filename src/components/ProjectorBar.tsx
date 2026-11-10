@@ -1,24 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import { Monitor } from "lucide-react";
+import { Expand, MonitorCog, RefreshCw } from "lucide-react";
 import { PresentationController } from "../presentation/controller";
 import { listScreens, type ScreenChoice } from "../presentation/windowManager";
 
 /**
- * Browser projector window controls, shown in the top bar of the dashboard.
- * (The Unity version drove the second display itself; in a browser the
- * operator opens and places the audience window.)
+ * Projector window tools on the left of the top bar (every page). The window
+ * itself is opened with "Live" in the LIVE toolbar, on the screen picked here.
  */
 export function ProjectorBar({
   controller,
   editable,
+  onScreen,
 }: {
   controller: PresentationController;
   editable: boolean;
+  onScreen: (screen: ScreenChoice | undefined) => void;
 }) {
   const [screens, setScreens] = useState<ScreenChoice[]>([]),
     [screen, setScreen] = useState("");
   const screensRequest = useRef<AbortController | null>(null);
   useEffect(() => () => screensRequest.current?.abort(), []);
+  const choose = (value: string, choices = screens) => {
+    setScreen(value);
+    onScreen(value === "" ? undefined : choices[Number(value)]);
+  };
   const run = (action: () => unknown) => {
     try {
       const result = action();
@@ -28,68 +33,44 @@ export function ProjectorBar({
       controller.report(e);
     }
   };
+  function pickScreens() {
+    screensRequest.current?.abort();
+    const request = new AbortController();
+    screensRequest.current = request;
+    void listScreens((choices) => {
+      setScreens(choices);
+      choose("", choices);
+      controller.report(
+        new Error(
+          "Susunan layar berubah. Periksa jendela/proyektor; LIVE dipertahankan.",
+        ),
+      );
+    }, request.signal)
+      .then((choices) => {
+        if (!request.signal.aborted) setScreens(choices);
+      })
+      .catch((e) =>
+        controller.report(
+          new Error(
+            `Pemilihan layar tidak tersedia/ditolak: ${e.message}. Pindahkan jendela secara manual.`,
+          ),
+        ),
+      );
+  }
   return (
     <div className="projector-bar" role="group" aria-label="Jendela proyektor">
-      <span className="projector-bar-label">
-        <Monitor size={15} aria-hidden="true" />
-        Proyektor
-      </span>
       <button
-        className="button secondary"
+        type="button"
+        className="tool-button"
+        aria-label="Pilih layar"
+        title="Pilih layar proyektor (opsional)"
         disabled={!editable}
-        onClick={() =>
-          run(() =>
-            controller.windows.open(
-              screen === "" ? undefined : screens[Number(screen)],
-            ),
-          )
-        }
+        onClick={pickScreens}
       >
-        Open Projector Window
-      </button>
-      <button
-        className="button secondary"
-        disabled={!editable}
-        onClick={() => run(() => controller.windows.fullscreen())}
-      >
-        Fullscreen Projector
-      </button>
-      <button
-        className="button secondary"
-        disabled={!editable}
-        onClick={() => run(() => controller.windows.reconnect())}
-      >
-        Reconnect
-      </button>
-      <button
-        className="text-action"
-        disabled={!editable}
-        onClick={() => {
-          screensRequest.current?.abort();
-          const request = new AbortController();
-          screensRequest.current = request;
-          void listScreens((choices) => {
-            setScreens(choices);
-            setScreen("");
-            controller.report(
-              new Error(
-                "Susunan layar berubah. Periksa jendela/proyektor; LIVE dipertahankan.",
-              ),
-            );
-          }, request.signal)
-            .then((choices) => {
-              if (!request.signal.aborted) setScreens(choices);
-            })
-            .catch((e) =>
-              controller.report(
-                new Error(
-                  `Pemilihan layar tidak tersedia/ditolak: ${e.message}. Pindahkan jendela secara manual.`,
-                ),
-              ),
-            );
-        }}
-      >
-        Pilih layar (opsional)
+        <span className="tool-icon" aria-hidden="true">
+          <MonitorCog size={18} />
+        </span>
+        <span className="tool-label">Layar</span>
       </button>
       {screens.length > 0 && (
         <label className="projector-screen">
@@ -97,7 +78,7 @@ export function ProjectorBar({
           <select
             aria-label="Layar tujuan"
             value={screen}
-            onChange={(e) => setScreen(e.target.value)}
+            onChange={(e) => choose(e.target.value)}
           >
             <option value="">Manual / layar default</option>
             {screens.map((s, index) => (
@@ -108,6 +89,32 @@ export function ProjectorBar({
           </select>
         </label>
       )}
+      <button
+        type="button"
+        className="tool-button"
+        aria-label="Fullscreen Projector"
+        title="Jadikan jendela proyektor layar penuh"
+        disabled={!editable}
+        onClick={() => run(() => controller.windows.fullscreen())}
+      >
+        <span className="tool-icon" aria-hidden="true">
+          <Expand size={18} />
+        </span>
+        <span className="tool-label">Fullscreen</span>
+      </button>
+      <button
+        type="button"
+        className="tool-button"
+        aria-label="Reconnect"
+        title="Sambungkan ulang jendela proyektor"
+        disabled={!editable}
+        onClick={() => run(() => controller.windows.reconnect())}
+      >
+        <span className="tool-icon" aria-hidden="true">
+          <RefreshCw size={17} />
+        </span>
+        <span className="tool-label">Reconnect</span>
+      </button>
     </div>
   );
 }

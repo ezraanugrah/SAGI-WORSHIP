@@ -1,4 +1,7 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
+import { revealInPane } from "./revealInPane";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { slideSummary } from "./PreviewWorkspace";
 import { SlideCanvas } from "./SlideCanvas";
 import {
   PresentationController,
@@ -9,12 +12,10 @@ export function LiveControls({
   controller,
   state,
   editable,
-  dirty,
 }: {
   controller: PresentationController;
   state: PresentationState;
   editable: boolean;
-  dirty: boolean;
 }) {
   const region = useRef<HTMLElement>(null);
   usePresentationShortcuts(controller, editable);
@@ -28,6 +29,10 @@ export function LiveControls({
     }
   };
   const live = state.live;
+  const current = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    revealInPane(current.current);
+  }, [live?.deck.id, live?.index]);
   return (
     <section
       className="panel live"
@@ -35,15 +40,79 @@ export function LiveControls({
       ref={region}
       tabIndex={0}
     >
-      <div className="live-heading">
-        <h2 className="panel-heading">Live</h2>
-        <span className="disconnected" data-testid="connection-status">
+      <div className="pane-head">
+        <h2 className="pane-title">
+          Live
+          <span className="pane-subject">
+            {live
+              ? ` - ${live.deck.frames[live.index]?.title || live.deck.label}`
+              : ""}
+          </span>
+        </h2>
+        <span
+          className="pane-status"
+          data-connected={
+            state.connection.status === "Tersinkron" ? "true" : undefined
+          }
+          data-testid="connection-status"
+        >
           {state.connection.status}
         </span>
       </div>
-      <div className="live-control-body">
-        <div className="live-monitor">
-          <div className="box-label">Projector preview</div>
+      <div className="pane-body slide-rows-wrap">
+        {live ? (
+          <div
+            className="slide-rows"
+            role="list"
+            aria-label="Daftar slide LIVE"
+          >
+            {live.deck.frames.map((frame, index) => {
+              const chosen = index === live.index;
+              const go = () => {
+                if (!chosen && editable)
+                  run(() => controller.navigate(index - live.index));
+              };
+              return (
+                <div
+                  key={frame.id}
+                  ref={chosen ? current : undefined}
+                  role="listitem"
+                  tabIndex={editable ? 0 : -1}
+                  aria-label={`LIVE slide ${index + 1}: ${frame.title} ${frame.label}`}
+                  aria-current={chosen ? "true" : undefined}
+                  className={chosen ? "slide-row chosen live" : "slide-row"}
+                  onClick={go}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      go();
+                    }
+                  }}
+                >
+                  <span className="slide-num">{index + 1}</span>
+                  <div className="slide-main">
+                    <div className="slide-tag" data-kind={frame.kind ?? "song"}>
+                      {frame.label}
+                      <small>{frame.title}</small>
+                    </div>
+                    <div className="slide-text">
+                      {slideSummary(live.deck, index)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="box-empty">
+            Belum LIVE. Siapkan slide di Preview lalu klik Go Live (kanan atas).
+          </p>
+        )}
+      </div>
+      <div className="output-area">
+        <div className="box-label">Live Output</div>
+        <div className="output-frame">
           <div className="presentation-canvas">
             <SlideCanvas
               deck={live?.deck ?? null}
@@ -52,74 +121,42 @@ export function LiveControls({
               role="monitor"
               playback={live?.playback}
               backgroundPlayback={live?.backgroundPlayback}
+              alert={live?.alert?.text}
             />
           </div>
         </div>
-        <div className="live-main-buttons">
-          <div className="live-row two">
+        <div className="output-foot">
+          <span>
+            {live
+              ? `Slide ${live.index + 1} of ${live.deck.frames.length}${
+                  live.mode === "black"
+                    ? " · BLACK"
+                    : live.mode === "clearText"
+                      ? " · CLEAR TEXT"
+                      : ""
+                }`
+              : "Belum LIVE"}
+          </span>
+          <div className="step-buttons">
             <button
-              className="button live-btn"
-              aria-pressed={live?.mode === "black"}
-              disabled={!editable || !live}
-              onClick={() => run(() => controller.toggle("black"))}
-            >
-              Black
-            </button>
-            <button
-              className="button live-btn"
-              aria-pressed={live?.mode === "clearText"}
-              disabled={!editable || !live}
-              onClick={() => run(() => controller.toggle("clearText"))}
-            >
-              Clear Text
-            </button>
-          </div>
-          <div className="live-row three">
-            <button
-              className="button live-btn"
+              className="step"
               aria-label="Slide sebelumnya LIVE"
               disabled={!editable || !live || live.index === 0}
               onClick={() => run(() => controller.navigate(-1))}
             >
-              {"< Prev"}
+              <ChevronLeft size={15} />
             </button>
             <button
-              className="button primary live-btn go-live"
-              disabled={
-                !editable ||
-                !state.preview ||
-                dirty ||
-                state.preparing ||
-                !!state.recovery
-              }
-              onClick={() => run(() => controller.goLive())}
-            >
-              Go Live
-            </button>
-            <button
-              className="button live-btn"
+              className="step"
               aria-label="Slide berikutnya LIVE"
               disabled={
                 !editable || !live || live.index === live.deck.frames.length - 1
               }
               onClick={() => run(() => controller.navigate(1))}
             >
-              {"Next >"}
+              <ChevronRight size={15} />
             </button>
           </div>
-        </div>
-        <div className="deck-position">
-          <strong>{live?.deck.label ?? "Belum LIVE"}</strong>
-          <span>
-            {live ? `${live.index + 1} / ${live.deck.frames.length}` : "— / —"}
-          </span>
-          <button
-            className="text-action"
-            disabled={!editable || !live || live.mode === "normal"}
-            onClick={() => run(() => controller.mode("normal"))}
-          >
-            Restore
-          </button>
         </div>
         {live?.backgroundPlayback && (
           <fieldset
@@ -215,27 +252,29 @@ export function LiveControls({
             </p>
           </fieldset>
         )}
-        <p className="field-help">
-          Fullscreen: {state.connection.fullscreen ? "Aktif" : "Tidak aktif"} ·
-          Mode: {live?.mode ?? "black"} · Dikirim {state.sequence} · Dirender{" "}
-          {state.connection.ack < 0 ? "—" : state.connection.ack} · Shortcut ←
-          → PgUp PgDn Space B C
-        </p>
-        {state.connection.error && (
-          <p className="save-message" role="status">
-            {state.connection.error}
+        <div className="live-diagnostics">
+          <p className="field-help">
+            Fullscreen: {state.connection.fullscreen ? "Aktif" : "Tidak aktif"}{" "}
+            · Mode: {live?.mode ?? "black"} · Dikirim {state.sequence} ·
+            Dirender {state.connection.ack < 0 ? "—" : state.connection.ack} ·
+            Shortcut ← → PgUp PgDn Space B C
           </p>
-        )}
-        <p className="field-help" role="status">
-          {state.checkpoint}
-        </p>
-        <button
-          className="text-button"
-          disabled={!editable || !live}
-          onClick={() => run(() => controller.retryCheckpoint())}
-        >
-          Coba checkpoint lagi
-        </button>
+          {state.connection.error && (
+            <p className="save-message" role="status">
+              {state.connection.error}
+            </p>
+          )}
+          <p className="field-help" role="status">
+            {state.checkpoint}
+          </p>
+          <button
+            className="text-button"
+            disabled={!editable || !live}
+            onClick={() => run(() => controller.retryCheckpoint())}
+          >
+            Coba checkpoint lagi
+          </button>
+        </div>
       </div>
     </section>
   );

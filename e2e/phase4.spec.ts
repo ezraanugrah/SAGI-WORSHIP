@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { dragToWeek } from "./dragHelpers";
 import { fixtureDataset, signFixture } from "../src/scriptures/testFixtures";
 // Playwright runs in Node; keep Node-only globals out of the browser app type environment.
 const nodeBuffer = (
@@ -48,9 +49,7 @@ async function select(page: Page, ref = "John 3:16-18") {
 }
 async function output(page: Page) {
   const pending = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const p = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   return p;
@@ -133,7 +132,7 @@ test("offline import, Unicode text search, browsing and reload persistence", asy
 test("two windows retain frozen LIVE after deletion; mixed schedule duplication, keyboard and drag ordering", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page.getByLabel("Nama jadwal", { exact: true }).fill("Mixed rehearsal");
   await page
     .getByRole("button", { name: "Simpan jadwal", exact: true })
@@ -147,12 +146,7 @@ test("two windows retain frozen LIVE after deletion; mixed schedule duplication,
     page.getByRole("region", { name: "Editor lagu" }).getByRole("status"),
   ).toHaveText("Tersimpan lokal");
   await page.getByRole("button", { name: "Selesai", exact: true }).click();
-  await page
-    .getByRole("button", {
-      name: "Ke jadwal",
-      exact: true,
-    })
-    .click();
+  await dragToWeek(page.getByTestId("song-row").first());
   await imported(page);
   await select(page);
   await page

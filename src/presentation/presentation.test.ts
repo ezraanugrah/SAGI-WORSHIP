@@ -204,6 +204,52 @@ describe("generation, authorization, immutable LIVE and recovery", () => {
     await controller.settled();
     expect((await storage.loadCheckpoint())?.live?.mode).toBe("black");
   });
+  it("shows a validated alert ticker that survives Go Live, navigation, Black and checkpoints", async () => {
+    await seed();
+    await controller.prepare(
+      await repo.load(),
+      { kind: "song", songId: "song" },
+      style,
+    );
+    expect(() => controller.alert("Too early")).toThrow("Go Live");
+    controller.goLive();
+    controller.alert("  Parkir penuh  ");
+    expect(controller.snapshot().live?.alert).toEqual({ text: "Parkir penuh" });
+    expect(validLive(controller.snapshot().live)).toBe(true);
+    expect(() => controller.alert("x".repeat(301))).toThrow("maksimal");
+    expect(controller.snapshot().live?.alert?.text).toBe("Parkir penuh");
+    controller.navigate(1);
+    controller.toggle("black");
+    expect(controller.snapshot().live).toMatchObject({
+      index: 1,
+      mode: "black",
+      alert: { text: "Parkir penuh" },
+    });
+    controller.select(2);
+    controller.goLive();
+    expect(controller.snapshot().live).toMatchObject({
+      index: 2,
+      alert: { text: "Parkir penuh" },
+    });
+    await controller.settled();
+    expect((await storage.loadCheckpoint())?.live?.alert?.text).toBe(
+      "Parkir penuh",
+    );
+    controller.alert("   ");
+    expect(controller.snapshot().live).not.toHaveProperty("alert");
+    controller.alert("Again");
+    controller.alert(null);
+    expect(controller.snapshot().live).not.toHaveProperty("alert");
+    const live = clone(controller.snapshot().live)!;
+    expect(validLive({ ...live, alert: { text: "" } })).toBe(false);
+    expect(validLive({ ...live, alert: { text: "a", extra: 1 } })).toBe(false);
+    expect(validLive({ ...live, alert: { text: "x".repeat(301) } })).toBe(
+      false,
+    );
+    expect(validLive({ ...live, alert: { text: "ok" } })).toBe(true);
+    writer.gate.revoke();
+    expect(() => controller.alert("Unauthorized")).toThrow("hanya baca");
+  });
   it("offers explicit Resume/Discard after restart and never starts LIVE automatically", async () => {
     await seed();
     await controller.prepare(

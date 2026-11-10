@@ -1,42 +1,73 @@
-import { Cast, Eraser, MonitorPlay, Square } from "lucide-react";
-import type { ReactNode } from "react";
+import {
+  BellRing,
+  Cast,
+  ChevronDown,
+  Eraser,
+  MonitorPlay,
+  Square,
+} from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   PresentationController,
   type PresentationState,
 } from "../presentation/controller";
+import { ALERT_MAX } from "../presentation/models";
+import type { ScreenChoice } from "../presentation/windowManager";
 
 /**
- * Quick LIVE toolbar in the top bar (visible on every page). Uses the same
- * controller actions and rules as the LIVE panel.
+ * LIVE toolbar in the top bar (visible on every page). This is the only place
+ * for Go Live, Black, Clear, Alerts and opening the projector window.
  */
 export function LiveToolbar({
   controller,
   state,
   editable,
   dirty,
+  screen,
 }: {
   controller: PresentationController;
   state: PresentationState;
   editable: boolean;
-  /** Preview has unapplied edits (Go Live waits for Apply, like the panel). */
+  /** Preview has unapplied edits (Go Live waits for Apply). */
   dirty: boolean;
+  /** Screen picked in the top bar (optional). */
+  screen?: ScreenChoice;
 }) {
   const live = state.live;
+  const [alertOpen, setAlertOpen] = useState(false),
+    [message, setMessage] = useState("");
+  const popover = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!alertOpen) return;
+    setMessage(live?.alert?.text ?? "");
+    const close = (e: MouseEvent) => {
+      if (!popover.current?.parentElement?.contains(e.target as Node))
+        setAlertOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+    // Prefill only when the popover opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alertOpen]);
+  useEffect(() => {
+    if (!live) setAlertOpen(false);
+  }, [live]);
   const run = (action: () => unknown) => {
     try {
       const result = action();
       if (result instanceof Promise)
         void result.catch((e) => controller.report(e));
+      return true;
     } catch (e) {
       controller.report(e);
+      return false;
     }
   };
   const projectorOn = state.connection.status === "Tersinkron";
   return (
-    <div className="live-toolbar" role="toolbar" aria-label="Kontrol LIVE cepat">
+    <div className="live-toolbar" role="toolbar" aria-label="Kontrol LIVE">
       <ToolButton
         label="Go Live"
-        name="Go Live dari toolbar"
         icon={<MonitorPlay size={20} />}
         tone="go"
         disabled={
@@ -49,9 +80,66 @@ export function LiveToolbar({
         onClick={() => run(() => controller.goLive())}
       />
       <span className="toolbar-divider" aria-hidden="true" />
+      <div className="tool-menu">
+        <ToolButton
+          label="Alerts"
+          icon={<BellRing size={20} />}
+          menu
+          pressed={!!live?.alert}
+          expanded={alertOpen}
+          disabled={!editable || !live}
+          onClick={() => setAlertOpen((open) => !open)}
+        />
+        {alertOpen && (
+          <div
+            className="tool-popover"
+            ref={popover}
+            role="dialog"
+            aria-label="Alert untuk jemaat"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setAlertOpen(false);
+            }}
+          >
+            <label>
+              Pesan alert
+              <textarea
+                aria-label="Pesan alert"
+                rows={2}
+                maxLength={ALERT_MAX}
+                autoFocus
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Contoh: Orang tua dari Budi harap ke ruang anak"
+              />
+            </label>
+            <div className="tool-popover-actions">
+              {live?.alert && (
+                <button
+                  type="button"
+                  className="button secondary"
+                  onClick={() => {
+                    if (run(() => controller.alert(null))) setAlertOpen(false);
+                  }}
+                >
+                  Hentikan alert
+                </button>
+              )}
+              <button
+                type="button"
+                className="button primary"
+                disabled={!message.trim()}
+                onClick={() => {
+                  if (run(() => controller.alert(message))) setAlertOpen(false);
+                }}
+              >
+                Tampilkan alert
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
       <ToolButton
         label="Black"
-        name="Emergency Black"
         icon={<Square size={20} fill="currentColor" />}
         pressed={live?.mode === "black"}
         disabled={!editable || !live}
@@ -59,7 +147,7 @@ export function LiveToolbar({
       />
       <ToolButton
         label="Clear"
-        name="Clear dari toolbar"
+        name="Clear Text"
         icon={<Eraser size={20} />}
         pressed={live?.mode === "clearText"}
         disabled={!editable || !live}
@@ -68,11 +156,11 @@ export function LiveToolbar({
       <span className="toolbar-divider" aria-hidden="true" />
       <ToolButton
         label="Live"
-        name="Live: buka jendela proyektor"
+        title="Buka jendela proyektor"
         icon={<Cast size={20} />}
         pressed={projectorOn}
         disabled={!editable}
-        onClick={() => run(() => controller.windows.open())}
+        onClick={() => run(() => controller.windows.open(screen))}
       />
     </div>
   );
@@ -81,18 +169,25 @@ export function LiveToolbar({
 function ToolButton({
   label,
   name,
+  title,
   icon,
   onClick,
   disabled,
   pressed,
+  expanded,
+  menu,
   tone,
 }: {
   label: string;
-  name: string;
+  /** Accessible name when it should differ from the visible label. */
+  name?: string;
+  title?: string;
   icon: ReactNode;
   onClick: () => void;
   disabled?: boolean;
   pressed?: boolean;
+  expanded?: boolean;
+  menu?: boolean;
   tone?: "go";
 }) {
   return (
@@ -100,14 +195,20 @@ function ToolButton({
       type="button"
       className={`tool-button${tone ? ` ${tone}` : ""}`}
       aria-label={name}
+      title={title}
       aria-pressed={pressed === undefined ? undefined : pressed}
+      aria-expanded={menu ? expanded : undefined}
+      aria-haspopup={menu ? "dialog" : undefined}
       disabled={disabled}
       onClick={onClick}
     >
       <span className="tool-icon" aria-hidden="true">
         {icon}
       </span>
-      <span className="tool-label">{label}</span>
+      <span className="tool-label">
+        {label}
+        {menu && <ChevronDown size={11} aria-hidden="true" />}
+      </span>
     </button>
   );
 }

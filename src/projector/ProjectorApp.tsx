@@ -214,6 +214,7 @@ export default function ProjectorApp() {
         playback={current.live?.playback}
         nonce={receiver.nonce}
         backgroundPlayback={current.live?.backgroundPlayback}
+        alert={current.live?.alert?.text}
         onFeedback={(feedback) =>
           transport.current?.send({
             ...pairing,

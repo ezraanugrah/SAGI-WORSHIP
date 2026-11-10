@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { dragToWeek } from "./dragHelpers";
 const BufferNode = (globalThis as any).Buffer;
 async function song(page: Page, text = "Synthetic phase eight lyrics") {
   await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
@@ -43,7 +44,7 @@ test("Phase 8 equal-parent aggregate conflict stays safe through browser backup,
   page,
 }) => {
   await song(page);
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page
     .getByLabel("Nama jadwal", { exact: true })
     .fill("Repeated synthetic service");
@@ -51,7 +52,7 @@ test("Phase 8 equal-parent aggregate conflict stays safe through browser backup,
     .getByRole("button", { name: "Simpan jadwal", exact: true })
     .click();
   for (let i = 0; i < 2; i++) {
-    await page.getByRole("button", { name: "Ke jadwal", exact: true }).click();
+    await dragToWeek(page.getByTestId("song-row").first());
     await expect(page.getByTestId("schedule-item")).toHaveCount(i + 1);
   }
   await settings(page);
@@ -168,9 +169,7 @@ test("Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery",
     .getByRole("button", { name: /^Phase eight synthetic/ })
     .click();
   const pending = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const output = await pending;
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator(".slide-lines")).toHaveText(lyric);
@@ -207,8 +206,6 @@ test("Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery",
     .getByRole("button", { name: "Resume presentasi", exact: true })
     .click();
   const nextPending = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   await expect((await nextPending).locator(".slide-lines")).toHaveText(lyric);
 });

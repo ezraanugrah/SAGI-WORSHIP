@@ -17,7 +17,6 @@ export function SongsLibrary({
   onInspect,
   onDuplicate,
   onDelete,
-  onAdd,
   onRecover,
   onDiscard,
   onActive,
@@ -33,7 +32,6 @@ export function SongsLibrary({
   onInspect: (song: Song) => void;
   onDuplicate: (song: Song) => void;
   onDelete: (song: Song) => void;
-  onAdd: (song: Song) => void;
   onRecover: (songId: string) => void;
   onDiscard: (songId: string, sequence: number) => void;
   onActive: (scheduleId: string) => void;
@@ -99,7 +97,7 @@ export function SongsLibrary({
         <div className="songs-toolbar">
           <div>
             <h3>Music</h3>
-            <p>Klik = Preview · Tarik = Tambah ke Week aktif</p>
+            <p>Klik judul = Preview · Tarik ke Schedule = tambah ke Week</p>
           </div>
           <div className="songs-toolbar-actions">
             <span className="songs-count">
@@ -183,22 +181,21 @@ export function SongsLibrary({
                   e.dataTransfer.effectAllowed = "copy";
                 }}
               >
-                <button className="song-inspect" onClick={() => onInspect(song)}>
+                <button
+                  className="song-inspect"
+                  onClick={() => onInspect(song)}
+                >
                   <strong>{song.title}</strong>
                   <small>
-                    {[song.author || song.category, `${song.sections.length} section`]
+                    {[
+                      song.author || song.category,
+                      `${song.sections.length} section`,
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
                   </small>
                 </button>
                 <div className="song-actions">
-                  <button
-                    className="text-action accent"
-                    aria-label={`Preview ${song.title}`}
-                    onClick={() => onInspect(song)}
-                  >
-                    Preview →
-                  </button>
                   <button
                     className="text-action"
                     aria-label={`Edit ${song.title}`}
@@ -222,13 +219,6 @@ export function SongsLibrary({
                     onClick={() => onDuplicate(song)}
                   >
                     <Copy size={14} />
-                  </button>
-                  <button
-                    className="text-action"
-                    disabled={!editable || busy || !data.activeId}
-                    onClick={() => onAdd(song)}
-                  >
-                    Ke jadwal
                   </button>
                 </div>
               </li>

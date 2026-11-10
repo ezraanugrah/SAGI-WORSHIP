@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import { dragToWeek, mediaCard } from "./dragHelpers";
 import {
   imageFile,
   nodeBuffer,
@@ -110,14 +111,14 @@ test("offline portable backup restores mixed image, theme, song and settings int
   browser,
 }) => {
   await song(page);
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page
     .getByLabel("Nama jadwal", { exact: true })
     .fill("Portable mixed service");
   await page
     .getByRole("button", { name: "Simpan jadwal", exact: true })
     .click();
-  await page.getByRole("button", { name: "Ke jadwal", exact: true }).click();
+  await dragToWeek(page.getByTestId("song-row").first());
   await page
     .getByTestId("song-row")
     .getByRole("button", { name: /^Backup composition/ })
@@ -142,23 +143,17 @@ test("offline portable backup restores mixed image, theme, song and settings int
   await page
     .getByRole("button", { name: "Pilih media backup.png", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Tambahkan media ke jadwal", exact: true })
-    .click();
-  await page
-    .getByLabel("File media", { exact: true })
-    .setInputFiles({
-      name: "portable.pdf",
-      mimeType: "application/pdf",
-      buffer: syntheticPDF(),
-    });
+  await dragToWeek(mediaCard(page, "backup.png"));
+  await page.getByLabel("File media", { exact: true }).setInputFiles({
+    name: "portable.pdf",
+    mimeType: "application/pdf",
+    buffer: syntheticPDF(),
+  });
   await page
     .getByRole("button", { name: "Pilih media portable.pdf", exact: true })
     .click();
   await page.getByLabel("Halaman PDF", { exact: true }).fill("1-2");
-  await page
-    .getByRole("button", { name: "Tambahkan media ke jadwal", exact: true })
-    .click();
+  await dragToWeek(mediaCard(page, "portable.pdf"));
   await page
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
@@ -283,9 +278,7 @@ test("backup during LIVE does not change output; restore requires End Session an
     .getByRole("button", { name: /^Backup composition/ })
     .click();
   const popup = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const output = await popup;
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator(".slide-lines")).toContainText(
@@ -512,9 +505,7 @@ test("restored video checkpoint requires explicit Resume and fresh output remain
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
   const popup = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const output = await popup;
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator("video")).toBeVisible();
@@ -542,9 +533,7 @@ test("restored video checkpoint requires explicit Resume and fresh output remain
     .getByRole("button", { name: "Resume presentasi", exact: true })
     .click();
   const nextPopup = p.waitForEvent("popup");
-  await p
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await p.getByRole("button", { name: "Live", exact: true }).click();
   const next = await nextPopup;
   await expect(next.locator("video")).toBeVisible();
   expect(

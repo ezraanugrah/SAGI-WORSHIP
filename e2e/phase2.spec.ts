@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { dragToWeek } from "./dragHelpers";
 const lyric =
   "Original software test line.\nA second line written for this test.";
 async function createSong(page: Page, title: string) {
@@ -16,13 +17,22 @@ function row(page: Page, title: string) {
     has: page.getByRole("button", { name: `Edit ${title}`, exact: true }),
   });
 }
+/** Title of the Schedule pane: "Schedule - <active Week>". */
+function activeSchedule(page: Page) {
+  return page
+    .getByRole("region", { name: "Jadwal ibadah" })
+    .getByRole("heading", { level: 2 });
+}
+function playlists(page: Page) {
+  return page.getByRole("list", { name: "Playlists" });
+}
 async function createSchedule(page: Page, name: string) {
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page.getByLabel("Nama jadwal", { exact: true }).fill(name);
   await page
     .getByRole("button", { name: "Simpan jadwal", exact: true })
     .click();
-  await expect(page.getByLabel("Jadwal aktif")).toContainText(name);
+  await expect(activeSchedule(page)).toHaveText(`Schedule - ${name}`);
   await expect(page.getByLabel("Nama jadwal", { exact: true })).toHaveCount(0);
 }
 async function confirmNext(page: Page, accept = true) {
@@ -147,9 +157,7 @@ test("schedules create/rename/duplicate/delete, active persistence and source-sa
 }) => {
   await createSong(page, "Schedule composition");
   await createSchedule(page, "Morning service");
-  await row(page, "Schedule composition")
-    .getByRole("button", { name: "Ke jadwal", exact: true })
-    .click();
+  await dragToWeek(row(page, "Schedule composition"));
   await expect(page.getByTestId("schedule-item")).toHaveCount(1);
   await page
     .getByRole("button", { name: "Ganti nama jadwal", exact: true })
@@ -158,22 +166,21 @@ test("schedules create/rename/duplicate/delete, active persistence and source-sa
   await page
     .getByRole("button", { name: "Simpan jadwal", exact: true })
     .click();
-  await expect(page.getByLabel("Jadwal aktif")).toContainText("Sunday service");
+  await expect(activeSchedule(page)).toHaveText("Schedule - Sunday service");
   await page
     .getByRole("button", { name: "Duplikasi jadwal", exact: true })
     .click();
-  await expect(
-    page.getByLabel("Jadwal aktif").locator("option:checked"),
-  ).toHaveText("Sunday service (salinan)");
+  await expect(activeSchedule(page)).toHaveText(
+    "Schedule - Sunday service (salinan)",
+  );
   await expect(page.getByTestId("schedule-item")).toHaveCount(1);
   await createSchedule(page, "Youth service");
-  await page
-    .getByLabel("Jadwal aktif")
-    .selectOption({ label: "Sunday service" });
+  await playlists(page)
+    .getByRole("button", { name: /^Sunday service \d+$/ })
+    .click();
+  await expect(activeSchedule(page)).toHaveText("Schedule - Sunday service");
   await page.reload();
-  await expect(
-    page.getByLabel("Jadwal aktif").locator("option:checked"),
-  ).toHaveText("Sunday service");
+  await expect(activeSchedule(page)).toHaveText("Schedule - Sunday service");
   await page
     .getByRole("button", { name: "Hapus item 1 dari jadwal", exact: true })
     .click();
@@ -181,12 +188,11 @@ test("schedules create/rename/duplicate/delete, active persistence and source-sa
   await expect(row(page, "Schedule composition")).toHaveCount(1);
   await confirmNext(page, false);
   await page.getByRole("button", { name: "Hapus jadwal", exact: true }).click();
-  await expect(page.getByLabel("Jadwal aktif")).toContainText("Sunday service");
+  await expect(activeSchedule(page)).toHaveText("Schedule - Sunday service");
   await confirmNext(page);
   await page.getByRole("button", { name: "Hapus jadwal", exact: true }).click();
-  await expect(page.getByLabel("Jadwal aktif").locator("option")).toHaveCount(
-    3,
-  );
+  // Placeholder option is gone with the select: two playlists remain.
+  await expect(playlists(page).getByRole("listitem")).toHaveCount(2);
 });
 test("schedule drag ordering and keyboard alternative persist", async ({
   page,
@@ -199,9 +205,7 @@ test("schedule drag ordering and keyboard alternative persist", async ({
     "Beta rehearsal",
     "Gamma rehearsal",
   ]) {
-    await row(page, title)
-      .getByRole("button", { name: "Ke jadwal", exact: true })
-      .click();
+    await dragToWeek(row(page, title));
     await expect(page.getByTestId("schedule-item")).toHaveCount(
       ["Alpha rehearsal", "Beta rehearsal", "Gamma rehearsal"].indexOf(title) +
         1,
@@ -226,14 +230,10 @@ test("deleting a referenced song cleans all schedule references after explicit c
 }) => {
   await createSong(page, "Referenced composition");
   await createSchedule(page, "First service");
-  await row(page, "Referenced composition")
-    .getByRole("button", { name: "Ke jadwal", exact: true })
-    .click();
+  await dragToWeek(row(page, "Referenced composition"));
   await expect(page.getByTestId("schedule-item")).toHaveCount(1);
   await createSchedule(page, "Second service");
-  await row(page, "Referenced composition")
-    .getByRole("button", { name: "Ke jadwal", exact: true })
-    .click();
+  await dragToWeek(row(page, "Referenced composition"));
   await expect(page.getByTestId("schedule-item")).toHaveCount(1);
   await confirmNext(page);
   await page
@@ -295,9 +295,11 @@ test("secondary tabs are read-only and regain writing only after owner closes an
     }),
   ).toBeDisabled();
   await expect(
-    secondary.getByRole("button", { name: "Buat jadwal", exact: true }),
+    secondary.getByRole("button", { name: "New playlist", exact: true }),
   ).toBeDisabled();
-  await expect(secondary.getByLabel("Jadwal aktif")).toBeDisabled();
+  await expect(
+    secondary.getByRole("button", { name: "Ganti nama jadwal", exact: true }),
+  ).toBeDisabled();
   await secondary.getByLabel("Cari Lagu").fill("read only");
   await expect(row(secondary, "Read only composition")).toHaveCount(1);
   await secondary
@@ -394,13 +396,9 @@ test("production shell, song edits, schedules and ordering persist fully offline
     .click();
   await createSong(page, "Offline new composition");
   await createSchedule(page, "Offline service");
-  await row(page, "Offline composition")
-    .getByRole("button", { name: "Ke jadwal", exact: true })
-    .click();
+  await dragToWeek(row(page, "Offline composition"));
   await expect(page.getByTestId("schedule-item")).toHaveCount(1);
-  await row(page, "Offline new composition")
-    .getByRole("button", { name: "Ke jadwal", exact: true })
-    .click();
+  await dragToWeek(row(page, "Offline new composition"));
   await expect(page.getByTestId("schedule-item")).toHaveCount(2);
   await page
     .getByRole("button", { name: "Naikkan item 2", exact: true })
@@ -427,9 +425,9 @@ for (const width of [320, 768, 1440])
       "Responsive composition with a reasonably long title",
     );
     await createSchedule(page, "Responsive service");
-    await row(page, "Responsive composition with a reasonably long title")
-      .getByRole("button", { name: "Ke jadwal", exact: true })
-      .click();
+    await dragToWeek(
+      row(page, "Responsive composition with a reasonably long title"),
+    );
     await expect(page.getByTestId("schedule-item")).toHaveCount(1);
     await page
       .getByRole("button", {

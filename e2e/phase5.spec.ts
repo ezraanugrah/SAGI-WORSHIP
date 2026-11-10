@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { dragToWeek, mediaCard } from "./dragHelpers";
 import {
   imageFile,
   videoFile,
@@ -30,9 +31,7 @@ async function prepare(page: Page) {
 }
 async function output(page: Page) {
   const pending = page.waitForEvent("popup");
-  await page
-    .getByRole("button", { name: "Open Projector Window", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Live", exact: true }).click();
   const p = await pending;
   await expect(p.getByTestId("projector")).toBeVisible();
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
@@ -106,15 +105,13 @@ test("PDF rasterizes selected pages offline and mixed schedules duplicate/reorde
   });
   await page.reload();
   await context.setOffline(true);
-  await page.getByRole("button", { name: "Buat jadwal", exact: true }).click();
+  await page.getByRole("button", { name: "New playlist", exact: true }).click();
   await page.getByLabel("Nama jadwal", { exact: true }).fill("Media service");
   await page
     .getByRole("button", { name: "Simpan jadwal", exact: true })
     .click();
   await image(page);
-  await page
-    .getByRole("button", { name: "Tambahkan media ke jadwal", exact: true })
-    .click();
+  await dragToWeek(mediaCard(page, "synthetic.png"));
   await page.getByLabel("File media", { exact: true }).setInputFiles({
     name: "original.pdf",
     mimeType: "application/pdf",
@@ -127,9 +124,7 @@ test("PDF rasterizes selected pages offline and mixed schedules duplicate/reorde
     .getByRole("button", { name: "Pilih media original.pdf", exact: true })
     .click();
   await page.getByLabel("Halaman PDF", { exact: true }).fill("1-2");
-  await page
-    .getByRole("button", { name: "Tambahkan media ke jadwal", exact: true })
-    .click();
+  await dragToWeek(mediaCard(page, "original.pdf"));
   await expect(page.getByTestId("schedule-item")).toHaveCount(2);
   await page.getByLabel("Naikkan item 2", { exact: true }).focus();
   await page.keyboard.press("Enter");
@@ -222,7 +217,7 @@ test("video Preview and LIVE are independent; playback controls, Black, refresh 
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.muted))
     .toBe(true);
-  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
