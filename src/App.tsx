@@ -5,6 +5,7 @@ import { useMedia } from "./hooks/useMedia";
 import { useScriptureServices } from "./hooks/useScriptures";
 import { usePresentation } from "./hooks/usePresentation";
 import { useWriter } from "./hooks/useWorkspace";
+import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 import { Phase2Dashboard } from "./components/Phase2Dashboard";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -69,6 +70,7 @@ export default function App() {
   const themeServices = useThemes(gate);
   const { controller: presentation, state: presentationState } =
     usePresentation(gate);
+  const wakeLock = useScreenWakeLock(!!presentationState.live);
   const pending = useRef(Promise.resolve());
   useEffect(() => {
     const refresh = () => {
@@ -197,7 +199,7 @@ export default function App() {
             </span>
           </div>
           <div className="version">
-            SAGI WORSHIP <span>v0.7.0</span>
+            SAGI WORSHIP <span>v0.7.1</span>
           </div>
         </div>
       </aside>
@@ -547,8 +549,9 @@ export default function App() {
                 <div className="settings-content shortcuts">
                   {[
                     ["← / →", "Slide sebelumnya / berikutnya"],
+                    ["PageUp / PageDown", "Slide sebelumnya / berikutnya (clicker)"],
                     ["Space", "Slide berikutnya"],
-                    ["B", "Black / Restore"],
+                    ["B atau .", "Black / Restore"],
                     ["C", "Clear text / Restore"],
                   ].map(([key, label]) => (
                     <div key={key}>
@@ -557,7 +560,8 @@ export default function App() {
                     </div>
                   ))}
                   <p className="field-help">
-                    Aktif saat panel LIVE memiliki fokus, bukan saat mengetik.
+                    Aktif selama LIVE di seluruh jendela operator dan jendela
+                    proyektor, kecuali saat mengetik atau di dalam editor.
                     Escape mengikuti perilaku fullscreen browser.
                   </p>
                 </div>
@@ -586,6 +590,15 @@ export default function App() {
               </>
             )}
           </span>
+          {presentationState.live && (
+            <span data-testid="wake-lock-status" role="status">
+              {wakeLock === "active"
+                ? "Layar dijaga tetap menyala"
+                : wakeLock === "idle"
+                  ? "Menyiapkan penjaga layar…"
+                  : "Layar bisa tidur: matikan sleep/screen saver di pengaturan OS"}
+            </span>
+          )}
           <span>
             <CircleHelp size={13} />
             Backup & Recovery · Phase 7

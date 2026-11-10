@@ -8,6 +8,7 @@ import {
   hasMedia,
   type Live,
 } from "./models";
+import { liveCommands, type LiveCommand } from "./shortcuts";
 export type Pairing = { session: string; epoch: string; pair: string };
 export type Message = Pairing & {
   v: 1 | 2 | 3 | 4;
@@ -22,11 +23,16 @@ export type Message = Pairing & {
     | "RESYNC_REQUEST"
     | "FULLSCREEN_REQUEST"
     | "ERROR"
-    | "PLAYBACK";
+    | "PLAYBACK"
+    | "COMMAND";
   live?: Live | null;
   feedback?: PlaybackFeedback;
   fullscreen?: boolean;
   error?: string;
+  /** Additive v4 message: a LIVE shortcut pressed in the projector window. */
+  command?: LiveCommand;
+  /** Unique per key press, so a command delivered twice is applied once. */
+  commandId?: string;
 };
 export function validMessage(value: unknown): value is Message {
   if (
@@ -47,7 +53,16 @@ export function validMessage(value: unknown): value is Message {
       "FULLSCREEN_REQUEST",
       "ERROR",
       "PLAYBACK",
+      "COMMAND",
     ].includes(value.type as string)
+  )
+    return false;
+  if (
+    value.type === "COMMAND"
+      ? value.v !== 4 ||
+        !liveCommands.includes(value.command as LiveCommand) ||
+        !string(value.commandId, 160)
+      : value.command !== undefined || value.commandId !== undefined
   )
     return false;
   if (value.fullscreen !== undefined && typeof value.fullscreen !== "boolean")

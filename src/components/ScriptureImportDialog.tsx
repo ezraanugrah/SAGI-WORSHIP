@@ -16,7 +16,11 @@ export function ScriptureImportDialog({
     [accepted, setAccepted] = useState(false);
   const t = state.prepared?.dataset.translation;
   return (
-    <section className="scripture-import" aria-label="Impor dataset Alkitab">
+    <section
+      className="scripture-import"
+      aria-label="Impor dataset Alkitab"
+      data-live-shortcuts="off"
+    >
       <div className="section-heading">
         <div>
           <h3>Impor dataset berizin</h3>

@@ -26,6 +26,7 @@ import {
   type Deck,
 } from "./models";
 import { WindowManager, type Connection } from "./windowManager";
+import type { LiveCommand } from "./shortcuts";
 export type PresentationState = {
   preview: Preview | null;
   live: Live | null;
@@ -125,7 +126,19 @@ export class PresentationController {
         }
       },
       (value) => this.onPlayback(value),
+      (command) => this.command(command),
     );
+  }
+  /** Applies a LIVE shortcut from the operator keyboard or the projector window. */
+  command(command: LiveCommand) {
+    if (!this.state.live) return;
+    try {
+      if (command === "next") this.navigate(1);
+      else if (command === "previous") this.navigate(-1);
+      else this.toggle(command);
+    } catch (e) {
+      this.report(e);
+    }
   }
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);

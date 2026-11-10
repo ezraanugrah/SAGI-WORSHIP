@@ -1835,6 +1835,12 @@ footer > span:last-child {
   width: 100vw;
   height: 100vh;
   color: white;
+  /* The audience never sees the operator's pointer while the output is idle. */
+  cursor: none;
+}
+.projector-shell.controls-visible,
+.projector-shell.waiting {
+  cursor: auto;
 }
 .projector-actions {
   position: absolute;
@@ -1845,8 +1851,10 @@ footer > span:last-child {
   transition: opacity 0.15s;
   font-size: 11px;
 }
+/* Mouse focus left on the Fullscreen button must not keep it visible to the
+   audience; only keyboard focus (focus-visible) reveals it. */
 .projector-shell.controls-visible .projector-actions,
-.projector-actions:focus-within,
+.projector-actions:has(:focus-visible),
 .projector-actions.waiting {
   opacity: 1;
 }

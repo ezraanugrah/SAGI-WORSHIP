@@ -6,6 +6,8 @@ import { Receiver, type Pairing, type Message } from "../presentation/protocol";
 import { Transport } from "../presentation/transport";
 import { clone, uid, type Live } from "../presentation/models";
 import { browserMeasure } from "../presentation/layout";
+import { useScreenWakeLock } from "../hooks/useScreenWakeLock";
+import { commandForKey, presentationKey } from "../presentation/shortcuts";
 export default function ProjectorApp() {
   const [pairing] = useState<Pairing>(() => {
     const query = new URLSearchParams(location.hash.split("?")[1]);
@@ -51,6 +53,8 @@ export default function ProjectorApp() {
         await document.documentElement.requestFullscreen();
       else throw new Error("Fullscreen tidak didukung.");
       setHint("");
+      // Release focus so the button fades out instead of staying on screen.
+      (document.activeElement as HTMLElement | null)?.blur?.();
     } catch {
       setHint(
         "Fullscreen ditolak browser. Klik tombol ini langsung atau gunakan fullscreen browser.",
@@ -147,6 +151,30 @@ export default function ProjectorApp() {
       document.removeEventListener("fullscreenchange", changed);
     };
   }, [pairing, receiver, send]);
+  // Keep the audience display awake for the whole LIVE session, including Black.
+  useScreenWakeLock(current.sequence >= 0 && current.live !== null);
+  // When this window has focus (e.g. after clicking Fullscreen here), forward
+  // LIVE shortcuts to the operator. The operator validates and applies them;
+  // this window still never changes the presentation itself.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const key = presentationKey(event);
+      const command = key ? commandForKey(key) : null;
+      if (!command) return;
+      event.preventDefault();
+      transport.current?.send({
+        ...pairing,
+        v: 4,
+        nonce: receiver.nonce,
+        seq: Math.max(0, rendered.current.sequence),
+        type: "COMMAND",
+        command,
+        commandId: uid(),
+      });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pairing, receiver]);
   const onRendered = useCallback(
     (error?: string) => {
       if (error) {
@@ -165,7 +193,7 @@ export default function ProjectorApp() {
   );
   return (
     <main
-      className={`projector-shell ${controlsVisible ? "controls-visible" : ""}`}
+      className={`projector-shell ${controlsVisible ? "controls-visible" : ""} ${current.sequence < 0 ? "waiting" : ""}`}
       onPointerMove={() => {
         setControlsVisible(true);
         clearTimeout(hideControls.current);

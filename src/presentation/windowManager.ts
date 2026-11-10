@@ -2,6 +2,7 @@ import type { PlaybackFeedback } from "../media/models";
 import { uid, type Live } from "./models";
 import { type Pairing, type Message } from "./protocol";
 import { Transport } from "./transport";
+import { RecentCommands, type LiveCommand } from "./shortcuts";
 export type Connection = {
   status:
     | "Belum dibuka"
@@ -27,6 +28,7 @@ export class WindowManager {
   private transport: Transport | null = null;
   private nonce = "";
   private retired = new Set<string>();
+  private commands = new RecentCommands();
   private lastSeen = 0;
   private lastSend = 0;
   private timer?: ReturnType<typeof setInterval>;
@@ -43,6 +45,7 @@ export class WindowManager {
     private authorized: () => void,
     private changed: (state: Connection) => void,
     private feedback?: (value: PlaybackFeedback) => void,
+    private command?: (command: LiveCommand) => void,
   ) {}
   private update(patch: Partial<Connection>) {
     this.state = { ...this.state, ...patch };
@@ -106,6 +109,13 @@ export class WindowManager {
     if (m.nonce !== this.nonce) return;
     if (m.type === "PLAYBACK") {
       if (m.seq === this.seq && m.feedback) this.feedback?.(m.feedback);
+      return;
+    }
+    // Keys pressed while the paired projector window has focus (for example
+    // right after the operator clicked Fullscreen there).
+    if (m.type === "COMMAND") {
+      if (m.command && m.commandId && this.commands.accept(m.commandId))
+        this.command?.(m.command);
       return;
     }
     if (m.type === "ACK" || m.type === "PONG") {

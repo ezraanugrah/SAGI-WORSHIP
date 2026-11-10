@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { readAsset } from "../media/assetReader";
+import { readAsset, readVerifiedAsset } from "../media/assetReader";
 import { waitEvent } from "../media/validation";
 import {
   type AssetRef,
@@ -54,7 +54,12 @@ export function MediaCanvas({
       adopted = false;
     void (async () => {
       try {
-        const blob = await readAsset(asset, allowed);
+        // The audience output reuses the payload its preflight just verified;
+        // operator Preview/monitor keep verifying on every load as before.
+        const blob =
+          role === "audience"
+            ? (await readVerifiedAsset(asset, allowed)).blob
+            : await readAsset(asset, allowed);
         if (generation !== token.current) return;
         url = URL.createObjectURL(blob);
         if (asset.kind === "image") {

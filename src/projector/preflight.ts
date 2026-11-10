@@ -1,5 +1,5 @@
 import { mediaRefs } from "../media/models";
-import { readAsset } from "../media/assetReader";
+import { readVerifiedAsset } from "../media/assetReader";
 import { themeFor } from "../presentation/appearance";
 import type { Live } from "../presentation/models";
 import { waitEvent } from "../media/validation";
@@ -17,8 +17,11 @@ export async function preflight(live: Live | null) {
   const allowed = mediaRefs(live.deck);
   await document.fonts.ready;
   for (const ref of refs) {
-    const blob = await readAsset(ref, allowed),
-      url = URL.createObjectURL(blob);
+    // Integrity is verified once per asset in this window (see readVerifiedAsset).
+    const asset = await readVerifiedAsset(ref, allowed);
+    // An asset that already decoded here needs no second probe on later slides.
+    if (asset.decoded) continue;
+    const url = URL.createObjectURL(asset.blob);
     try {
       if (ref.kind === "image") {
         const image = new Image();
@@ -46,6 +49,7 @@ export async function preflight(live: Live | null) {
           video.load();
         }
       }
+      asset.decoded = true;
     } finally {
       URL.revokeObjectURL(url);
     }

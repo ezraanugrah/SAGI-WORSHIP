@@ -106,7 +106,11 @@ export function SongEditor({
     await saver.flush();
   }
   return (
-    <section className="song-editor panel" aria-label="Editor lagu">
+    <section
+      className="song-editor panel"
+      aria-label="Editor lagu"
+      data-live-shortcuts="off"
+    >
       <div className="editor-title">
         <div>
           <span className="tiny-label">SONG EDITOR · AUTOSAVE</span>

@@ -218,7 +218,11 @@ export function ThemeEditor({
     };
   }, []);
   return (
-    <section aria-label="Editor tema" className="theme-editor">
+    <section
+      aria-label="Editor tema"
+      className="theme-editor"
+      data-live-shortcuts="off"
+    >
       <div className="section-heading">
         <h3>{initial ? "Edit tema" : "Buat tema"}</h3>
         <button

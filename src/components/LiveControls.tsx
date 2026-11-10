@@ -23,7 +23,7 @@ export function LiveControls({
     [screen, setScreen] = useState("");
   const screensRequest = useRef<AbortController | null>(null);
   useEffect(() => () => screensRequest.current?.abort(), []);
-  usePresentationShortcuts(region, controller, editable);
+  usePresentationShortcuts(controller, editable);
   const run = (action: () => unknown) => {
     try {
       const result = action();
@@ -301,7 +301,8 @@ export function LiveControls({
         )}
         <p className="field-help">
           Pindahkan jendela ke proyektor lalu klik Fullscreen di jendela
-          tersebut jika browser menolak. Fokuskan panel ini untuk ← → Space B C.
+          tersebut jika browser menolak. Shortcut ← → PageUp PageDown Space B
+          C aktif selama LIVE, juga dari jendela proyektor.
         </p>
         {state.connection.error && (
           <p className="save-message" role="status">

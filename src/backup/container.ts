@@ -97,7 +97,7 @@ export async function encodeArchive(
     version: 1,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
-    appVersion: "0.7.0",
+    appVersion: "0.7.1",
     entries,
     bytes: offset,
     complete: !omissions.length,

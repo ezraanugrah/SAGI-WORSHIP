@@ -469,7 +469,7 @@ test("fullscreen/popup denial and BroadcastChannel fallback remain actionable", 
   await expect(output.getByRole("status")).toContainText("Fullscreen ditolak");
   await expect(output.locator(".slide-lines")).toHaveText(first);
 });
-test("presentation shortcuts require control focus and never intercept source/Preview text editing", async ({
+test("presentation shortcuts never intercept source/Preview text editing", async ({
   page,
 }) => {
   const output = await start(page),
