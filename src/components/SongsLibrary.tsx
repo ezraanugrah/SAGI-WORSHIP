@@ -174,7 +174,7 @@ export function SongsLibrary({
               <li
                 key={song.id}
                 data-testid="song-row"
-                draggable={editable && !busy && !!data.activeId}
+                draggable={editable && !busy}
                 onDragStart={(e) => {
                   e.dataTransfer.setData(SONG_DRAG_TYPE, song.id);
                   e.dataTransfer.setData("text/plain", song.title);

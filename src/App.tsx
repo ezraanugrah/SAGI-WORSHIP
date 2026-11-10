@@ -62,7 +62,9 @@ export default function App() {
     [online, setOnline] = useState(navigator.onLine),
     [offline, setOffline] = useState(false),
     [usage, setUsage] = useState("Memeriksa…");
-  const { gate, repo, editable, writerMessage } = useWriter();
+  const { gate, repo, editable, writerMessage, takeOver } = useWriter();
+  // Read-only after the lock check (another SAGI tab is editing, or lost).
+  const readOnly = !editable && !writerMessage.startsWith("Memeriksa");
   const scriptureServices = useScriptureServices(gate);
   const mediaServices = useMedia(gate);
   const themeServices = useThemes(gate);
@@ -70,6 +72,9 @@ export default function App() {
     usePresentation(gate);
   const wakeLock = useScreenWakeLock(!!presentationState.live);
   const [previewDirty, setPreviewDirty] = useState(false);
+  // A newer SAGI version is downloaded and waiting (service worker).
+  const [update, setUpdate] = useState<(() => Promise<void>) | null>(null),
+    [updating, setUpdating] = useState(false);
   // Screen picked in the top bar; the toolbar's Live button opens there.
   const [screen, setScreen] = useState<ScreenChoice | undefined>();
   const pending = useRef(Promise.resolve());
@@ -91,10 +96,10 @@ export default function App() {
     const hash = () => setPage(route());
     const connection = () => setOnline(navigator.onLine);
     const ready = () => setOffline(true);
-    const update = () =>
-      setNotice(
-        "Pembaruan tersedia. Tutup semua jendela SAGI dan buka kembali saat ibadah selesai.",
-      );
+    const update = (event: Event) => {
+      const apply = (event as CustomEvent<() => Promise<void>>).detail;
+      if (typeof apply === "function") setUpdate(() => apply);
+    };
     const fail = () =>
       setNotice(
         "Cache offline belum berhasil disiapkan. Coba muat ulang saat terhubung.",
@@ -167,16 +172,18 @@ export default function App() {
     }
   }
   const live = presentationState.live;
-  const appStatus = !live
-    ? {
-        state: "ready",
-        label: presentationState.preparing ? "MENYIAPKAN" : "READY",
-      }
-    : live.mode === "black"
-      ? { state: "black", label: "BLACK" }
-      : live.mode === "clearText"
-        ? { state: "clear", label: "CLEAR TEXT" }
-        : { state: "live", label: "LIVE" };
+  const appStatus = readOnly
+    ? { state: "readonly", label: "HANYA BACA" }
+    : !live
+      ? {
+          state: "ready",
+          label: presentationState.preparing ? "MENYIAPKAN" : "READY",
+        }
+      : live.mode === "black"
+        ? { state: "black", label: "BLACK" }
+        : live.mode === "clearText"
+          ? { state: "clear", label: "CLEAR TEXT" }
+          : { state: "live", label: "LIVE" };
   return (
     <div className="app-shell sagi-ui" data-page={page}>
       <header className="topbar">
@@ -233,9 +240,35 @@ export default function App() {
               <h1>Pengaturan</h1>
             </div>
           )}
-          {!editable && writerMessage && (
-            <div className="notice" role="status">
-              {writerMessage}
+          {readOnly && writerMessage && (
+            <div
+              className="notice readonly-banner"
+              role="status"
+              data-testid="readonly-banner"
+            >
+              <span>
+                <strong>Tab ini hanya baca</strong> — tombol LIVE dan edit
+                dinonaktifkan. {writerMessage}
+              </span>
+              <button
+                className="button secondary"
+                onClick={() => location.reload()}
+              >
+                Muat ulang
+              </button>
+              <button
+                className="button primary"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Pakai tab ini untuk mengedit? Tab/jendela SAGI lain menjadi hanya baca, termasuk kontrol LIVE di sana. Layar proyektor tetap menampilkan slide terakhir.",
+                    )
+                  )
+                    void takeOver().catch((e) => setNotice(e.message));
+                }}
+              >
+                Edit di tab ini
+              </button>
             </div>
           )}
           {presentationState.error && (
@@ -291,6 +324,38 @@ export default function App() {
             <div className="alert" role="alert">
               {error}{" "}
               <button onClick={() => location.reload()}>Muat ulang</button>
+            </div>
+          )}
+          {update && (
+            <div className="notice update-banner" role="status">
+              <span>
+                Versi baru SAGI tersedia.
+                {presentationState.live
+                  ? " LIVE sedang berjalan: muat versi baru setelah ibadah selesai."
+                  : ""}
+              </span>
+              <button
+                className="button primary"
+                disabled={updating}
+                onClick={() => {
+                  if (
+                    presentationState.live &&
+                    !window.confirm(
+                      "LIVE sedang berjalan. Halaman ini akan dimuat ulang; layar proyektor tetap menampilkan slide terakhir dan Anda perlu Resume. Lanjutkan?",
+                    )
+                  )
+                    return;
+                  setUpdating(true);
+                  void update().catch(() => {
+                    setUpdating(false);
+                    setNotice(
+                      "Versi baru belum bisa dipasang. Tutup semua jendela SAGI lalu buka kembali.",
+                    );
+                  });
+                }}
+              >
+                {updating ? "Memuat…" : "Muat versi baru"}
+              </button>
             </div>
           )}
           {notice && (

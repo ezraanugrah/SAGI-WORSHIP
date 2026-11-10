@@ -45,6 +45,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
   - Media ditambahkan dengan ditarik ("Tambahkan media ke jadwal" dihapus; halaman PDF yang dipilih ikut terbawa).
   - Filter jenis media memakai daftar kategori (select "Jenis media" dihapus).
 - Logo ditunda sesuai permintaan.
+
+### Pembaruan versi, tab hanya baca, dan drop tanpa Week
+
+- **Versi baru langsung bisa dipakai**: saat versi baru tersedia muncul tombol **Muat versi baru** (sebelumnya harus menutup semua jendela SAGI). Jika LIVE sedang berjalan, ada konfirmasi dulu. Aplikasi memeriksa versi baru setiap jam.
+- **Tab hanya baca terlihat jelas**: jika SAGI terbuka di tab lain, kotak status menampilkan **HANYA BACA** dan ada banner dengan tombol **Muat ulang** dan **Edit di tab ini** (tab lain menjadi hanya baca setelah konfirmasi).
+- Tombol toolbar yang abu-abu menjelaskan alasannya saat disorot (misalnya "Go Live dulu" atau "Klik lagu atau item jadwal untuk Preview dulu").
+- **Tarik lagu/media ke Schedule tanpa Week**: Week "Ibadah <tanggal>" dibuat otomatis.
 - Tes: unit test alert (validasi, Go Live/Black/navigasi, checkpoint, otorisasi) dan backup round-trip dengan alert; E2E diperbarui ke kontrol baru dan ditambah tes Alerts, daftar slide Schedule/LIVE, serta tarik media.
 
 ## [0.7.1] — 10 November 2026

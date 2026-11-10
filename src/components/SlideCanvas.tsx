@@ -165,7 +165,9 @@ export function SlideCanvas({
         {alert && mode !== "black" && (
           <div className="slide-alert" data-testid="slide-alert">
             <span
-              style={{ animationDuration: `${Math.max(12, alert.length * 0.22)}s` }}
+              style={{
+                animationDuration: `${Math.max(12, alert.length * 0.22)}s`,
+              }}
             >
               {alert}
             </span>

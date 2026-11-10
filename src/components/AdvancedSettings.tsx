@@ -160,9 +160,9 @@ export function AdvancedSettings({
       <p className="field-help">
         Kalibrasi tetap di Preview; tampilkan ke audience hanya dengan Go Live.
         Buka proyektor dengan tombol Live di kanan atas (Layar/Fullscreen di
-        kiri atas); jika izin layar ditolak, pindahkan jendela secara manual. Media, pin, dan quota tersedia
-        di Data & penyimpanan serta Media Library. Audio foreground tetap
-        memakai kontrol Phase 5.
+        kiri atas); jika izin layar ditolak, pindahkan jendela secara manual.
+        Media, pin, dan quota tersedia di Data & penyimpanan serta Media
+        Library. Audio foreground tetap memakai kontrol Phase 5.
       </p>
     </section>
   );

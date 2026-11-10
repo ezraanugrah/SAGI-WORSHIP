@@ -63,10 +63,10 @@ export function SchedulePanel({
   onRemove: (s: Schedule, itemId: string) => void;
   onReorder: (s: Schedule, ids: string[]) => void;
   onInspect: (itemId: string) => void;
-  /** A song dragged from the SONGS tab was dropped on this Week. */
-  onAddSong: (s: Schedule, songId: string) => void;
-  /** A media card (JSON MediaSelection) was dropped on this Week. */
-  onAddMedia: (s: Schedule, payload: string) => void;
+  /** A song dragged from the SONGS tab was dropped (null: no Week yet). */
+  onAddSong: (s: Schedule | null, songId: string) => void;
+  /** A media card (JSON MediaSelection) was dropped (null: no Week yet). */
+  onAddMedia: (s: Schedule | null, payload: string) => void;
   /** Schedule item currently shown in Preview (expanded). */
   openItemId?: string | null;
   slides?: ScheduleSlide[];
@@ -84,8 +84,9 @@ export function SchedulePanel({
         ? "media"
         : null;
   };
+  // Drops always work: without an active Week the dashboard creates one.
   const accepts = (e: React.DragEvent) =>
-    !!schedule && editable && !busy && dragKind(e) !== null;
+    editable && !busy && dragKind(e) !== null;
   const drag = useRef<string | null>(null);
   const listRef = useRef<HTMLOListElement>(null),
     pendingFocus = useRef<{ itemId: string; direction: number } | null>(null);
@@ -141,16 +142,16 @@ export function SchedulePanel({
       }}
       onDrop={(e) => {
         setDropping(false);
-        if (!schedule || !editable || busy) return;
+        if (!editable || busy) return;
         const song = e.dataTransfer.getData(SONG_DRAG_TYPE),
           media = e.dataTransfer.getData(MEDIA_DRAG_TYPE);
         if (!song && !media) return;
         e.preventDefault();
         if (song) {
-          onAddSong(schedule, song);
+          onAddSong(schedule ?? null, song);
           setAnnouncement("Lagu ditambahkan ke Week.");
         } else {
-          onAddMedia(schedule, media);
+          onAddMedia(schedule ?? null, media);
           setAnnouncement("Media ditambahkan ke Week.");
         }
       }}
@@ -243,12 +244,10 @@ export function SchedulePanel({
             <span className="empty-icon">
               <ListMusic size={24} />
             </span>
-            <h3>
-              {data.schedules.length
-                ? "Pilih playlist di tab Songs"
-                : "Mulai dari sebuah playlist"}
-            </h3>
-            <p>Klik “New playlist” di tab Songs, lalu tarik lagu ke sini.</p>
+            <h3>Tarik lagu ke sini</h3>
+            <p>
+              Week baru dibuat otomatis. Atau pilih/buat playlist di tab Songs.
+            </p>
           </div>
         ) : schedule.itemIds.length === 0 ? (
           <p className="schedule-empty">

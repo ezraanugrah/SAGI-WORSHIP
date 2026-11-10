@@ -347,3 +347,28 @@ test("Presentations tab lists only PDF presentations and drags them into the Wee
     page.getByRole("list", { name: "Daftar slide Preview" }),
   ).toBeVisible();
 });
+
+test("dropping a song with no Week creates one automatically", async ({ page }) => {
+  await song(page, "First drop", ["Synthetic first drop line."]);
+  await expect(activeSchedule(page)).toHaveText("Schedule");
+  await dragToWeek(songRow(page, "First drop"));
+  await expect(activeSchedule(page)).toHaveText(/^Schedule - Ibadah /);
+  await expect(page.getByTestId("schedule-item")).toContainText("First drop");
+  await expect(page.getByRole("list", { name: "Playlists" }).getByRole("button")).toHaveCount(1);
+});
+
+test("a second tab is clearly read-only and can take over editing", async ({ page, context }) => {
+  const second = await context.newPage();
+  await second.goto("/");
+  await expect(second.getByTestId("app-status")).toHaveText(/HANYA BACA/);
+  const banner = second.getByTestId("readonly-banner");
+  await expect(banner).toContainText("Tab ini hanya baca");
+  await expect(second.getByRole("button", { name: "Live", exact: true })).toBeDisabled();
+  await expect(second.getByRole("button", { name: "Go Live", exact: true })).toHaveAttribute("title", "Tab ini hanya baca");
+  second.once("dialog", (d) => void d.accept());
+  await banner.getByRole("button", { name: "Edit di tab ini", exact: true }).click();
+  await expect(second.getByRole("button", { name: "Tambah lagu", exact: true })).toBeEnabled();
+  await expect(second.getByTestId("app-status")).toHaveText(/READY/);
+  await expect(page.getByTestId("app-status")).toHaveText(/HANYA BACA/);
+  await expect(page.getByRole("button", { name: "Tambah lagu", exact: true })).toBeDisabled();
+});

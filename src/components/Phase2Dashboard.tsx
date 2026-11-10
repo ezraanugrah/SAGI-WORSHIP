@@ -18,7 +18,7 @@ import type { Style } from "../presentation/models";
 import { useState } from "react";
 import { Repository } from "../data/repository";
 import { useWorkspace } from "../hooks/useWorkspace";
-import { id, type Song } from "../domain/models";
+import { id, type Schedule, type Song } from "../domain/models";
 import type { Preferences } from "../db";
 import { SongsLibrary } from "./SongsLibrary";
 import { SongEditor } from "./SongEditor";
@@ -207,6 +207,12 @@ export function Phase2Dashboard({
           : [],
       )
     : [];
+  /** The Week a dropped song/media goes into; creates one if none is active. */
+  const weekFor = async (s: Schedule | null) =>
+    s ??
+    repo.createSchedule(
+      `Ibadah ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`,
+    );
   const activate = (scheduleId: string) =>
     act(() => repo.setActive(scheduleId), "Jadwal aktif disimpan.");
   return (
@@ -297,9 +303,17 @@ export function Phase2Dashboard({
                 return;
               }
               act(
-                () =>
-                  mediaServices.repo.addToSchedule(s.id, selection, s.revision),
-                "Media ditambahkan ke jadwal.",
+                async () => {
+                  const week = await weekFor(s);
+                  await mediaServices.repo.addToSchedule(
+                    week.id,
+                    selection,
+                    week.revision,
+                  );
+                },
+                s
+                  ? "Media ditambahkan ke jadwal."
+                  : "Week baru dibuat dan media ditambahkan.",
               );
             }}
             openItemId={openItemId}
@@ -316,8 +330,13 @@ export function Phase2Dashboard({
             }}
             onAddSong={(s, songId) =>
               act(
-                () => repo.addSong(s.id, songId, s.revision),
-                "Lagu ditambahkan ke jadwal.",
+                async () => {
+                  const week = await weekFor(s);
+                  await repo.addSong(week.id, songId, week.revision);
+                },
+                s
+                  ? "Lagu ditambahkan ke jadwal."
+                  : "Week baru dibuat dan lagu ditambahkan.",
               )
             }
             onRemove={(s, itemId) =>

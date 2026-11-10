@@ -64,10 +64,26 @@ export function LiveToolbar({
     }
   };
   const projectorOn = state.connection.status === "Tersinkron";
+  // Hover text: what the button does, or why it is not available yet.
+  const readOnlyHint = "Tab ini hanya baca";
+  const goLiveHint = !editable
+    ? readOnlyHint
+    : state.recovery
+      ? "Pilih Resume atau Discard checkpoint dulu"
+      : state.preparing
+        ? "Menyiapkan slide…"
+        : !state.preview
+          ? "Klik lagu atau item jadwal untuk Preview dulu"
+          : dirty
+            ? "Apply Preview atau buang perubahan dulu"
+            : "Tampilkan slide Preview ke jemaat";
+  const liveHint = (action: string) =>
+    !editable ? readOnlyHint : !live ? "Go Live dulu" : action;
   return (
     <div className="live-toolbar" role="toolbar" aria-label="Kontrol LIVE">
       <ToolButton
         label="Go Live"
+        title={goLiveHint}
         icon={<MonitorPlay size={20} />}
         tone="go"
         disabled={
@@ -83,6 +99,7 @@ export function LiveToolbar({
       <div className="tool-menu">
         <ToolButton
           label="Alerts"
+          title={liveHint("Teks berjalan untuk jemaat")}
           icon={<BellRing size={20} />}
           menu
           pressed={!!live?.alert}
@@ -140,6 +157,7 @@ export function LiveToolbar({
       </div>
       <ToolButton
         label="Black"
+        title={liveHint("Layar hitam (klik lagi untuk kembali)")}
         icon={<Square size={20} fill="currentColor" />}
         pressed={live?.mode === "black"}
         disabled={!editable || !live}
@@ -148,6 +166,7 @@ export function LiveToolbar({
       <ToolButton
         label="Clear"
         name="Clear Text"
+        title={liveHint("Sembunyikan teks (klik lagi untuk kembali)")}
         icon={<Eraser size={20} />}
         pressed={live?.mode === "clearText"}
         disabled={!editable || !live}
@@ -156,7 +175,7 @@ export function LiveToolbar({
       <span className="toolbar-divider" aria-hidden="true" />
       <ToolButton
         label="Live"
-        title="Buka jendela proyektor"
+        title={editable ? "Buka jendela proyektor" : readOnlyHint}
         icon={<Cast size={20} />}
         pressed={projectorOn}
         disabled={!editable}

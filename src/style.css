@@ -3871,3 +3871,25 @@ footer > span:last-child {
     animation: none;
   }
 }
+.sagi-ui .update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-left: 3px solid var(--sg-orange);
+}
+.sagi-ui .readonly-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  border-left: 3px solid #e0533d;
+}
+.sagi-ui .readonly-banner > span {
+  flex: 1 1 320px;
+}
+.sagi-ui .ready-box[data-state="readonly"] {
+  background: #4a2a22;
+  color: #ffd2c7;
+  font-size: 12px;
+}

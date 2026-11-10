@@ -247,7 +247,7 @@ export function MediaLibrary({
           {assets.slice(offset, offset + 24).map((a) => (
             <li
               key={a.id}
-              draggable={editable && !!data.activeId}
+              draggable={editable}
               onDragStart={(e) => {
                 e.dataTransfer.setData(
                   MEDIA_DRAG_TYPE,

@@ -31,7 +31,18 @@ export function useWriter() {
     };
   }, [gate]);
   const [repo] = useState(() => new Repository(gate));
-  return { gate, repo, editable: active, writerMessage: message };
+  /** Take edit rights from another SAGI tab (it becomes read-only), then
+   * reload so this tab starts as the only writer. */
+  const takeOver = useCallback(async () => {
+    if (!navigator.locks) throw new Error("Browser tidak mendukung Web Locks.");
+    await navigator.locks.request(
+      "sagi-workspace-writer",
+      { steal: true },
+      async () => {},
+    );
+    location.reload();
+  }, []);
+  return { gate, repo, editable: active, writerMessage: message, takeOver };
 }
 const empty: Workspace = {
   songs: [],
