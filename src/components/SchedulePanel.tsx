@@ -162,6 +162,9 @@ export function SchedulePanel({
         </div>
       </div>
       <div className="pane-body schedule-list" data-testid="week-drop-zone">
+        <div className="drop-hint" aria-hidden="true">
+          Lepas di sini → {schedule?.name ?? weekName(1)}
+        </div>
         {!schedule || schedule.itemIds.length === 0 ? (
           <div className="empty-schedule">
             <span className="empty-icon">

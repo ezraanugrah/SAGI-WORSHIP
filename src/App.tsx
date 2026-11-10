@@ -625,6 +625,27 @@ export default function App() {
             <i className={loaded ? "dot" : "dot amber"} />
             {saved}
           </span>
+          {presentationState.checkpoint !== "Belum ada checkpoint" && (
+            <span
+              className={
+                presentationState.checkpoint.startsWith("Checkpoint gagal")
+                  ? "checkpoint-status failed"
+                  : "checkpoint-status"
+              }
+              role="status"
+            >
+              {presentationState.checkpoint}
+              {presentationState.checkpoint.startsWith("Checkpoint gagal") && (
+                <button
+                  className="text-button"
+                  disabled={!editable || !presentationState.live}
+                  onClick={() => presentation.retryCheckpoint()}
+                >
+                  Coba checkpoint lagi
+                </button>
+              )}
+            </span>
+          )}
           <span>
             {offline ? (
               <>

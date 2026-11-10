@@ -1,6 +1,10 @@
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { endDrag, startDrag } from "./dragState";
+import { revealInPane } from "./revealInPane";
 import {
   Copy,
   FolderOpen,
+  GripVertical,
   ListMusic,
   Music,
   Plus,
@@ -30,6 +34,7 @@ export function SongsLibrary({
   onRecover,
   onDiscard,
   onWeek,
+  freshId,
 }: {
   data: Workspace;
   query: string;
@@ -45,9 +50,24 @@ export function SongsLibrary({
   onDiscard: (songId: string, sequence: number) => void;
   /** Open Week 1–4 in the Jadwal Ibadah (created on first use). */
   onWeek: (week: number) => void;
+  /** A song that was just added: highlighted and scrolled into view. */
+  freshId?: string | null;
 }) {
   const songs = searchSongs(data.songs, query);
   const weeks = weekSchedules(data.schedules);
+  const freshRow = useRef<HTMLLIElement>(null);
+  // Once per new song: a search that hides it is cleared so it can be
+  // dragged. Searching afterwards is left alone.
+  const handledFresh = useRef<string | null>(null);
+  useEffect(() => {
+    if (!freshId || handledFresh.current === freshId) return;
+    if (!data.songs.some((s) => s.id === freshId)) return;
+    handledFresh.current = freshId;
+    if (!songs.some((s) => s.id === freshId)) onQuery("");
+  }, [freshId, data.songs, songs, onQuery]);
+  useLayoutEffect(() => {
+    revealInPane(freshRow.current, ".songs-main");
+  }, [freshId, songs.length]);
   return (
     <div className="songs-content">
       <aside className="songs-side">
@@ -176,19 +196,30 @@ export function SongsLibrary({
             {songs.map((song) => (
               <li
                 key={song.id}
+                ref={song.id === freshId ? freshRow : undefined}
+                className={song.id === freshId ? "fresh" : undefined}
                 data-testid="song-row"
                 draggable={editable && !busy}
+                title="Tarik ke Jadwal Ibadah"
                 onDragStart={(e) => {
                   e.dataTransfer.setData(SONG_DRAG_TYPE, song.id);
                   e.dataTransfer.setData("text/plain", song.title);
                   e.dataTransfer.effectAllowed = "copy";
+                  startDrag("song");
                 }}
+                onDragEnd={endDrag}
               >
+                <span className="drag-grip" aria-hidden="true">
+                  <GripVertical size={14} />
+                </span>
                 <button
                   className="song-inspect"
                   onClick={() => onInspect(song)}
                 >
                   <strong>{song.title}</strong>
+                  {song.id === freshId && (
+                    <span className="fresh-badge">Baru · tarik ke jadwal</span>
+                  )}
                   <small>
                     {[
                       song.author || song.category,

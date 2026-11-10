@@ -28,6 +28,20 @@ const updateSW = registerSW({
     window.dispatchEvent(new Event("sagi-offline-error"));
   },
 });
+// A newer version took control of this page (it keeps running the old code
+// until it is reloaded): offer a reload instead of reloading by itself.
+if ("serviceWorker" in navigator) {
+  let controlled = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (controlled)
+      window.dispatchEvent(
+        new CustomEvent("sagi-update-ready", {
+          detail: async () => location.reload(),
+        }),
+      );
+    controlled = true;
+  });
+}
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     {location.hash.startsWith("#/projector") ? <ProjectorApp /> : <App />}

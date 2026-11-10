@@ -4,6 +4,7 @@ import type { useMedia } from "../hooks/useMedia";
 import type { Workspace } from "../domain/models";
 import type { AssetRef, MediaAsset, MediaSelection } from "../media/models";
 import { readAsset } from "../media/assetReader";
+import { endDrag, startDrag } from "./dragState";
 /** Drag payload type: a JSON MediaSelection dragged into the active Week. */
 export const MEDIA_DRAG_TYPE = "application/x-sagi-media";
 const KINDS = [
@@ -255,7 +256,9 @@ export function MediaLibrary({
                 );
                 e.dataTransfer.setData("text/plain", a.title);
                 e.dataTransfer.effectAllowed = "copy";
+                startDrag("media");
               }}
+              onDragEnd={endDrag}
             >
               <button
                 className={

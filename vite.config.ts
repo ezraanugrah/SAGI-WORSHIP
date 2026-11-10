@@ -39,6 +39,12 @@ export default defineConfig({
         ],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: "/index.html",
+        // A new version takes over as soon as it is installed, even while
+        // another SAGI window is open, so no window can keep an old copy
+        // forever. Open pages are not reloaded; the operator reloads when
+        // the service is over (see the update banner).
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],

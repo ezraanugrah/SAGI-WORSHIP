@@ -51,6 +51,8 @@ export function Phase2Dashboard({
   const [query, setQuery] = useState(""),
     [tab, setTab] = useState(0),
     [editor, setEditor] = useState<string | null>(null),
+    // Song just created in the editor: highlighted in Musik for dragging.
+    [fresh, setFresh] = useState<string | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
@@ -166,7 +168,14 @@ export function Phase2Dashboard({
     void run(operation, message).catch(() => {});
   };
   const locked = busy || editor !== null || loading;
-  function open(songId: string) {
+  const creating = useRef(false);
+  useEffect(() => {
+    if (!fresh) return;
+    const timer = setTimeout(() => setFresh(null), 8000);
+    return () => clearTimeout(timer);
+  }, [fresh]);
+  function open(songId: string, created = false) {
+    creating.current = created;
     setEditor(songId);
   }
   function deleteSong(song: Song) {
@@ -395,7 +404,8 @@ export function Phase2Dashboard({
                 onWeek={(n) => act(() => openWeek(n), `${weekName(n)} aktif.`)}
                 editable={editable}
                 busy={locked}
-                onNew={() => open(id())}
+                onNew={() => open(id(), true)}
+                freshId={fresh}
                 onEdit={(s) => open(s.id)}
                 onInspect={(s) => void prepare({ kind: "song", songId: s.id })}
                 onDuplicate={(s) =>
@@ -503,8 +513,12 @@ export function Phase2Dashboard({
           editable={editable}
           onSaved={() => void reload()}
           onClose={() => {
+            const created = creating.current ? editor : null;
+            creating.current = false;
             setEditor(null);
-            void reload();
+            void reload().then(() => {
+              if (created) setFresh(created);
+            });
           }}
         />
       )}

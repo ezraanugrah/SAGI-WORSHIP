@@ -55,6 +55,7 @@ export function LiveControls({
             state.connection.status === "Tersinkron" ? "true" : undefined
           }
           data-testid="connection-status"
+          title={`Fullscreen: ${state.connection.fullscreen ? "aktif" : "tidak aktif"} · Mode: ${live?.mode ?? "black"} · Dikirim ${state.sequence} · Dirender ${state.connection.ack < 0 ? "—" : state.connection.ack} · Shortcut ← → PgUp PgDn Space B C`}
         >
           {state.connection.status}
         </span>
@@ -106,7 +107,7 @@ export function LiveControls({
           </div>
         ) : (
           <p className="box-empty">
-            Belum LIVE. Siapkan slide di Preview lalu klik Go Live (kanan atas).
+            Siapkan slide di Preview lalu klik Go Live (kanan atas).
           </p>
         )}
       </div>
@@ -135,7 +136,7 @@ export function LiveControls({
                       ? " · CLEAR TEXT"
                       : ""
                 }`
-              : "Belum LIVE"}
+              : ""}
           </span>
           <div className="step-buttons">
             <button
@@ -252,29 +253,11 @@ export function LiveControls({
             </p>
           </fieldset>
         )}
-        <div className="live-diagnostics">
-          <p className="field-help">
-            Fullscreen: {state.connection.fullscreen ? "Aktif" : "Tidak aktif"}{" "}
-            · Mode: {live?.mode ?? "black"} · Dikirim {state.sequence} ·
-            Dirender {state.connection.ack < 0 ? "—" : state.connection.ack} ·
-            Shortcut ← → PgUp PgDn Space B C
+        {state.connection.error && (
+          <p className="save-message live-error" role="status">
+            {state.connection.error}
           </p>
-          {state.connection.error && (
-            <p className="save-message" role="status">
-              {state.connection.error}
-            </p>
-          )}
-          <p className="field-help" role="status">
-            {state.checkpoint}
-          </p>
-          <button
-            className="text-button"
-            disabled={!editable || !live}
-            onClick={() => run(() => controller.retryCheckpoint())}
-          >
-            Coba checkpoint lagi
-          </button>
-        </div>
+        )}
       </div>
     </section>
   );

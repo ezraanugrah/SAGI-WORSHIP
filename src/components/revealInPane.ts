@@ -1,13 +1,18 @@
 /**
- * Scroll `el` into view inside its own pane list only, so choosing a slide
- * never scrolls the page itself (scrollIntoView would on phones).
+ * Scroll `el` into view inside its own scrolling list only (never the page,
+ * which scrollIntoView would do on phones). Keeps a small margin and stays
+ * clear of a sticky list header.
  */
-export function revealInPane(el: HTMLElement | null) {
-  const pane = el?.closest<HTMLElement>(".pane-body");
-  if (!el || !pane) return;
-  const box = pane.getBoundingClientRect(),
+export function revealInPane(el: HTMLElement | null, pane = ".pane-body") {
+  const list = el?.closest<HTMLElement>(pane);
+  if (!el || !list) return;
+  const sticky = list.querySelector<HTMLElement>(".songs-toolbar, .lib-head");
+  const margin = 6,
+    box = list.getBoundingClientRect(),
+    top = box.top + (sticky?.offsetHeight ?? 0) + margin,
+    bottom = box.bottom - margin,
     row = el.getBoundingClientRect();
-  if (row.top < box.top) pane.scrollTop -= box.top - row.top;
-  else if (row.bottom > box.bottom)
-    pane.scrollTop += Math.min(row.bottom - box.bottom, row.top - box.top);
+  if (row.top < top) list.scrollTop -= top - row.top;
+  else if (row.bottom > bottom)
+    list.scrollTop += Math.min(row.bottom - bottom, row.top - top);
 }

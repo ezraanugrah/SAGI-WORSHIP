@@ -3326,37 +3326,6 @@ footer > span:last-child {
   color: #f0c27a;
   font-size: 10px;
 }
-.sagi-ui .live-diagnostics {
-  display: flex;
-  align-items: center;
-  gap: 0 8px;
-  min-width: 0;
-  margin-top: 3px;
-}
-.sagi-ui .live-diagnostics p {
-  flex: 0 1 auto;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  font-size: 9.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sagi-ui .live-diagnostics p:first-child {
-  flex: 1 1 0;
-}
-.sagi-ui .live-diagnostics {
-  flex-wrap: wrap;
-}
-.sagi-ui .live-diagnostics p.save-message {
-  flex: 1 0 100%;
-  order: -1;
-  white-space: normal;
-}
-.sagi-ui .live-diagnostics .text-button {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
 .sagi-ui .live:focus-visible {
   outline: 2px solid var(--sg-orange);
   outline-offset: -2px;
@@ -3906,4 +3875,74 @@ footer > span:last-child {
 }
 .sagi-ui .songs-side .active svg {
   color: var(--sg-orange);
+}
+/* Dragging songs/media into the Jadwal Ibadah */
+.sagi-ui .drag-grip {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 16px;
+  color: #6f757c;
+  cursor: grab;
+}
+.sagi-ui .song-list > li:hover .drag-grip {
+  color: var(--sg-orange);
+}
+.sagi-ui .song-list > li.fresh {
+  background: #2b2116;
+  box-shadow: inset 3px 0 0 var(--sg-orange);
+  animation: sg-fresh 1.2s ease-in-out 3;
+}
+@keyframes sg-fresh {
+  50% {
+    background: #3d2c14;
+  }
+}
+.sagi-ui .fresh-badge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  background: var(--sg-orange);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.sagi-ui .drop-hint {
+  display: none;
+}
+:root[data-sagi-drag] .sagi-ui .schedule .schedule-list {
+  outline: 2px dashed var(--sg-orange);
+  outline-offset: -4px;
+  background: #1e1912;
+}
+:root[data-sagi-drag] .sagi-ui .drop-hint {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: block;
+  margin: 4px 6px;
+  padding: 6px 8px;
+  background: var(--sg-orange);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sagi-ui .song-list > li.fresh {
+    animation: none;
+  }
+}
+.sagi-ui .checkpoint-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sagi-ui .checkpoint-status.failed {
+  color: #f0c27a;
+}
+.sagi-ui .live-error {
+  margin-top: 4px;
 }

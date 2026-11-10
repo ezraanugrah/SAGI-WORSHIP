@@ -386,3 +386,43 @@ test("a second tab is clearly read-only and can take over editing", async ({
     page.getByRole("button", { name: "Tambah lagu", exact: true }),
   ).toBeDisabled();
 });
+
+test("a newly added song is highlighted in Musik and dragged into Jadwal Ibadah with the mouse", async ({
+  page,
+}) => {
+  for (const title of [
+    "Agung",
+    "Bapa Engkau",
+    "Damai",
+    "Hosana",
+    "Kasih Setia",
+    "Mazmur 23",
+  ])
+    await song(page, title, [`${title} synthetic line.`]);
+  await song(page, "Zaman Baru", ["Zaman Baru synthetic line."]);
+  const fresh = songRow(page, "Zaman Baru");
+  await expect(fresh).toHaveClass(/fresh/);
+  await expect(fresh).toContainText("Baru · tarik ke jadwal");
+  await expect(fresh).toBeInViewport();
+  // Only the new song is highlighted.
+  await expect(page.locator(".song-list > li.fresh")).toHaveCount(1);
+  // Real mouse drag from the grip: the Jadwal Ibadah shows where to drop.
+  const grip = await fresh.locator(".drag-grip").boundingBox();
+  const zone = await page.getByTestId("week-drop-zone").boundingBox();
+  await page.mouse.move(grip!.x + grip!.width / 2, grip!.y + grip!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(grip!.x + 20, grip!.y - 20, { steps: 4 });
+  await page.mouse.move(zone!.x + zone!.width / 2, zone!.y + zone!.height / 2, {
+    steps: 12,
+  });
+  await expect(page.locator(".drop-hint")).toHaveText("Lepas di sini → Week 1");
+  await page.mouse.up();
+  await expect(page.getByTestId("schedule-item")).toHaveCount(1);
+  await expect(page.getByTestId("schedule-item")).toContainText("Zaman Baru");
+  await expect(page.locator(".drop-hint")).toBeHidden();
+  // A search that hides the next new song is cleared so it can be dragged.
+  await page.getByLabel("Cari musik", { exact: true }).fill("Agung");
+  await song(page, "Yesus Baik", ["Yesus Baik synthetic line."]);
+  await expect(page.getByLabel("Cari musik", { exact: true })).toHaveValue("");
+  await expect(songRow(page, "Yesus Baik")).toBeInViewport();
+});
