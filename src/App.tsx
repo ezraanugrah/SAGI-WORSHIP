@@ -6,22 +6,18 @@ import { useScriptureServices } from "./hooks/useScriptures";
 import { usePresentation } from "./hooks/usePresentation";
 import { useWriter } from "./hooks/useWorkspace";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
+import { ProjectorBar } from "./components/ProjectorBar";
 import { Phase2Dashboard } from "./components/Phase2Dashboard";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard,
-  Settings,
   Palette,
   Monitor,
-  ChevronRight,
   Keyboard,
   HardDrive,
   Volume2,
   Type,
-  Cross,
   WifiOff,
   Check,
-  CircleHelp,
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
@@ -165,39 +161,35 @@ export default function App() {
       setNotice("Permintaan penyimpanan tidak tersedia pada browser ini.");
     }
   }
+  const live = presentationState.live;
+  const appStatus = !live
+    ? { state: "ready", label: presentationState.preparing ? "MENYIAPKAN" : "READY" }
+    : live.mode === "black"
+      ? { state: "black", label: "BLACK" }
+      : live.mode === "clearText"
+        ? { state: "clear", label: "CLEAR TEXT" }
+        : { state: "live", label: "LIVE" };
   return (
-    <div className="app-shell">
+    <div className="app-shell sagi-ui">
       <aside className="sidebar">
         <a href="#/" className="brand" aria-label="SAGI Worship Dashboard">
-          <span className="brand-mark">
-            <Cross size={23} />
-          </span>
-          <span>
-            SAGI<span className="brand-sub">WORSHIP</span>
+          <span className="brand-word">
+            Sagi <br />
+            Worship
           </span>
         </a>
-        <div className="workspace-label">WORKSPACE</div>
-        <nav>
+        <nav aria-label="Navigasi utama">
           <a className={page === "dashboard" ? "nav active" : "nav"} href="#/">
-            <LayoutDashboard size={18} />
             Dashboard
-            <span className="nav-dot" />
           </a>
           <a
             className={page === "settings" ? "nav active" : "nav"}
             href="#/settings"
           >
-            <Settings size={18} />
             Pengaturan
           </a>
         </nav>
         <div className="sidebar-bottom">
-          <div className="local-badge">
-            <ShieldCheck size={18} />
-            <span>
-              Ruang kerja lokal<small>Materi tetap di perangkat ini</small>
-            </span>
-          </div>
           <div className="version">
             SAGI WORSHIP <span>v0.7.1</span>
           </div>
@@ -205,16 +197,22 @@ export default function App() {
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <div className="breadcrumbs">
-            Workspace <ChevronRight size={14} />
-            <strong>{page === "dashboard" ? "Dashboard" : "Pengaturan"}</strong>
+          <div className="top-left">
+            {page === "dashboard" && (
+              <ProjectorBar
+                controller={presentation}
+                editable={editable && loaded}
+              />
+            )}
+            {!online && (
+              <span className="status-pill">
+                <i className="dot amber" />
+                Tanpa internet
+              </span>
+            )}
           </div>
           <div className="top-status">
-            <span className="status-pill">
-              <i className={online ? "dot" : "dot amber"} />
-              {online ? "Terhubung" : "Tanpa internet"}
-            </span>
-            {presentationState.live && (
+            {live && (
               <button
                 className="button secondary"
                 disabled={!editable}
@@ -230,28 +228,22 @@ export default function App() {
                 Black
               </button>
             )}
-            <span className="avatar">SW</span>
+            <span
+              className="ready-box"
+              role="status"
+              data-testid="app-status"
+              data-state={appStatus.state}
+            >
+              <i aria-hidden="true">*</i> {appStatus.label}
+            </span>
           </div>
         </header>
         <main>
-          <div className="heading">
-            <div>
-              <div className="eyebrow">RUANG PELAYANAN ANDA</div>
-              <h1>
-                {page === "dashboard"
-                  ? "Siapkan ibadah. Hadirkan makna."
-                  : "Pengaturan workspace"}
-              </h1>
-              <p>
-                {page === "dashboard"
-                  ? "Semua materi, satu ruang. Dari persiapan hingga presentasi."
-                  : "Sesuaikan fondasi tampilan dan preferensi perangkat ini."}
-              </p>
+          {page === "settings" && (
+            <div className="heading">
+              <h1>Pengaturan</h1>
             </div>
-            <span className="phase-tag">
-              PHASE 06 <span>Themes & Settings</span>
-            </span>
-          </div>
+          )}
           {!editable && writerMessage && (
             <div className="notice" role="status">
               {writerMessage}
@@ -599,10 +591,6 @@ export default function App() {
                   : "Layar bisa tidur: matikan sleep/screen saver di pengaturan OS"}
             </span>
           )}
-          <span>
-            <CircleHelp size={13} />
-            Backup & Recovery · Phase 7
-          </span>
         </footer>
       </div>
     </div>

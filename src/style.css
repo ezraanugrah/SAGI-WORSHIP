@@ -2351,3 +2351,863 @@ footer > span:last-child {
 
 .backup-recovery { display: flex; flex-direction: column; gap: 12px; min-width: 0; overflow-wrap: anywhere; }
 .backup-impact { max-height: 320px; overflow: auto; border: 1px solid #343943; padding: 12px; }
+
+/* ------------------------------------------------------------------------
+   SagiWorship layout (feature/sagi-layout): charcoal panels, orange accent,
+   bold uppercase controls. Scoped to .sagi-ui so the projector window and
+   older rules stay untouched.
+   ------------------------------------------------------------------------ */
+.sagi-ui {
+  --sg-bg: #121315;
+  --sg-side: #1c1e21;
+  --sg-panel: #1d2023;
+  --sg-inner: #141619;
+  --sg-raised: #2a2d32;
+  --sg-raised-hover: #353940;
+  --sg-text: #f1f1ef;
+  --sg-muted: #9ba1a8;
+  --sg-orange: #f0951f;
+  --sg-font: Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif;
+  background: var(--sg-bg);
+  color: var(--sg-text);
+  font-family: var(--sg-font);
+  font-size: 13px;
+}
+.sagi-ui button:focus-visible,
+.sagi-ui a:focus-visible,
+.sagi-ui input:focus-visible,
+.sagi-ui select:focus-visible,
+.sagi-ui textarea:focus-visible {
+  outline: 2px solid var(--sg-orange);
+}
+
+/* Sidebar */
+.sagi-ui .sidebar {
+  width: 236px;
+  background: var(--sg-side);
+  border-right: 0;
+  padding: 40px 18px 22px;
+}
+.sagi-ui .brand {
+  padding: 0 8px;
+  margin-bottom: 34px;
+}
+.sagi-ui .brand-word {
+  font-size: 44px;
+  line-height: 1.14;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+.sagi-ui .sidebar nav {
+  display: grid;
+  gap: 16px;
+}
+.sagi-ui .nav {
+  margin: 0;
+  padding: 19px 22px;
+  border-radius: 0;
+  background: var(--sg-raised);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.sagi-ui .nav:hover:not(.active) {
+  background: var(--sg-raised-hover);
+}
+.sagi-ui .nav.active {
+  background: var(--sg-orange);
+  color: #fff;
+}
+.sagi-ui .version {
+  font-size: 10px;
+  color: var(--sg-muted);
+  padding: 0 8px;
+}
+.sagi-ui .main-shell {
+  margin-left: 236px;
+  width: calc(100% - 236px);
+}
+
+/* Top bar with READY status */
+.sagi-ui .topbar {
+  height: auto;
+  min-height: 112px;
+  border-bottom: 0;
+  padding: 26px 24px 20px;
+  align-items: flex-start;
+}
+.sagi-ui .top-status {
+  gap: 12px;
+  align-items: stretch;
+}
+.sagi-ui .status-pill {
+  font-size: 12px;
+  color: #f0c27a;
+}
+.sagi-ui .ready-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 260px;
+  padding: 20px 30px;
+  background: var(--sg-raised);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.sagi-ui .ready-box i {
+  font-style: normal;
+}
+.sagi-ui .ready-box[data-state="live"] {
+  background: #9b231b;
+}
+.sagi-ui .ready-box[data-state="black"] {
+  background: #000;
+  box-shadow: inset 0 0 0 2px var(--sg-raised-hover);
+}
+.sagi-ui .ready-box[data-state="clear"] {
+  color: var(--sg-orange);
+}
+.sagi-ui .top-status > .button {
+  min-height: auto;
+}
+.sagi-ui main {
+  padding: 0 24px 24px;
+}
+.sagi-ui .heading {
+  margin-bottom: 18px;
+}
+.sagi-ui .heading h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* Shared controls */
+.sagi-ui .panel {
+  background: var(--sg-panel);
+  border: 0;
+  border-radius: 0;
+}
+.sagi-ui .panel-heading {
+  margin: 0;
+  padding: 18px 16px 12px;
+  color: var(--sg-orange);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sagi-ui .panel-kicker,
+.sagi-ui .box-label {
+  color: var(--sg-orange);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sagi-ui .panel-kicker {
+  margin: 0 0 12px 52px;
+}
+.sagi-ui .box-label {
+  display: block;
+  margin-bottom: 10px;
+  padding: 0;
+}
+.sagi-ui .button {
+  border-radius: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  min-height: 36px;
+}
+.sagi-ui .secondary {
+  background: var(--sg-raised);
+  border-color: transparent;
+  color: #fff;
+}
+.sagi-ui .primary {
+  background: var(--sg-orange);
+  border-color: var(--sg-orange);
+  color: #fff;
+}
+.sagi-ui .primary:hover:enabled {
+  filter: brightness(1.07);
+}
+.sagi-ui .icon-button {
+  border-radius: 0;
+  border-color: transparent;
+  background: var(--sg-raised);
+  color: #fff;
+}
+.sagi-ui .icon-button:hover:enabled,
+.sagi-ui .secondary:hover:enabled {
+  background: var(--sg-raised-hover);
+}
+.sagi-ui .danger {
+  color: #ffb4a6;
+}
+.sagi-ui .text-action {
+  background: none;
+  border: 0;
+  padding: 8px 12px;
+  min-height: 34px;
+  color: var(--sg-orange);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.sagi-ui .text-action:hover:enabled {
+  background: #0d0e10;
+}
+.sagi-ui .presentation-canvas {
+  border: 1px solid #3a3d42;
+  border-radius: 0;
+}
+.sagi-ui .field-help {
+  color: var(--sg-muted);
+}
+
+/* Dashboard: Jadwal | Preview | LIVE */
+.sagi-ui .dashboard-grid {
+  grid-template-columns:
+    minmax(250px, 0.95fr) minmax(400px, 1.6fr) minmax(360px, 1.6fr);
+  gap: 22px;
+}
+
+/* Jadwal ibadah */
+.sagi-ui .schedule-body {
+  padding: 20px 14px;
+}
+.sagi-ui .schedule-select {
+  appearance: none;
+  width: 100%;
+  padding: 0 28px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ba1a8' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 4px center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.sagi-ui .schedule-select option {
+  font-size: 14px;
+  color: #111;
+}
+.sagi-ui .schedule-meta {
+  margin: 12px 0 14px;
+  color: var(--sg-muted);
+  font-size: 11px;
+}
+.sagi-ui .schedule-actions {
+  margin: 0 0 16px;
+  gap: 6px;
+}
+.sagi-ui .schedule-empty {
+  margin: 48px 0;
+  text-align: center;
+  color: #c9ccd0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.sagi-ui .schedule-items > li {
+  background: var(--sg-inner);
+  border: 0;
+  border-radius: 0;
+  margin-bottom: 8px;
+}
+.sagi-ui .item-inspect {
+  color: #fff;
+}
+.sagi-ui .item-inspect strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.sagi-ui .item-inspect small {
+  font-size: 10px;
+  color: var(--sg-muted);
+}
+.sagi-ui .panel-note {
+  border-top: 0;
+  color: #6f757c;
+  font-size: 10px;
+}
+
+/* Preview */
+.sagi-ui .preview-columns {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(230px, 1.1fr);
+  gap: 16px;
+  padding: 0 14px 16px;
+  align-items: stretch;
+}
+.sagi-ui .preview-box {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 0;
+  background: #25282c;
+}
+.sagi-ui .preview-box > legend {
+  float: left;
+  width: 100%;
+}
+.sagi-ui .preview-box > legend + * {
+  clear: both;
+}
+.sagi-ui .preview-slides-box {
+  background: var(--sg-inner);
+}
+.sagi-ui .preview-side {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+.sagi-ui .preview-side > .preview-box:first-child {
+  position: relative;
+  padding: 0;
+  background: transparent;
+}
+.sagi-ui .preview-side > .preview-box:first-child > .box-label,
+.sagi-ui .live-monitor > .box-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  margin: 0;
+  pointer-events: none;
+}
+.sagi-ui .box-empty {
+  color: var(--sg-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.sagi-ui .slide-picker {
+  grid-template-columns: 1fr;
+  max-height: 440px;
+  padding: 0;
+  gap: 6px;
+}
+.sagi-ui .slide-picker button {
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: #1e2125;
+  color: #ececec;
+  font-size: 12px;
+}
+.sagi-ui .slide-picker .chosen {
+  border-color: var(--sg-orange);
+  background: #2b2215;
+}
+.sagi-ui .deck-position {
+  color: #c9ccd1;
+  font-size: 12px;
+  align-items: center;
+}
+.sagi-ui .preview-edit textarea,
+.sagi-ui .preview-style select,
+.sagi-ui .preview-style input,
+.sagi-ui .live-control-body select {
+  margin-top: 6px;
+  border: 0;
+  border-radius: 0;
+  background: #15171a;
+  color: #fff;
+}
+.sagi-ui .preview-edit textarea {
+  width: 100%;
+  padding: 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.sagi-ui .edit-actions {
+  justify-content: flex-end;
+  margin: 10px 0 0;
+}
+.sagi-ui .preview-style {
+  margin-top: 0;
+  grid-template-columns: 1fr 90px 1fr;
+}
+.sagi-ui .preview-style label {
+  display: block;
+  color: var(--sg-orange);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sagi-ui .preview-style select,
+.sagi-ui .preview-style input {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  text-transform: none;
+}
+.sagi-ui .preview-note {
+  margin: 0;
+}
+
+/* LIVE */
+.sagi-ui .live-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding-right: 16px;
+}
+.sagi-ui .live-heading .disconnected {
+  color: var(--sg-muted);
+  font-size: 11px;
+}
+.sagi-ui .live-control-body {
+  padding: 0 16px 16px;
+}
+.sagi-ui .live-monitor {
+  position: relative;
+  margin-bottom: 26px;
+}
+.sagi-ui .live-monitor .presentation-canvas {
+  border: 2px solid #e9e9e9;
+}
+.sagi-ui .live-main-buttons {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+.sagi-ui .live-row {
+  display: grid;
+  gap: 16px;
+}
+.sagi-ui .live-row.two {
+  grid-template-columns: 1fr 1fr;
+}
+.sagi-ui .live-row.three {
+  grid-template-columns: 1fr 1.35fr 1fr;
+}
+.sagi-ui .live-btn {
+  min-height: 62px;
+  padding: 10px;
+  background: var(--sg-raised);
+  border-color: transparent;
+  color: #fff;
+  font-size: 18px;
+}
+.sagi-ui .live-btn:hover:enabled {
+  background: var(--sg-raised-hover);
+}
+.sagi-ui .live-btn[aria-pressed="true"] {
+  color: var(--sg-orange);
+  box-shadow: inset 0 0 0 2px var(--sg-orange);
+}
+.sagi-ui .live-btn.go-live {
+  background: var(--sg-orange);
+}
+.sagi-ui .deck-position .text-action {
+  margin-left: auto;
+}
+.sagi-ui .projector-label {
+  margin: 18px 0 10px;
+}
+
+/* Library: SONGS / SCRIPTURES / MEDIA / THEMES */
+.sagi-ui .library {
+  margin-top: 30px;
+}
+.sagi-ui .tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.sagi-ui .tabs button {
+  justify-content: center;
+  padding: 13px 8px;
+  border: 0;
+  background: var(--sg-raised);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sagi-ui .tabs .selected {
+  background: var(--sg-orange);
+  color: #fff;
+}
+.sagi-ui .library-panel {
+  background: var(--sg-panel);
+}
+.sagi-ui .songs-content {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.42fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 0;
+  background: var(--sg-bg);
+}
+.sagi-ui .songs-side,
+.sagi-ui .songs-main {
+  min-width: 0;
+  padding: 18px;
+  background: var(--sg-panel);
+}
+.sagi-ui .side-title {
+  margin: 4px 0 14px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+.sagi-ui .side-empty {
+  margin-bottom: 12px;
+  color: var(--sg-muted);
+  font-size: 12px;
+}
+.sagi-ui .side-list {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.sagi-ui .side-list button,
+.sagi-ui .folder {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 18px;
+  border: 0;
+  background: #121316;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+.sagi-ui .side-list button.active {
+  box-shadow: inset 3px 0 0 var(--sg-orange);
+}
+.sagi-ui .folder.active {
+  background: var(--sg-orange);
+}
+.sagi-ui .side-mark {
+  color: var(--sg-muted);
+  font-weight: 400;
+}
+.sagi-ui .folder.active .side-mark {
+  color: #fff;
+}
+.sagi-ui .side-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sagi-ui .side-count {
+  margin-left: auto;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.sagi-ui .new-playlist {
+  width: 100%;
+  margin: 18px 0 26px;
+  background: #121316;
+  color: #fff;
+  font-size: 16px;
+}
+.sagi-ui .songs-toolbar {
+  align-items: flex-start;
+  margin-bottom: 12px;
+  color: var(--sg-muted);
+}
+.sagi-ui .songs-toolbar h3 {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+.sagi-ui .songs-toolbar p {
+  margin-top: 6px;
+  font-size: 11px;
+}
+.sagi-ui .songs-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sagi-ui .songs-count {
+  color: var(--sg-orange);
+  font-size: 12px;
+  font-weight: 700;
+}
+.sagi-ui .song-search {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  background: #121316;
+}
+.sagi-ui .song-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+}
+.sagi-ui .song-search .icon-button {
+  margin: 6px;
+}
+.sagi-ui .song-list {
+  display: grid;
+  gap: 6px;
+}
+.sagi-ui .song-list > li {
+  padding: 10px 12px 10px 20px;
+  border-top: 0;
+  background: #121316;
+}
+.sagi-ui .song-inspect strong {
+  color: #fff;
+  font-size: 15px;
+}
+.sagi-ui .song-inspect small {
+  margin-top: 8px;
+  color: var(--sg-muted);
+  font-size: 11px;
+}
+.sagi-ui .song-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+.sagi-ui .songs-empty {
+  padding: 30px 10px;
+  text-align: center;
+  color: var(--sg-muted);
+}
+.sagi-ui .songs-empty strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #fff;
+  font-size: 14px;
+}
+.sagi-ui footer {
+  padding: 12px 24px;
+  border-top: 0;
+  color: #6f757c;
+  font-size: 10px;
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .sagi-ui .dashboard-grid {
+    grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.6fr);
+  }
+  .sagi-ui .dashboard-grid > .live {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 1100px) {
+  .sagi-ui .sidebar {
+    width: 190px;
+  }
+  .sagi-ui .brand-word {
+    font-size: 34px;
+  }
+  .sagi-ui .main-shell {
+    margin-left: 190px;
+    width: calc(100% - 190px);
+  }
+  .sagi-ui .preview-columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 860px) {
+  .sagi-ui .sidebar {
+    position: static;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .sagi-ui .brand {
+    margin: 0;
+  }
+  .sagi-ui .brand-word {
+    font-size: 22px;
+  }
+  .sagi-ui .brand-word br {
+    display: none;
+  }
+  .sagi-ui .sidebar nav {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .sagi-ui .nav {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .sagi-ui .sidebar-bottom {
+    display: none;
+  }
+  .sagi-ui .main-shell {
+    margin-left: 0;
+    width: 100%;
+  }
+  .sagi-ui .topbar {
+    min-height: 0;
+    padding: 14px 16px;
+  }
+  .sagi-ui .ready-box {
+    min-width: 0;
+    padding: 12px 18px;
+    font-size: 16px;
+  }
+  .sagi-ui main {
+    padding: 0 16px 20px;
+  }
+  .sagi-ui .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .sagi-ui .songs-content {
+    grid-template-columns: 1fr;
+  }
+  .sagi-ui .tabs button {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+}
+@media (max-width: 560px) {
+  .sagi-ui .tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sagi-ui .live-btn {
+    min-height: 52px;
+    font-size: 14px;
+  }
+  .sagi-ui .live-row.three {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sagi-ui .live-row.three .go-live {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .sagi-ui .songs-toolbar {
+    flex-wrap: wrap;
+  }
+  .sagi-ui .song-list > li {
+    flex-wrap: wrap;
+  }
+  .sagi-ui .preview-style {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Top bar projector controls and song row text */
+.sagi-ui .top-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  min-width: 0;
+}
+.sagi-ui .projector-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sagi-ui .projector-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+  color: var(--sg-orange);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sagi-ui .projector-screen select {
+  padding: 8px;
+  border: 0;
+  background: var(--sg-raised);
+  color: #fff;
+}
+.sagi-ui .song-inspect {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+.sagi-ui .live-control-body .field-help {
+  font-size: 10px;
+  line-height: 1.5;
+}
+@media (max-width: 860px) {
+  .sagi-ui .topbar {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+}
+.sagi-ui .edit-actions {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+.sagi-ui .edit-actions .discard {
+  margin-right: auto;
+  padding-left: 0;
+  color: var(--sg-muted);
+}
+.sagi-ui .edit-actions .button {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+}
+.sagi-ui .preview-slides-box .preview-navigation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.sagi-ui .preview-slides-box .preview-navigation .button {
+  padding: 8px 4px;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+.sagi-ui .live-monitor {
+  margin-bottom: 20px;
+}
+.sagi-ui .live-main-buttons {
+  gap: 16px;
+}
+.sagi-ui .live-btn {
+  min-height: 58px;
+}
+.sagi-ui button:disabled {
+  opacity: 0.5;
+}
+.sagi-ui .edit-actions {
+  flex-wrap: wrap;
+}
+.sagi-ui .edit-actions .discard {
+  white-space: nowrap;
+}
+.sagi-ui .song-actions {
+  flex-shrink: 1;
+  min-width: 0;
+}
+@media (max-width: 560px) {
+  .sagi-ui .song-list > li .song-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+}

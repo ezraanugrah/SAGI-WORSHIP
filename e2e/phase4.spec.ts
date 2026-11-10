@@ -7,7 +7,7 @@ const nodeBuffer = (
 const attestation =
   "Saya berhak menyimpan, memproyeksikan, dan membuat snapshot lokal dataset ini";
 async function library(page: Page) {
-  await page.getByRole("tab", { name: /Alkitab/ }).click();
+  await page.getByRole("tab", { name: /Scriptures/ }).click();
 }
 async function upload(page: Page, corrupt = false) {
   const data = await signFixture();

@@ -15,7 +15,6 @@ import {
 import type { Selection } from "../presentation/generateSlides";
 import type { Style } from "../presentation/models";
 import { useState } from "react";
-import { BookOpen, Images, Palette, Music2, Search } from "lucide-react";
 import { Repository } from "../data/repository";
 import { useWorkspace } from "../hooks/useWorkspace";
 import { id, type Song } from "../domain/models";
@@ -24,12 +23,7 @@ import { SongsLibrary } from "./SongsLibrary";
 import { SongEditor } from "./SongEditor";
 import { SchedulePanel } from "./SchedulePanel";
 
-const tabs = [
-  { name: "Lagu", icon: Music2, phase: 2 },
-  { name: "Alkitab", icon: BookOpen, phase: 4 },
-  { name: "Media", icon: Images, phase: 5 },
-  { name: "Tema", icon: Palette, phase: 6 },
-];
+const tabs = ["Songs", "Scriptures", "Media", "Themes"];
 export function Phase2Dashboard({
   repo,
   editable,
@@ -53,6 +47,7 @@ export function Phase2Dashboard({
   const [query, setQuery] = useState(""),
     [tab, setTab] = useState(0),
     [editor, setEditor] = useState<string | null>(null),
+    [scheduleForm, setScheduleForm] = useState<"new" | "rename" | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
@@ -180,7 +175,8 @@ export function Phase2Dashboard({
         "Lagu dan referensi jadwal dihapus.",
       );
   }
-  const TabIcon = tabs[tab].icon;
+  const activate = (scheduleId: string) =>
+    act(() => repo.setActive(scheduleId), "Jadwal aktif disimpan.");
   return (
     <>
       {(error || mutationError) && (
@@ -231,6 +227,8 @@ export function Phase2Dashboard({
           }
           editable={editable}
           busy={locked}
+          form={scheduleForm}
+          onForm={setScheduleForm}
           onCreate={async (name) => {
             await run(() => repo.createSchedule(name), "Jadwal dibuat.");
           }}
@@ -257,9 +255,7 @@ export function Phase2Dashboard({
                 "Jadwal dihapus.",
               );
           }}
-          onActive={(scheduleId) =>
-            act(() => repo.setActive(scheduleId), "Jadwal aktif disimpan.")
-          }
+          onActive={activate}
           onRemove={(s, itemId) =>
             act(
               () => repo.removeItem(s.id, itemId, s.revision),
@@ -299,60 +295,38 @@ export function Phase2Dashboard({
           dirty={previewDirty}
         />
       </div>
-      <section className="panel library">
-        <div className="library-header">
-          <div>
-            <h2>Perpustakaan materi</h2>
-            <p>
-              Kelola lagu dan susun alur ibadah, sepenuhnya di perangkat ini.
-            </p>
-          </div>
-          <span className="small-tag">LOCAL LIBRARY</span>
+      <section className="library">
+        <div className="tabs" role="tablist" aria-label="Perpustakaan">
+          {tabs.map((name, i) => (
+            <button
+              key={name}
+              role="tab"
+              id={`tab-${i}`}
+              aria-controls="library-panel"
+              aria-selected={i === tab}
+              className={i === tab ? "selected" : ""}
+              onClick={() => {
+                setTab(i);
+                setQuery("");
+              }}
+            >
+              {name}
+            </button>
+          ))}
         </div>
-        <div className="library-tools">
-          <div className="tabs" role="tablist" aria-label="Perpustakaan">
-            {tabs.map((t, i) => (
-              <button
-                key={t.name}
-                role="tab"
-                id={`tab-${i}`}
-                aria-controls="library-panel"
-                aria-selected={i === tab}
-                className={i === tab ? "selected" : ""}
-                onClick={() => {
-                  setTab(i);
-                  setQuery("");
-                }}
-              >
-                <t.icon size={16} />
-                {t.name}
-                <span>
-                  {i === 0
-                    ? data.songs.length
-                    : i === 1
-                      ? (data.translations?.length ?? 0)
-                      : 0}
-                </span>
-              </button>
-            ))}
-          </div>
-          {tab === 0 && (
-            <label className="search">
-              <Search size={16} />
-              <input
-                aria-label={`Cari ${tabs[tab].name}`}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Cari ${tabs[tab].name.toLowerCase()}…`}
-              />
-            </label>
-          )}
-        </div>
-        <div role="tabpanel" id="library-panel" aria-labelledby={`tab-${tab}`}>
+        <div
+          role="tabpanel"
+          id="library-panel"
+          className="panel library-panel"
+          aria-labelledby={`tab-${tab}`}
+        >
           {tab === 0 ? (
             <SongsLibrary
               data={data}
               query={query}
+              onQuery={setQuery}
+              onActive={activate}
+              onNewPlaylist={() => setScheduleForm("new")}
               editable={editable}
               busy={locked}
               onNew={() => open(id())}
@@ -448,17 +422,7 @@ export function Phase2Dashboard({
                 void prepare(selection, { id, scope });
               }}
             />
-          ) : (
-            <div className="library-empty">
-              <div className="library-art">
-                <TabIcon size={30} />
-              </div>
-              <div>
-                <h3>{tabs[tab].name}</h3>
-                <p>Tersedia pada Phase {tabs[tab].phase}.</p>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
       </section>
       {editor && (
@@ -476,16 +440,6 @@ export function Phase2Dashboard({
           }}
         />
       )}
-      <div className="foundation-note">
-        <span className="small-star">✦</span>
-        <div>
-          <strong>Lagu, ayat, dan jadwal siap dipersiapkan.</strong>
-          <p>
-            Phase 6 · Tema, lagu, ayat, dan media lokal. Preview dan LIVE tetap
-            terpisah; tampilkan dengan Go Live eksplisit.
-          </p>
-        </div>
-      </div>
     </>
   );
 }

@@ -167,7 +167,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
       .getByRole("list", { name: "Daftar slide Preview" })
       .getByRole("listitem"),
   ).toHaveCount(2);
-  await page.getByRole("tab", { name: /Tema/ }).click();
+  await page.getByRole("tab", { name: /Themes/ }).click();
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
   await page.getByLabel("Nama tema", { exact: true }).fill("Portable theme");
   await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
@@ -177,7 +177,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
       exact: true,
     }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: /Alkitab/ }).click();
+  await page.getByRole("tab", { name: /Scriptures/ }).click();
   const authorized = fixtureDataset();
   authorized.translation.license.permissions.export = true;
   const dataset = await signFixture(authorized);
@@ -241,7 +241,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
   await expect(
     target.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveValue("Original portable override.");
-  await target.getByRole("tab", { name: /Alkitab/ }).click();
+  await target.getByRole("tab", { name: /Scriptures/ }).click();
   await target.getByLabel("Referensi ayat", { exact: true }).fill("John 3:16");
   await target
     .getByRole("button", { name: "Cari referensi", exact: true })
@@ -265,7 +265,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
       .getByRole("list", { name: "Daftar slide Preview" })
       .getByRole("listitem"),
   ).toHaveCount(2);
-  await target.getByRole("tab", { name: /Tema/ }).click();
+  await target.getByRole("tab", { name: /Themes/ }).click();
   await expect(
     target.getByRole("button", {
       name: "Pilih tema Portable theme",
@@ -318,7 +318,7 @@ test("backup during LIVE does not change output; restore requires End Session an
 test("restricted Scripture export is explicitly partial and contains no dataset text", async ({
   page,
 }) => {
-  await page.getByRole("tab", { name: /Alkitab/ }).click();
+  await page.getByRole("tab", { name: /Scriptures/ }).click();
   const data = await signFixture(fixtureDataset());
   await page.getByLabel("File dataset Alkitab").setInputFiles({
     name: "synthetic.json",
@@ -671,7 +671,7 @@ test("Storage Health repairs only a verified missing theme pin after explicit re
   await expect(
     page.getByRole("button", { name: "Pilih media repair.png", exact: true }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: /Tema/ }).click();
+  await page.getByRole("tab", { name: /Themes/ }).click();
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
   await page
     .getByLabel("Nama tema", { exact: true })

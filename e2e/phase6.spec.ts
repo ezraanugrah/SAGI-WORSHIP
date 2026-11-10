@@ -7,7 +7,7 @@ const buffer = (
 const lyric =
   "Original synthetic theme song.\nA clear second line for testing.";
 async function song(page: Page) {
-  await page.getByRole("tab", { name: /Lagu/ }).click();
+  await page.getByRole("tab", { name: /Songs/ }).click();
   await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
   await page.getByLabel("Judul lagu", { exact: true }).fill("Theme rehearsal");
   await page.getByLabel("Lirik bagian 1", { exact: true }).fill(lyric);
@@ -24,7 +24,7 @@ async function song(page: Page) {
   ).toBeVisible();
 }
 async function themes(page: Page) {
-  await page.getByRole("tab", { name: /Tema/ }).click();
+  await page.getByRole("tab", { name: /Themes/ }).click();
 }
 async function create(
   page: Page,
@@ -375,7 +375,7 @@ test("advanced resolution/scaling affects preparation only and themed Scripture 
   ).toBeVisible();
   await expect(p.locator(".slide-reference")).toHaveCSS("width", "1920px");
   await page.getByRole("link", { name: "Dashboard", exact: true }).click();
-  await page.getByRole("tab", { name: /Alkitab/ }).click();
+  await page.getByRole("tab", { name: /Scriptures/ }).click();
   const data = await signFixture();
   await page.getByLabel("File dataset Alkitab").setInputFiles({
     name: "synthetic.json",
@@ -412,7 +412,7 @@ test("advanced resolution/scaling affects preparation only and themed Scripture 
   await expect(
     page.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveAttribute("readonly", "");
-  await page.getByRole("tab", { name: /Tema/ }).click();
+  await page.getByRole("tab", { name: /Themes/ }).click();
   await page
     .getByRole("button", { name: "Pilih tema Typography", exact: true })
     .click();
@@ -550,7 +550,7 @@ test("unsaved edits warn, failed theme writes rollback, and stale protocol canno
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
   await page.getByLabel("Nama tema", { exact: true }).fill("Uncommitted theme");
   page.once("dialog", (d) => d.dismiss());
-  await page.getByRole("tab", { name: /Lagu/ }).click();
+  await page.getByRole("tab", { name: /Songs/ }).click();
   await expect(page.getByRole("region", { name: "Editor tema" })).toBeVisible();
   await page.evaluate(() => {
     const put = IDBObjectStore.prototype.put;

@@ -14,7 +14,7 @@ function row(page: Page) {
   });
 }
 async function song(page: Page) {
-  await page.getByRole("tab", { name: /Lagu/ }).click();
+  await page.getByRole("tab", { name: /Songs/ }).click();
   await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
   const editor = page.getByRole("region", { name: "Editor lagu" });
   await editor.getByLabel("Judul lagu", { exact: true }).fill(title);
@@ -32,7 +32,7 @@ async function song(page: Page) {
   await expect(editor).toHaveCount(0);
 }
 async function prepare(page: Page) {
-  await page.getByRole("tab", { name: /Lagu/ }).click();
+  await page.getByRole("tab", { name: /Songs/ }).click();
   await row(page)
     .getByRole("button", { name: new RegExp(`^${title}`) })
     .click();
@@ -182,7 +182,7 @@ test("H3: a background image is verified once by the projector, not on every sli
   ).toBeVisible();
   await song(page);
   await prepare(page);
-  await page.getByRole("tab", { name: /Tema/ }).click();
+  await page.getByRole("tab", { name: /Themes/ }).click();
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
   await page.getByLabel("Nama tema", { exact: true }).fill("Stability image");
   await page.getByLabel("Jenis background", { exact: true }).selectOption("image");

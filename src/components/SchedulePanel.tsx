@@ -24,11 +24,16 @@ export function SchedulePanel({
   onReorder,
   onInspect,
   slideCounts,
+  form,
+  onForm: setForm,
 }: {
   data: Workspace;
   slideCounts?: Record<string, number>;
   editable: boolean;
   busy: boolean;
+  /** Playlist form state, shared with "+ New playlist" in the SONGS tab. */
+  form: "new" | "rename" | null;
+  onForm: (form: "new" | "rename" | null) => void;
   onCreate: (name: string) => Promise<void>;
   onRename: (s: Schedule, name: string) => Promise<void>;
   onDuplicate: (s: Schedule) => void;
@@ -39,7 +44,6 @@ export function SchedulePanel({
   onInspect: (songId: string) => void;
 }) {
   const schedule = data.schedules.find((s) => s.id === data.activeId),
-    [form, setForm] = useState<"new" | "rename" | null>(null),
     [name, setName] = useState(""),
     [announcement, setAnnouncement] = useState("");
   const drag = useRef<string | null>(null);
@@ -71,17 +75,14 @@ export function SchedulePanel({
     onReorder(schedule, ids);
     setAnnouncement(`Item dipindahkan ke posisi ${to + 1}.`);
   }
+  useLayoutEffect(() => {
+    // "+ New playlist" in the SONGS tab opens this form with an empty name.
+    if (form === "new") setName("");
+  }, [form]);
   return (
-    <section className="panel schedule">
-      <div className="panel-title">
-        <span>
-          <ListMusic size={17} />
-          Jadwal ibadah
-        </span>
-        <span className="count">{data.schedules.length}</span>
-      </div>
+    <section className="panel schedule" aria-label="Jadwal ibadah">
       <div className="schedule-body">
-        <div className="tiny-label">SERVICE SCHEDULE</div>
+        <div className="panel-kicker">Jadwal ibadah</div>
         <label className="sr-only" htmlFor="active-schedule">
           Jadwal aktif
         </label>
@@ -101,6 +102,11 @@ export function SchedulePanel({
             </option>
           ))}
         </select>
+        <p className="schedule-meta">
+          {schedule
+            ? `${schedule.itemIds.length} item · X = hapus dari Week`
+            : "Pilih atau buat playlist di tab SONGS"}
+        </p>
         <div className="schedule-actions">
           <button
             className="icon-button"
@@ -194,20 +200,18 @@ export function SchedulePanel({
                 : "Mulai dari sebuah jadwal"}
             </h3>
             <p>
-              Buat jadwal lalu tambahkan lagu
+              Buat playlist lalu tambahkan lagu
               <br />
-              dari perpustakaan.
+              dari tab SONGS.
             </p>
           </div>
         ) : (
           <>
-            <div className="schedule-summary">
-              <strong>{schedule.name}</strong>
-              <span>{schedule.itemIds.length} item</span>
-            </div>
             {schedule.itemIds.length === 0 ? (
-              <p className="field-help">
-                Belum ada materi. Pilih “Ke jadwal” pada lagu di perpustakaan.
+              <p className="schedule-empty">
+                Belum ada lagu.
+                <br />
+                Pilih “Ke jadwal” pada lagu di tab SONGS.
               </p>
             ) : (
               <ol
