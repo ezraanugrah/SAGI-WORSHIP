@@ -241,7 +241,7 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
   await expect(status).toHaveText(/CLEAR TEXT/);
 });
 
-test("Schedule expands the open item into slides and the LIVE list jumps slides", async ({
+test("Jadwal Ibadah expands the open item into slides and Live Output steps slides", async ({
   page,
 }) => {
   await openWeek(page, 1);
@@ -271,10 +271,11 @@ test("Schedule expands the open item into slides and the LIVE list jumps slides"
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   const live = page.getByRole("region", { name: "LIVE projector control" });
   await expect(live).toContainText("Slide 2 of 3");
-  await live.getByRole("listitem", { name: /^LIVE slide 3:/ }).click();
-  await expect(
-    live.getByRole("listitem", { name: /^LIVE slide 3:/ }),
-  ).toHaveAttribute("aria-current", "true");
+  // The Live column is Live Output only: no second slide list.
+  await expect(live.getByRole("list")).toHaveCount(0);
+  await live
+    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
+    .click();
   await expect(live).toContainText("Slide 3 of 3");
   await live
     .getByRole("button", { name: "Slide sebelumnya LIVE", exact: true })

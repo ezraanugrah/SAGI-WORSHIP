@@ -66,6 +66,7 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Lagu baru mudah ditarik**: setelah menambah lagu (klik Selesai), lagu itu disorot dengan label **"Baru · tarik ke jadwal"** dan langsung terlihat di daftar Musik. Pencarian yang menyembunyikannya dikosongkan sekali.
 - Setiap baris lagu punya pegangan tarik ⠿. Saat menarik lagu/media, **Jadwal Ibadah** diberi garis oranye dan tulisan **"Lepas di sini → Week n"**.
 - **Panel Live**: baris diagnostik (Fullscreen/Mode/Dikirim/Dirender/Shortcut), "Belum ada checkpoint", dan "Coba checkpoint lagi" dihapus dari panel. Status checkpoint pindah ke bar status bawah; tombol **Coba checkpoint lagi** hanya muncul jika penyimpanan gagal. Detail diagnostik ada di tooltip status koneksi.
+- **Tata letak atas: Jadwal Ibadah | Preview | Live Output.** Daftar slide di kolom Live dihapus (sama dengan daftar di Preview); kolom Live kini hanya monitor **Live Output** yang lebih besar dengan "Slide X of N" dan ‹ ›.
 - **Versi baru tidak bisa tertahan lagi**: versi baru langsung aktif begitu terunduh walau jendela SAGI lain (mis. proyektor) masih terbuka. Halaman yang sedang dipakai tidak dimuat ulang sendiri; banner "Muat versi baru" muncul agar operator memuat ulang setelah ibadah.
 - Tes: unit test alert (validasi, Go Live/Black/navigasi, checkpoint, otorisasi) dan backup round-trip dengan alert; E2E diperbarui ke kontrol baru dan ditambah tes Alerts, daftar slide Schedule/LIVE, serta tarik media.
 

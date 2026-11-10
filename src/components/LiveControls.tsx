@@ -1,7 +1,5 @@
-import { useLayoutEffect, useRef } from "react";
-import { revealInPane } from "./revealInPane";
+import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { slideSummary } from "./PreviewWorkspace";
 import { SlideCanvas } from "./SlideCanvas";
 import {
   PresentationController,
@@ -29,10 +27,6 @@ export function LiveControls({
     }
   };
   const live = state.live;
-  const current = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    revealInPane(current.current);
-  }, [live?.deck.id, live?.index]);
   return (
     <section
       className="panel live"
@@ -60,58 +54,8 @@ export function LiveControls({
           {state.connection.status}
         </span>
       </div>
-      <div className="pane-body slide-rows-wrap">
-        {live ? (
-          <div
-            className="slide-rows"
-            role="list"
-            aria-label="Daftar slide LIVE"
-          >
-            {live.deck.frames.map((frame, index) => {
-              const chosen = index === live.index;
-              const go = () => {
-                if (!chosen && editable)
-                  run(() => controller.navigate(index - live.index));
-              };
-              return (
-                <div
-                  key={frame.id}
-                  ref={chosen ? current : undefined}
-                  role="listitem"
-                  tabIndex={editable ? 0 : -1}
-                  aria-label={`LIVE slide ${index + 1}: ${frame.title} ${frame.label}`}
-                  aria-current={chosen ? "true" : undefined}
-                  className={chosen ? "slide-row chosen live" : "slide-row"}
-                  onClick={go}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      go();
-                    }
-                  }}
-                >
-                  <span className="slide-num">{index + 1}</span>
-                  <div className="slide-main">
-                    <div className="slide-tag" data-kind={frame.kind ?? "song"}>
-                      {frame.label}
-                      <small>{frame.title}</small>
-                    </div>
-                    <div className="slide-text">
-                      {slideSummary(live.deck, index)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="box-empty">
-            Siapkan slide di Preview lalu klik Go Live (kanan atas).
-          </p>
-        )}
-      </div>
-      <div className="output-area">
+      {/* Live column = Live Output only (slides are chosen in Preview). */}
+      <div className="output-area live-output">
         <div className="box-label">Live Output</div>
         <div className="output-frame">
           <div className="presentation-canvas">

@@ -3946,3 +3946,29 @@ footer > span:last-child {
 .sagi-ui .live-error {
   margin-top: 4px;
 }
+/* Live column: Live Output only, as large as the column allows (16:9). */
+.sagi-ui .output-area.live-output {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-top: 0;
+  padding: 8px 10px;
+}
+.sagi-ui .live-output .output-frame {
+  flex: 1 1 auto;
+  min-height: 120px;
+  align-items: center;
+  container-type: size;
+}
+.sagi-ui .live-output .output-frame .presentation-canvas {
+  width: min(100cqw, calc(100cqh * 16 / 9));
+}
+@media (max-width: 760px) {
+  .sagi-ui .live-output .output-frame {
+    flex: 0 0 auto;
+    min-height: 0;
+    container-type: normal;
+  }
+  .sagi-ui .live-output .output-frame .presentation-canvas {
+    width: 100%;
+  }
+}
