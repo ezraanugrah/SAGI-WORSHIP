@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { deleteDB } from "idb";
 import { songFixture, writerFixture } from "../testHelpers";
 import { Repository } from "../data/repository";
-import { openDatabase, defaults } from "../db";
+import { openDatabase, defaults, validatePreferences } from "../db";
+import { validPlayback } from "../media/models";
 import { PresentationRepository } from "../data/presentationRepository";
 import { PresentationController } from "./controller";
 import { generateSlides } from "./generateSlides";
@@ -107,6 +108,20 @@ describe("generation, authorization, immutable LIVE and recovery", () => {
     ).rejects.toThrow("dibatalkan");
     expect(validDeck({ frames: [] })).toBe(false);
     expect(validLive({})).toBe(false);
+    // Volume up to 200% (projector boost) is valid, beyond it is not.
+    const playback = {
+      frameId: "f",
+      revision: 0,
+      paused: true,
+      position: 0,
+      loop: false,
+      muted: false,
+    };
+    expect(validPlayback({ ...playback, volume: 1.5 })).toBe(true);
+    expect(validPlayback({ ...playback, volume: 2 })).toBe(true);
+    expect(validPlayback({ ...playback, volume: 2.1 })).toBe(false);
+    expect(validatePreferences({ ...defaults, volume: 150 })).toBe(true);
+    expect(validatePreferences({ ...defaults, volume: 201 })).toBe(false);
   });
   it("keeps LIVE and its remaining queue unchanged through Preview/source edits, deletion and preferences", async () => {
     const input = await seed();

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { boosted, setVolume } from "../media/volumeBoost";
 import { readAsset, readVerifiedAsset } from "../media/assetReader";
 import { waitEvent } from "../media/validation";
 import {
@@ -136,20 +137,30 @@ export function MediaCanvas({
     const p = playback;
     v.loop = p?.loop ?? false;
     if (role !== "preview" || previewInitialized.current !== v) {
-      v.volume = silent ? 0 : (p?.volume ?? 0.8);
+      const level = silent ? 0 : (p?.volume ?? 0.8);
+      // Only the projector may go above 100%; Preview stays at most 100%.
+      if (role === "audience") setVolume(v, level);
+      else v.volume = Math.min(1, level);
       v.muted =
         silent || role === "monitor" || mode === "black" || (p?.muted ?? true);
       if (role === "preview") previewInitialized.current = v;
     }
+    // Above 100% the projector needs one click before Chrome lets the
+    // volume boost run; tell the operator in the LIVE playback status.
+    const wantsBoost = role === "audience" && !silent && (p?.volume ?? 0) > 1;
     const report = (error?: string) => {
       if (!activeCommand) return;
+      const hint =
+        !error && wantsBoost && !v.muted && !boosted(v)
+          ? "Volume >100% menunggu satu klik di jendela proyektor"
+          : undefined;
       feedback.current?.({
         frameId,
         revision: p?.revision ?? 0,
         position: Number.isFinite(v.currentTime) ? v.currentTime : 0,
         paused: v.paused,
         ended: v.ended,
-        ...(error ? { error } : {}),
+        ...(error || hint ? { error: error ?? hint } : {}),
       });
     };
     const apply = async () => {

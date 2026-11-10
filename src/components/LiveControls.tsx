@@ -175,12 +175,15 @@ export function LiveControls({
               Mute
             </label>
             <label>
-              Volume LIVE
+              Volume LIVE{" "}
+              <output>{Math.round(live.playback.volume * 100)}%</output>
               <input
                 type="range"
                 aria-label="Volume LIVE"
                 min="0"
-                max="100"
+                max="200"
+                step="5"
+                title="Di atas 100% = penguat volume (suara bisa pecah jika video sudah keras)"
                 value={live.playback.volume * 100}
                 onChange={(e) =>
                   run(() =>

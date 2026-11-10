@@ -199,6 +199,26 @@ test("video Preview and LIVE are independent; playback controls, Black, refresh 
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.muted))
     .toBe(false);
+  // Above 100%: the projector keeps the element at full volume and adds the
+  // rest with the volume boost (active after one click in that window).
+  await page.getByLabel("Volume LIVE", { exact: true }).fill("150");
+  const liveControls = page.getByRole("region", {
+    name: "LIVE projector control",
+  });
+  await expect(liveControls).toContainText("150%");
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => v.volume))
+    .toBe(1);
+  await p.getByTestId("slide-canvas").click();
+  await expect(
+    liveControls.getByRole("status").filter({ hasText: /Paused|Playing/ }),
+  ).not.toContainText("menunggu satu klik");
+  // With the boost running the level is carried by Web Audio: the element
+  // itself stays at 100% even when the operator turns the volume down.
+  await page.getByLabel("Volume LIVE", { exact: true }).fill("35");
+  await expect(liveControls).toContainText("35%");
+  await page.waitForTimeout(500);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.volume)).toBe(1);
   await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect(p.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",

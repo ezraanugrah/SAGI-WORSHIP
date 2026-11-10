@@ -69,7 +69,7 @@ export function validatePreferences(value: unknown): value is Preferences {
     p.safeMargin <= 20 &&
     Number.isFinite(p.volume) &&
     p.volume >= 0 &&
-    p.volume <= 100 &&
+    p.volume <= 200 &&
     ["black", "sunset", "ocean", "purple"].includes(p.theme) &&
     [p.loopPreview, p.loopLive, p.muted].every((v) => typeof v === "boolean")
   );

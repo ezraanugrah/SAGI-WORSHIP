@@ -497,15 +497,19 @@ export default function App() {
                     Volume default <output>{prefs.volume}%</output>
                     <input
                       type="range"
+                      aria-label="Volume default"
                       min="0"
-                      max="100"
+                      max="200"
+                      step="5"
                       value={prefs.volume}
                       onChange={(e) => change("volume", Number(e.target.value))}
                     />
                   </label>
                   <p className="field-help">
                     Default untuk persiapan video berikutnya. LIVE yang sedang
-                    berjalan tetap menggunakan snapshot.
+                    berjalan tetap menggunakan snapshot. Di atas 100% = penguat
+                    volume di proyektor (maks. 200%); suara bisa pecah jika
+                    video sudah keras.
                   </p>
                 </fieldset>
               </section>

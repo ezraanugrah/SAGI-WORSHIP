@@ -197,7 +197,7 @@ export function validPlayback(v: unknown): v is Playback {
     typeof p.muted === "boolean" &&
     Number.isFinite(p.volume) &&
     p.volume >= 0 &&
-    p.volume <= 1 &&
+    p.volume <= 2 && // up to 200% (volume boost on the projector)
     (p.target === undefined || id(p.target))
   );
 }

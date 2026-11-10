@@ -41,7 +41,7 @@ describe("Phase 1 data compatibility", () => {
   it("rejects invalid preferences without replacing previous values", async () => {
     await repo.savePreferences(defaults);
     await expect(
-      repo.savePreferences({ ...defaults, volume: 101 }),
+      repo.savePreferences({ ...defaults, volume: 201 }),
     ).rejects.toThrow();
     expect(validatePreferences({ ...defaults, muted: "yes" })).toBe(false);
     const db = await openDatabase(name);

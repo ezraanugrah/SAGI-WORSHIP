@@ -203,7 +203,7 @@ export function validDeck(v: unknown): v is Deck {
       typeof v.videoDefaults.volume !== "number" ||
       !Number.isFinite(v.videoDefaults.volume) ||
       v.videoDefaults.volume < 0 ||
-      v.videoDefaults.volume > 1)
+      v.videoDefaults.volume > 2)
   )
     return false;
   const scriptureFrames = v.frames.filter((f) => f.kind === "scripture");
