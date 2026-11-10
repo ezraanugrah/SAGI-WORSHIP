@@ -7,7 +7,7 @@ import type { useThemes } from "../hooks/useThemes";
 import type { Workspace } from "../domain/models";
 import type { ThemeSnapshot, ThemeSpec } from "../themes/models";
 import { cssBackground } from "../themes/builtins";
-import { ThemeEditor, imageBackground } from "./ThemeEditor";
+import { ThemeEditor, mediaBackground } from "./ThemeEditor";
 import { AssetThumbnail } from "./MediaLibrary";
 export function ThemesLibrary({
   services,
@@ -16,10 +16,10 @@ export function ThemesLibrary({
   onApply,
   onChanged,
   preview,
-  onUploadImage,
+  onImportMedia,
 }: {
-  /** Import an image file and return it (used for image backgrounds). */
-  onUploadImage?: (file: File) => Promise<MediaAsset>;
+  /** Import an image/video file into Media and return it (backgrounds). */
+  onImportMedia?: (file: File) => Promise<MediaAsset>;
   services: ReturnType<typeof useThemes>;
   data: Workspace;
   editable: boolean;
@@ -63,14 +63,33 @@ export function ThemesLibrary({
   }
   const create = () =>
     setEditor({ id: `theme:${crypto.randomUUID()}`, revision: 0 });
-  const upload = useRef<HTMLInputElement>(null);
-  /** "Upload gambar": a new theme with the uploaded image as background. */
-  async function createFromImage(file: File) {
-    if (!onUploadImage) return;
+  const upload = useRef<HTMLInputElement>(null),
+    [status, setStatus] = useState(""),
+    [importing, setImporting] = useState(false);
+  /**
+   * "Impor media" (like the Media tab): images/videos go into the Media
+   * library. One file opens a new theme with it as background; several are
+   * listed under "Media background" in the theme editor.
+   */
+  async function importMedia(files: File[]) {
+    if (!onImportMedia || !files.length) return;
     setBusy(true);
+    setImporting(true);
     setError("");
-    try {
-      const asset = await onUploadImage(file);
+    setStatus("");
+    const done: MediaAsset[] = [],
+      failed: string[] = [];
+    for (const file of files) {
+      try {
+        done.push(await onImportMedia(file));
+      } catch (e) {
+        failed.push(`${file.name}: ${(e as Error).message}`);
+      }
+    }
+    setBusy(false);
+    setImporting(false);
+    if (failed.length) setError(failed.join(" · "));
+    if (files.length === 1 && done.length === 1) {
       const id = `theme:${crypto.randomUUID()}`;
       setEditor({
         id,
@@ -78,48 +97,49 @@ export function ThemesLibrary({
         initial: {
           id,
           revision: 0,
-          name: file.name.replace(/\.[^.]+$/, "").slice(0, 80),
-          spec: imageBackground(
+          name: files[0].name.replace(/\.[^.]+$/, "").slice(0, 80),
+          spec: mediaBackground(
             {
               background: { kind: "solid", color: "#08090b" },
               type: defaultType,
             },
-            asset,
+            done[0],
           ),
           signature: "",
         },
       });
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+    } else if (done.length)
+      setStatus(
+        `${done.length} media diimpor. Pilih di Buat tema › Media background.`,
+      );
   }
   return (
     <div className="themes-library">
       <div className="section-heading">
         <h3>Themes Library</h3>
         <div className="section-actions">
-          {onUploadImage && (
+          {onImportMedia && (
             <>
               <button
                 className="button secondary"
                 disabled={!editable || busy || !!editor}
                 onClick={() => upload.current?.click()}
               >
-                <ImagePlus size={14} /> Upload gambar
+                <ImagePlus size={14} />{" "}
+                {importing ? "Mengimpor…" : "Impor media"}
               </button>
               <input
                 ref={upload}
                 className="sr-only"
                 type="file"
-                accept=".jpg,.jpeg,.png,.webp"
-                aria-label="Upload gambar untuk tema baru"
+                multiple
+                accept=".jpg,.jpeg,.png,.webp,.mp4,.webm"
+                aria-label="File media tema"
                 disabled={!editable || busy || !!editor}
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
+                  const files = Array.from(e.target.files ?? []);
                   e.target.value = "";
-                  if (file) void createFromImage(file);
+                  void importMedia(files);
                 }}
               />
             </>
@@ -135,12 +155,17 @@ export function ThemesLibrary({
       </div>
       {services.error && <p role="alert">{services.error}</p>}
       {error && <p role="alert">{error}</p>}
+      {status && (
+        <p role="status" className="field-help">
+          {status}
+        </p>
+      )}
       {editor ? (
         <ThemeEditor
           key={editor.id}
           initial={editor.initial}
           assets={data.mediaAssets ?? []}
-          onUploadImage={onUploadImage}
+          onImportMedia={onImportMedia}
           editable={editable && !busy}
           reducedMotion={services.settings.reducedMotion}
           contrastWarnings={services.settings.contrastWarnings}

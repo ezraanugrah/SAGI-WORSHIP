@@ -14,12 +14,12 @@ import { layoutText } from "../presentation/appearance";
 import { browserMeasure } from "../presentation/layout";
 import type { Deck, Frame, ScriptureCaption } from "../presentation/models";
 import type { MediaAsset } from "../media/models";
-/** Theme spec with `asset` as a full-screen image background. */
-export function imageBackground(spec: ThemeSpec, a: MediaAsset): ThemeSpec {
+/** Theme spec with `a` (image or video) as the full-screen background. */
+export function mediaBackground(spec: ThemeSpec, a: MediaAsset): ThemeSpec {
   return {
     ...spec,
     background: {
-      kind: "image",
+      kind: a.kind === "video" ? "video" : "image",
       asset: a.original,
       poster: a.thumbnail,
       libraryId: a.id,
@@ -40,10 +40,10 @@ export function ThemeEditor({
   reducedMotion = true,
   contrastWarnings = true,
   sample,
-  onUploadImage,
+  onImportMedia,
 }: {
-  /** Import an image file (Themes "Upload gambar") and return it. */
-  onUploadImage?: (file: File) => Promise<MediaAsset>;
+  /** Import an image/video file (Themes "Impor media") and return it. */
+  onImportMedia?: (file: File) => Promise<MediaAsset>;
   initial?: ThemeSnapshot;
   assets: MediaAsset[];
   editable: boolean;
@@ -177,8 +177,8 @@ export function ThemeEditor({
       if (!a) {
         setError(
           kind === "image"
-            ? "Belum ada gambar. Klik “Upload gambar” untuk memilih gambar."
-            : "Impor video di tab Media terlebih dahulu.",
+            ? "Belum ada gambar. Klik “Impor media” untuk memilih gambar."
+            : "Belum ada video. Klik “Impor media” untuk memilih video.",
         );
         return;
       }
@@ -278,7 +278,7 @@ export function ThemeEditor({
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
-            {onUploadImage && (
+            {onImportMedia && (
               <div className="theme-upload">
                 <button
                   type="button"
@@ -287,14 +287,14 @@ export function ThemeEditor({
                   onClick={() => upload.current?.click()}
                 >
                   <ImagePlus size={14} />{" "}
-                  {uploading ? "Mengunggah…" : "Upload gambar"}
+                  {uploading ? "Mengimpor…" : "Impor media"}
                 </button>
                 <input
                   ref={upload}
                   className="sr-only"
                   type="file"
-                  accept=".jpg,.jpeg,.png,.webp"
-                  aria-label="File gambar tema"
+                  accept=".jpg,.jpeg,.png,.webp,.mp4,.webm"
+                  aria-label="File media background"
                   disabled={!editable || uploading}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -302,14 +302,15 @@ export function ThemeEditor({
                     if (!file) return;
                     setUploading(true);
                     setError("");
-                    onUploadImage(file)
-                      .then((a) => setSpec(imageBackground(spec, a)))
+                    onImportMedia(file)
+                      .then((a) => setSpec(mediaBackground(spec, a)))
                       .catch((err) => setError((err as Error).message))
                       .finally(() => setUploading(false));
                   }}
                 />
                 <span className="field-help">
-                  JPG · PNG · WebP · jadi background tema
+                  Gambar/video (JPG · PNG · WebP · MP4 · WebM) jadi background
+                  tema · video selalu silent
                 </span>
               </div>
             )}

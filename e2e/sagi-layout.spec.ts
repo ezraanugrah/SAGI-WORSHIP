@@ -4,7 +4,7 @@ import {
   previewPosition,
   openTextEditor,
 } from "./previewHelpers";
-import { imageFile, syntheticPDF } from "./mediaFixtures";
+import { imageFile, syntheticPDF, videoFile } from "./mediaFixtures";
 import { activeSchedule, dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 
 // SagiWorship workspace: Schedule | Preview | Live, one LIVE toolbar on top,
@@ -502,11 +502,13 @@ test("Live Output changes only when Go Live is clicked", async ({ page }) => {
   await expect(live.locator(".slide-lines")).toHaveText("Go Live line two.");
 });
 
-test("Themes can upload an image as a theme background", async ({ page }) => {
+test("Themes Library imports media (image or video) like the Media tab", async ({
+  page,
+}) => {
   await page.getByRole("tab", { name: "Themes", exact: true }).click();
-  // "Upload gambar" next to "Buat tema": a new theme with that image.
+  // "Impor media" next to "Buat tema": one image opens a new theme with it.
   await page
-    .getByLabel("Upload gambar untuk tema baru", { exact: true })
+    .getByLabel("File media tema", { exact: true })
     .setInputFiles(await imageFile(page, "altar.png", "#3b82f6"));
   const editor = page.getByRole("region", { name: "Editor tema" });
   await expect(editor).toBeVisible();
@@ -527,11 +529,18 @@ test("Themes can upload an image as a theme background", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Pilih tema altar", exact: true }),
   ).toBeVisible();
-  // Inside the editor: uploading the same image again reuses it from Media.
+  // Inside the editor: a video becomes a (silent) video background; the same
+  // image imported again is reused from Media.
   await page.getByRole("button", { name: "Buat tema", exact: true }).click();
-  await page.getByLabel("Nama tema", { exact: true }).fill("Altar kedua");
+  await page.getByLabel("Nama tema", { exact: true }).fill("Altar video");
   await page
-    .getByLabel("File gambar tema", { exact: true })
+    .getByLabel("File media background", { exact: true })
+    .setInputFiles(await videoFile(page));
+  await expect(
+    page.getByLabel("Jenis background", { exact: true }),
+  ).toHaveValue("video");
+  await page
+    .getByLabel("File media background", { exact: true })
     .setInputFiles(await imageFile(page, "altar.png", "#3b82f6"));
   await expect(
     page.getByLabel("Jenis background", { exact: true }),
@@ -539,11 +548,25 @@ test("Themes can upload an image as a theme background", async ({ page }) => {
   await expect(page.getByRole("alert")).toHaveCount(0);
   await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Pilih tema Altar kedua", exact: true }),
+    page.getByRole("button", { name: "Pilih tema Altar video", exact: true }),
   ).toBeVisible();
-  // The image lives once in the Media library.
-  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  // Several files at once are only imported, ready under Media background.
+  await page
+    .getByLabel("File media tema", { exact: true })
+    .setInputFiles([
+      await imageFile(page, "pagi.png", "#16a34a"),
+      await imageFile(page, "malam.png", "#7c3aed"),
+    ]);
   await expect(
-    page.getByRole("button", { name: "Pilih media altar.png", exact: true }),
-  ).toHaveCount(1);
+    page.getByRole("status").filter({ hasText: "2 media diimpor" }),
+  ).toBeVisible();
+  await expect(page.getByRole("region", { name: "Editor tema" })).toHaveCount(
+    0,
+  );
+  // Everything is in the Media library once.
+  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  for (const name of ["altar.png", "pagi.png", "malam.png"])
+    await expect(
+      page.getByRole("button", { name: `Pilih media ${name}`, exact: true }),
+    ).toHaveCount(1);
 });

@@ -467,8 +467,8 @@ export function Phase2Dashboard({
               />
             ) : tab === 4 ? (
               <ThemesLibrary
-                onUploadImage={async (file) => {
-                  const asset = await mediaServices.importImage(file);
+                onImportMedia={async (file) => {
+                  const asset = await mediaServices.importBackground(file);
                   await reload();
                   return asset;
                 }}

@@ -70,16 +70,18 @@ export function useMedia(gate: WriterGate) {
     }
   }
   /**
-   * Import one image for a theme background and return it. An identical image
-   * already in the Media library is reused instead of being rejected.
+   * Import one image or video for a theme background and return it. An
+   * identical file already in the Media library is reused, not rejected.
    */
-  async function importImage(file: File): Promise<MediaAsset> {
+  async function importBackground(file: File): Promise<MediaAsset> {
     setWorking(true);
     setStatus(`Memvalidasi ${file.name}`);
     try {
       const prepared = await prepareFile(file);
-      if (prepared.asset.kind !== "image")
-        throw new Error("Pilih file gambar (JPG, PNG, atau WebP).");
+      if (prepared.asset.kind !== "image" && prepared.asset.kind !== "video")
+        throw new Error(
+          "Background tema: pilih gambar atau video (JPG, PNG, WebP, MP4, WebM).",
+        );
       const existing = (await repo.list()).assets.find(
         (a) => a.original.digest === prepared.asset.original.digest,
       );
@@ -105,5 +107,5 @@ export function useMedia(gate: WriterGate) {
       setWorking(false);
     }
   }
-  return { repo, status, working, importFiles, importImage, cancel };
+  return { repo, status, working, importFiles, importBackground, cancel };
 }
