@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { dragToWeek, mediaCard } from "./dragHelpers";
+import { dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 import {
   imageFile,
   videoFile,
@@ -105,11 +105,7 @@ test("PDF rasterizes selected pages offline and mixed schedules duplicate/reorde
   });
   await page.reload();
   await context.setOffline(true);
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page.getByLabel("Nama jadwal", { exact: true }).fill("Media service");
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
+  await openWeek(page, 1);
   await image(page);
   await dragToWeek(mediaCard(page, "synthetic.png"));
   await page.getByLabel("File media", { exact: true }).setInputFiles({
@@ -138,7 +134,6 @@ test("PDF rasterizes selected pages offline and mixed schedules duplicate/reorde
   await expect(page.getByTestId("schedule-item").first()).toContainText(
     "synthetic.png",
   );
-  await page.getByLabel("Duplikasi jadwal", { exact: true }).click();
   await expect(page.getByTestId("schedule-item")).toHaveCount(2);
   await prepare(page);
   await expect(

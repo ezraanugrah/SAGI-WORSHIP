@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { dragToWeek } from "./dragHelpers";
+import { dragToWeek, openWeek } from "./dragHelpers";
 const BufferNode = (globalThis as any).Buffer;
 async function song(page: Page, text = "Synthetic phase eight lyrics") {
   await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
@@ -44,13 +44,7 @@ test("Phase 8 equal-parent aggregate conflict stays safe through browser backup,
   page,
 }) => {
   await song(page);
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page
-    .getByLabel("Nama jadwal", { exact: true })
-    .fill("Repeated synthetic service");
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
+  await openWeek(page, 1);
   for (let i = 0; i < 2; i++) {
     await dragToWeek(page.getByTestId("song-row").first());
     await expect(page.getByTestId("schedule-item")).toHaveCount(i + 1);

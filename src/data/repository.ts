@@ -558,6 +558,21 @@ export class Repository {
       });
     });
   }
+  /** Remove every item from a schedule (sources stay in the library). */
+  async clearSchedule(scheduleId: string, revision: number) {
+    return this.write(async (tx) => {
+      const s = await this.schedule(tx, scheduleId);
+      checkRevision(s, revision);
+      for (const itemId of s.itemIds)
+        await tx.objectStore("schedule_items").delete(itemId);
+      await tx.objectStore("schedules").put({
+        ...s,
+        itemIds: [],
+        revision: revision + 1,
+        updatedAt: now(),
+      });
+    });
+  }
   async reorderItems(scheduleId: string, itemIds: string[], revision: number) {
     return this.write(async (tx) => {
       const s = await this.schedule(tx, scheduleId);

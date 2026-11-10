@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { dragToWeek } from "./dragHelpers";
+import { dragToWeek, openWeek } from "./dragHelpers";
 import { fixtureDataset, signFixture } from "../src/scriptures/testFixtures";
 // Playwright runs in Node; keep Node-only globals out of the browser app type environment.
 const nodeBuffer = (
@@ -132,11 +132,7 @@ test("offline import, Unicode text search, browsing and reload persistence", asy
 test("two windows retain frozen LIVE after deletion; mixed schedule duplication, keyboard and drag ordering", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page.getByLabel("Nama jadwal", { exact: true }).fill("Mixed rehearsal");
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
+  await openWeek(page, 1);
   await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
   await page.getByLabel("Judul lagu", { exact: true }).fill("Synthetic song");
   await page
@@ -165,7 +161,6 @@ test("two windows retain frozen LIVE after deletion; mixed schedule duplication,
   await expect(page.getByTestId("schedule-item").first()).toContainText(
     "Synthetic song",
   );
-  await page.getByLabel("Duplikasi jadwal", { exact: true }).click();
   await expect(page.getByTestId("schedule-item")).toHaveCount(2);
   await page
     .getByTestId("schedule-item")

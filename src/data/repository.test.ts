@@ -143,6 +143,25 @@ describe("atomic songs and schedules repository", () => {
     expect(data.schedules.map((s) => s.id)).toEqual([b.id, copy.id]);
     expect(data.items.every((i) => i.scheduleId === copy.id)).toBe(true);
   });
+  it("clears a schedule's items without touching songs or other schedules", async () => {
+    await repo.createSong("song", songFixture("song"));
+    const week = await repo.createSchedule("Week 1"),
+      other = await repo.createSchedule("Week 2");
+    await repo.addSong(week.id, "song", 1);
+    await repo.addSong(week.id, "song", 2);
+    await repo.addSong(other.id, "song", 1);
+    await expect(repo.clearSchedule(week.id, 1)).rejects.toThrow();
+    await repo.clearSchedule(week.id, 3);
+    const data = await repo.load();
+    const cleared = data.schedules.find((s) => s.id === week.id)!;
+    expect(cleared).toMatchObject({ itemIds: [], revision: 4 });
+    expect(data.items.filter((i) => i.scheduleId === week.id)).toHaveLength(0);
+    expect(data.items.filter((i) => i.scheduleId === other.id)).toHaveLength(1);
+    expect(data.songs).toHaveLength(1);
+    await expect(
+      new Repository(new WriterGate(), name).clearSchedule(week.id, 4),
+    ).rejects.toThrow("hanya baca");
+  });
   it("atomically deletes song sections and references in multiple schedules", async () => {
     await repo.createSong("song", songFixture("song"));
     const a = await repo.createSchedule("A"),

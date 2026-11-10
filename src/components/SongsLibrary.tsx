@@ -1,10 +1,20 @@
-import { Copy, Plus, Trash2, X } from "lucide-react";
+import {
+  Copy,
+  FolderOpen,
+  ListMusic,
+  Music,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+import { WEEKS, weekName, weekSchedules } from "../domain/weeks";
 import { searchSongs, type Workspace, type Song } from "../domain/models";
-/** Drag payload type for a song dragged from Music into the active Week. */
+/** Drag payload type for a song dragged from Musik into the active Week. */
 export const SONG_DRAG_TYPE = "application/x-sagi-song";
 /**
- * SONGS tab: Playlists (worship schedules, one is the active "Week") and
- * Folders on the left, the Music library on the right.
+ * SONGS tab: "Playlist Jadwal" (Week 1–4) and the "Musik" folder on the left,
+ * the music list with search on the right. Songs are dragged into the
+ * Jadwal Ibadah.
  */
 export function SongsLibrary({
   data,
@@ -19,8 +29,7 @@ export function SongsLibrary({
   onDelete,
   onRecover,
   onDiscard,
-  onActive,
-  onNewPlaylist,
+  onWeek,
 }: {
   data: Workspace;
   query: string;
@@ -34,59 +43,53 @@ export function SongsLibrary({
   onDelete: (song: Song) => void;
   onRecover: (songId: string) => void;
   onDiscard: (songId: string, sequence: number) => void;
-  onActive: (scheduleId: string) => void;
-  onNewPlaylist: () => void;
+  /** Open Week 1–4 in the Jadwal Ibadah (created on first use). */
+  onWeek: (week: number) => void;
 }) {
   const songs = searchSongs(data.songs, query);
+  const weeks = weekSchedules(data.schedules);
   return (
     <div className="songs-content">
       <aside className="songs-side">
         <section aria-labelledby="playlists-title">
           <h3 id="playlists-title" className="side-title">
-            Playlists
+            <FolderOpen size={13} aria-hidden="true" /> Playlist Jadwal
           </h3>
-          {data.schedules.length === 0 ? (
-            <p className="side-empty">Belum ada playlist.</p>
-          ) : (
-            <ul className="side-list" aria-labelledby="playlists-title">
-              {data.schedules.map((s) => (
-                <li key={s.id}>
+          <ul className="side-list" aria-labelledby="playlists-title">
+            {WEEKS.map((n, i) => {
+              const week = weeks[i];
+              // With no active Week, Week 1 is where drops go.
+              const current = week
+                ? week.id === data.activeId
+                : n === 1 && !data.activeId;
+              return (
+                <li key={n}>
                   <button
-                    className={s.id === data.activeId ? "active" : ""}
-                    aria-current={s.id === data.activeId ? "true" : undefined}
+                    className={current ? "active" : ""}
+                    aria-current={current ? "true" : undefined}
                     disabled={!editable || busy}
-                    onClick={() => onActive(s.id)}
+                    onClick={() => onWeek(n)}
                   >
-                    <span className="side-mark" aria-hidden="true">
-                      =
+                    <ListMusic size={13} aria-hidden="true" />
+                    <span className="side-name">{weekName(n)}</span>
+                    <span className="side-count">
+                      {week?.itemIds.length ?? 0}
                     </span>
-                    <span className="side-name">{s.name}</span>
-                    <span className="side-count">{s.itemIds.length}</span>
                   </button>
                 </li>
-              ))}
-            </ul>
-          )}
-          <button
-            className="button new-playlist"
-            disabled={!editable || busy}
-            onClick={onNewPlaylist}
-          >
-            <Plus size={15} />
-            New playlist
-          </button>
+              );
+            })}
+          </ul>
         </section>
         <section aria-labelledby="folders-title">
           <h3 id="folders-title" className="side-title">
-            Folders
+            <FolderOpen size={13} aria-hidden="true" /> Folder
           </h3>
           <ul className="side-list" aria-labelledby="folders-title">
             <li>
               <span className="folder active">
-                <span className="side-mark" aria-hidden="true">
-                  [ ]
-                </span>
-                <span className="side-name">Music</span>
+                <Music size={13} aria-hidden="true" />
+                <span className="side-name">Musik</span>
                 <span className="side-count">{data.songs.length}</span>
               </span>
             </li>
@@ -96,8 +99,8 @@ export function SongsLibrary({
       <div className="songs-main">
         <div className="songs-toolbar">
           <div>
-            <h3>Music</h3>
-            <p>Klik judul = Preview · Tarik ke Schedule = tambah ke Week</p>
+            <h3>Musik</h3>
+            <p>Klik judul = Preview · Tarik lagu ke Jadwal Ibadah</p>
           </div>
           <div className="songs-toolbar-actions">
             <span className="songs-count">
@@ -115,10 +118,10 @@ export function SongsLibrary({
         </div>
         <div className="song-search">
           <input
-            aria-label="Cari Lagu"
+            aria-label="Cari musik"
             value={query}
             onChange={(e) => onQuery(e.target.value)}
-            placeholder="Cari lagu di Music…"
+            placeholder="Cari musik…"
           />
           <button
             className="icon-button"
@@ -162,7 +165,7 @@ export function SongsLibrary({
             <strong>
               {query
                 ? `Tidak ada hasil untuk “${query}”`
-                : "Belum ada lagu di Music"}
+                : "Belum ada lagu di Musik"}
             </strong>
             <p>
               Tambahkan lirik milik Anda atau materi yang Anda berhak gunakan.

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { dragToWeek } from "./dragHelpers";
+import { dragToWeek, openWeek } from "./dragHelpers";
 import { imageFile, videoFile } from "./mediaFixtures";
 import { signFixture } from "../src/scriptures/testFixtures";
 const buffer = (
@@ -311,11 +311,7 @@ test("video backgrounds are silent, independently controlled and paused after Bl
 test("theme assignment deletion discloses affected records and requires explicit replacement", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page.getByLabel("Nama jadwal", { exact: true }).fill("Themed service");
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
+  await openWeek(page, 1);
   await song(page);
   await dragToWeek(page.getByTestId("song-row").first());
   await create(page, "Assigned theme", "gradient");

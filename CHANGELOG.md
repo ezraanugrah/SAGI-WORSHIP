@@ -51,7 +51,15 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Versi baru langsung bisa dipakai**: saat versi baru tersedia muncul tombol **Muat versi baru** (sebelumnya harus menutup semua jendela SAGI). Jika LIVE sedang berjalan, ada konfirmasi dulu. Aplikasi memeriksa versi baru setiap jam.
 - **Tab hanya baca terlihat jelas**: jika SAGI terbuka di tab lain, kotak status menampilkan **HANYA BACA** dan ada banner dengan tombol **Muat ulang** dan **Edit di tab ini** (tab lain menjadi hanya baca setelah konfirmasi).
 - Tombol toolbar yang abu-abu menjelaskan alasannya saat disorot (misalnya "Go Live dulu" atau "Klik lagu atau item jadwal untuk Preview dulu").
-- **Tarik lagu/media ke Schedule tanpa Week**: Week "Ibadah <tanggal>" dibuat otomatis.
+- **Tarik lagu/media ke Schedule tanpa Week**: langsung masuk ke Week 1 (lihat di bawah).
+
+### Kategori Songs: Playlist Jadwal (Week 1–4) dan Musik
+
+- Kategori di tab Songs kini hanya **Playlist Jadwal** berisi **Week 1, Week 2, Week 3, Week 4** dan **Folder › Musik**. Klik sebuah Week untuk membukanya di **Jadwal Ibadah**; Week dibuat otomatis saat pertama dipakai. Tombol "New playlist" dihapus.
+- Daftar Musik dengan **Cari musik**; lagu ditarik ke Jadwal Ibadah. Jika belum memilih Week, lagu masuk ke **Week 1**.
+- Panel kiri berjudul **Jadwal Ibadah - Week n**. Ganti nama, duplikasi, dan hapus jadwal diganti **Kosongkan jadwal** (semua item dilepas; lagu dan media tidak dihapus) agar Week bisa dipakai ulang.
+- Jadwal lama dengan nama lain tidak dihapus: tetap tersimpan di database dan backup, hanya tidak tampil di daftar. Jadwal bernama "week1"/"Week 1" otomatis dipakai sebagai Week 1, dan seterusnya.
+- Tes: unit test Week 1–4 dan Kosongkan jadwal; E2E memakai Week 1–4.
 - Tes: unit test alert (validasi, Go Live/Black/navigasi, checkpoint, otorisasi) dan backup round-trip dengan alert; E2E diperbarui ke kontrol baru dan ditambah tes Alerts, daftar slide Schedule/LIVE, serta tarik media.
 
 ## [0.7.1] — 10 November 2026

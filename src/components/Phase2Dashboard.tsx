@@ -23,6 +23,7 @@ import type { Preferences } from "../db";
 import { SongsLibrary } from "./SongsLibrary";
 import { SongEditor } from "./SongEditor";
 import { SchedulePanel, type ScheduleSlide } from "./SchedulePanel";
+import { weekName, weekSchedules } from "../domain/weeks";
 
 const tabs = ["Songs", "Scriptures", "Media", "Presentations", "Themes"];
 export function Phase2Dashboard({
@@ -50,7 +51,6 @@ export function Phase2Dashboard({
   const [query, setQuery] = useState(""),
     [tab, setTab] = useState(0),
     [editor, setEditor] = useState<string | null>(null),
-    [scheduleForm, setScheduleForm] = useState<"new" | "rename" | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
@@ -207,14 +207,16 @@ export function Phase2Dashboard({
           : [],
       )
     : [];
-  /** The Week a dropped song/media goes into; creates one if none is active. */
-  const weekFor = async (s: Schedule | null) =>
-    s ??
-    repo.createSchedule(
-      `Ibadah ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`,
-    );
-  const activate = (scheduleId: string) =>
-    act(() => repo.setActive(scheduleId), "Jadwal aktif disimpan.");
+  const weeks = weekSchedules(data.schedules);
+  /** Make Week n active, creating it the first time it is used. */
+  const openWeek = async (n: number) => {
+    const week = weeks[n - 1];
+    if (!week) return repo.createSchedule(weekName(n));
+    await repo.setActive(week.id);
+    return week;
+  };
+  /** Where a dropped song/media goes: the active Week, else Week 1. */
+  const weekFor = async (s: Schedule | null) => s ?? openWeek(1);
   return (
     <>
       {(error || mutationError) && (
@@ -266,32 +268,15 @@ export function Phase2Dashboard({
             }
             editable={editable}
             busy={locked}
-            form={scheduleForm}
-            onForm={setScheduleForm}
-            onCreate={async (name) => {
-              await run(() => repo.createSchedule(name), "Jadwal dibuat.");
-            }}
-            onRename={async (s, name) => {
-              await run(
-                () => repo.renameSchedule(s.id, name, s.revision),
-                "Nama jadwal disimpan.",
-              );
-            }}
-            onDuplicate={(s) =>
-              act(
-                () => repo.duplicateSchedule(s.id, s.revision),
-                "Jadwal diduplikasi.",
-              )
-            }
-            onDelete={(s) => {
+            onClear={(s) => {
               if (
                 window.confirm(
-                  `Hapus jadwal “${s.name}” secara permanen? Lagu sumber tidak dihapus.`,
+                  `Kosongkan “${s.name}”? Semua item dilepas dari jadwal ini; lagu di Musik dan media tidak dihapus.`,
                 )
               )
                 act(
-                  () => repo.deleteSchedule(s.id, s.revision),
-                  "Jadwal dihapus.",
+                  () => repo.clearSchedule(s.id, s.revision),
+                  `${s.name} dikosongkan.`,
                 );
             }}
             onAddMedia={(s, payload) => {
@@ -313,7 +298,7 @@ export function Phase2Dashboard({
                 },
                 s
                   ? "Media ditambahkan ke jadwal."
-                  : "Week baru dibuat dan media ditambahkan.",
+                  : "Media ditambahkan ke Week 1.",
               );
             }}
             openItemId={openItemId}
@@ -336,7 +321,7 @@ export function Phase2Dashboard({
                 },
                 s
                   ? "Lagu ditambahkan ke jadwal."
-                  : "Week baru dibuat dan lagu ditambahkan.",
+                  : "Lagu ditambahkan ke Week 1.",
               )
             }
             onRemove={(s, itemId) =>
@@ -407,8 +392,7 @@ export function Phase2Dashboard({
                 data={data}
                 query={query}
                 onQuery={setQuery}
-                onActive={activate}
-                onNewPlaylist={() => setScheduleForm("new")}
+                onWeek={(n) => act(() => openWeek(n), `${weekName(n)} aktif.`)}
                 editable={editable}
                 busy={locked}
                 onNew={() => open(id())}

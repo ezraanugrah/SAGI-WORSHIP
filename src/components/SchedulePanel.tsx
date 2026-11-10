@@ -2,18 +2,17 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { revealInPane } from "./revealInPane";
 import {
   BookOpen,
-  Copy,
+  Eraser,
   Image as ImageIcon,
   ListMusic,
   Music,
-  Pencil,
-  Trash2,
   ArrowUp,
   ArrowDown,
   X,
 } from "lucide-react";
 import { move, type Schedule, type Workspace } from "../domain/models";
 import { SONG_DRAG_TYPE } from "./SongsLibrary";
+import { weekName } from "../domain/weeks";
 import { AssetThumbnail, MEDIA_DRAG_TYPE } from "./MediaLibrary";
 
 /** A slide of the schedule item that is open in Preview. */
@@ -33,16 +32,11 @@ export function SchedulePanel({
   data,
   editable,
   busy,
-  onCreate,
-  onRename,
-  onDuplicate,
-  onDelete,
+  onClear,
   onRemove,
   onReorder,
   onInspect,
   slideCounts,
-  form,
-  onForm: setForm,
   onAddSong,
   onAddMedia,
   openItemId,
@@ -53,13 +47,8 @@ export function SchedulePanel({
   slideCounts?: Record<string, number>;
   editable: boolean;
   busy: boolean;
-  /** Playlist form state, shared with "+ New playlist" in the SONGS tab. */
-  form: "new" | "rename" | null;
-  onForm: (form: "new" | "rename" | null) => void;
-  onCreate: (name: string) => Promise<void>;
-  onRename: (s: Schedule, name: string) => Promise<void>;
-  onDuplicate: (s: Schedule) => void;
-  onDelete: (s: Schedule) => void;
+  /** Remove every item from the Week (songs stay in Musik). */
+  onClear: (s: Schedule) => void;
   onRemove: (s: Schedule, itemId: string) => void;
   onReorder: (s: Schedule, ids: string[]) => void;
   onInspect: (itemId: string) => void;
@@ -73,7 +62,6 @@ export function SchedulePanel({
   onSlide?: (index: number) => void;
 }) {
   const schedule = data.schedules.find((s) => s.id === data.activeId),
-    [name, setName] = useState(""),
     [announcement, setAnnouncement] = useState(""),
     [dropping, setDropping] = useState(false);
   const dragKind = (e: React.DragEvent) => {
@@ -116,10 +104,6 @@ export function SchedulePanel({
     onReorder(schedule, ids);
     setAnnouncement(`Item dipindahkan ke posisi ${to + 1}.`);
   }
-  useLayoutEffect(() => {
-    // "+ New playlist" in the SONGS tab opens this form with an empty name.
-    if (form === "new") setName("");
-  }, [form]);
   const openSlide = useRef<HTMLButtonElement>(null);
   useLayoutEffect(() => {
     revealInPane(openSlide.current);
@@ -158,103 +142,34 @@ export function SchedulePanel({
     >
       <div className="pane-head">
         <h2 className="pane-title">
-          Schedule
+          Jadwal Ibadah
           <span className="pane-subject">
-            {schedule ? ` - ${schedule.name}` : ""}
+            {` - ${schedule?.name ?? weekName(1)}`}
           </span>
         </h2>
         <div className="pane-actions">
           <button
-            className="pane-icon"
-            aria-label="Ganti nama jadwal"
-            title="Ganti nama"
-            disabled={!editable || busy || !schedule}
-            onClick={() => {
-              setForm("rename");
-              setName(schedule!.name);
-            }}
-          >
-            <Pencil size={13} />
-          </button>
-          <button
-            className="pane-icon"
-            aria-label="Duplikasi jadwal"
-            title="Duplikasi"
-            disabled={!editable || busy || !schedule}
-            onClick={() => schedule && onDuplicate(schedule)}
-          >
-            <Copy size={13} />
-          </button>
-          <button
             className="pane-icon danger"
-            aria-label="Hapus jadwal"
-            title="Hapus jadwal"
-            disabled={!editable || busy || !schedule}
-            onClick={() => schedule && onDelete(schedule)}
+            aria-label="Kosongkan jadwal"
+            title="Kosongkan jadwal (lagu di Musik tidak dihapus)"
+            disabled={
+              !editable || busy || !schedule || schedule.itemIds.length === 0
+            }
+            onClick={() => schedule && onClear(schedule)}
           >
-            <Trash2 size={13} />
+            <Eraser size={13} />
           </button>
         </div>
       </div>
-      {form && (
-        <form
-          className="schedule-form"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              if (form === "new") await onCreate(name);
-              else if (schedule) await onRename(schedule, name);
-              setForm(null);
-            } catch {
-              /* Keep the form on storage errors. */
-            }
-          }}
-        >
-          <label>
-            Nama jadwal
-            <input
-              autoFocus
-              required
-              maxLength={200}
-              value={name}
-              disabled={!editable || busy}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-          <div>
-            <button
-              className="button primary"
-              disabled={!editable || busy || !name.trim()}
-            >
-              Simpan jadwal
-            </button>
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => setForm(null)}
-            >
-              Batal
-            </button>
-          </div>
-        </form>
-      )}
       <div className="pane-body schedule-list" data-testid="week-drop-zone">
-        {!schedule ? (
+        {!schedule || schedule.itemIds.length === 0 ? (
           <div className="empty-schedule">
             <span className="empty-icon">
               <ListMusic size={24} />
             </span>
-            <h3>Tarik lagu ke sini</h3>
-            <p>
-              Week baru dibuat otomatis. Atau pilih/buat playlist di tab Songs.
-            </p>
+            <h3>Tarik lagu dari Musik ke sini</h3>
+            <p>Pilih Week 1–4 di tab Songs · media dari tab Media juga bisa</p>
           </div>
-        ) : schedule.itemIds.length === 0 ? (
-          <p className="schedule-empty">
-            Tarik lagu dari Music ke sini
-            <br />
-            <small>atau media dari tab Media</small>
-          </p>
         ) : (
           <ol
             ref={listRef}
@@ -412,8 +327,8 @@ export function SchedulePanel({
       </div>
       <div className="pane-foot">
         {schedule
-          ? `${schedule.itemIds.length} item · tarik dari Songs/Media · seret untuk urutkan`
-          : "Belum ada jadwal aktif"}
+          ? `${schedule.itemIds.length} item · tarik dari Musik/Media · seret untuk urutkan`
+          : "0 item · tarik lagu dari Musik ke sini"}
       </div>
     </section>
   );

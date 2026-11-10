@@ -273,12 +273,12 @@ test("H4: shortcuts stay off while typing or inside an editor", async ({
   page,
 }) => {
   const output = await start(page);
-  await page.getByLabel("Cari Lagu").fill("b");
+  await page.getByLabel("Cari musik").fill("b");
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("b");
   await expect(lines(output)).toHaveText(first);
   await expect(mode(output)).toHaveAttribute("data-mode", "normal");
-  await page.getByLabel("Cari Lagu").fill("");
+  await page.getByLabel("Cari musik").fill("");
   await row(page)
     .getByRole("button", { name: `Edit ${title}`, exact: true })
     .click();

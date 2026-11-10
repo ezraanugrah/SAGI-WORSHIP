@@ -1,5 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
-import { dragToWeek } from "./dragHelpers";
+import { dragToWeek, openWeek } from "./dragHelpers";
 const first = "Original first verse for projector verification.",
   chorus = "Original chorus written for software verification.";
 function row(page: Page, title: string) {
@@ -63,14 +63,7 @@ async function checkpoint(page: Page) {
   await expect(page.getByText(/Checkpoint tersimpan · LIVE/)).toBeVisible();
 }
 async function seededSchedule(page: Page) {
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page
-    .getByLabel("Nama jadwal", { exact: true })
-    .fill("Projection service");
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
-  await expect(page.getByLabel("Nama jadwal", { exact: true })).toHaveCount(0);
+  await openWeek(page, 1);
 }
 async function confirm(page: Page) {
   page.once("dialog", (dialog) => dialog.accept());
@@ -468,13 +461,13 @@ test("presentation shortcuts never intercept source/Preview text editing", async
 }) => {
   const output = await start(page),
     live = page.getByRole("region", { name: "LIVE projector control" });
-  await page.getByLabel("Cari Lagu").fill("b");
+  await page.getByLabel("Cari musik").fill("b");
   await page.keyboard.press("b");
   await expect(output.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",
     "normal",
   );
-  await page.getByLabel("Cari Lagu").fill("");
+  await page.getByLabel("Cari musik").fill("");
   await live.focus();
   await page.keyboard.press("ArrowRight");
   await expect(output.locator(".slide-lines")).toHaveText(chorus);

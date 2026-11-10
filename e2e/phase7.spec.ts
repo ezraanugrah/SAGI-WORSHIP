@@ -1,5 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
-import { dragToWeek, mediaCard } from "./dragHelpers";
+import { dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 import {
   imageFile,
   nodeBuffer,
@@ -111,13 +111,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
   browser,
 }) => {
   await song(page);
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page
-    .getByLabel("Nama jadwal", { exact: true })
-    .fill("Portable mixed service");
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
+  await openWeek(page, 1);
   await dragToWeek(page.getByTestId("song-row").first());
   await page
     .getByTestId("song-row")

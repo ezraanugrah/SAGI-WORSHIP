@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { imageFile, syntheticPDF } from "./mediaFixtures";
-import { dragToWeek, mediaCard } from "./dragHelpers";
+import { activeSchedule, dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 
 // SagiWorship workspace: Schedule | Preview | Live, one LIVE toolbar on top,
 // library tabs below.
@@ -24,14 +24,6 @@ async function song(page: Page, title: string, lyrics: string[]) {
   await editor.getByRole("button", { name: "Selesai", exact: true }).click();
   await expect(editor).toHaveCount(0);
 }
-async function playlist(page: Page, name: string) {
-  await page.getByRole("button", { name: "New playlist", exact: true }).click();
-  await page.getByLabel("Nama jadwal", { exact: true }).fill(name);
-  await page
-    .getByRole("button", { name: "Simpan jadwal", exact: true })
-    .click();
-  await expect(page.getByLabel("Nama jadwal", { exact: true })).toHaveCount(0);
-}
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
@@ -53,10 +45,6 @@ async function preview(page: Page, title: string) {
     page.getByRole("list", { name: "Daftar slide Preview" }),
   ).toBeVisible();
 }
-const activeSchedule = (page: Page) =>
-  page
-    .getByRole("region", { name: "Jadwal ibadah" })
-    .getByRole("heading", { level: 2 });
 
 test("status box shows READY, then LIVE, BLACK and CLEAR TEXT", async ({
   page,
@@ -85,38 +73,42 @@ test("SONGS tab lists playlists and folders, and switches the active Week", asyn
   await expect(
     page.getByRole("tab", { name: "Songs", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
-  await playlist(page, "week1");
-  await playlist(page, "week2");
-  await expect(activeSchedule(page)).toHaveText("Schedule - week2");
-  const playlists = page.getByRole("list", { name: "Playlists" });
-  await expect(playlists.getByRole("button")).toHaveCount(2);
-  await playlists.getByRole("button", { name: /week1/ }).click();
-  await expect(activeSchedule(page)).toHaveText("Schedule - week1");
-  await expect(
-    playlists.getByRole("button", { name: /week1/ }),
-  ).toHaveAttribute("aria-current", "true");
-  await song(page, "Been So Good", ["Synthetic praise line."]);
-  await expect(page.getByRole("list", { name: "Folders" })).toContainText(
-    "Music",
+  // Songs category: only "Playlist Jadwal" (Week 1–4) and the "Musik" folder.
+  const playlists = page.getByRole("list", { name: "Playlist Jadwal" });
+  await expect(playlists.getByRole("button")).toHaveText([
+    /^Week 1/,
+    /^Week 2/,
+    /^Week 3/,
+    /^Week 4/,
+  ]);
+  await expect(page.getByRole("button", { name: "New playlist" })).toHaveCount(
+    0,
   );
-  await expect(page.getByRole("list", { name: "Folders" })).toContainText("1");
+  await expect(activeSchedule(page)).toHaveText("Jadwal Ibadah - Week 1");
+  await openWeek(page, 2);
+  const week2 = playlists.getByRole("button", { name: /^Week 2 \d+$/ });
+  await expect(week2).toHaveAttribute("aria-current", "true");
+  await song(page, "Been So Good", ["Synthetic praise line."]);
+  const folders = page.getByRole("list", { name: "Folder" });
+  await expect(folders).toContainText("Musik");
+  await expect(folders.locator(".side-count")).toHaveText("1");
   const row = songRow(page, "Been So Good");
   await expect(row).toContainText("Demo Penyembahan · 1 section");
   await dragToWeek(row);
-  await expect(playlists.getByRole("button", { name: /week1/ })).toContainText(
-    "1",
-  );
+  await expect(week2.locator(".side-count")).toHaveText("1");
   await expect(
     page.getByRole("region", { name: "Jadwal ibadah" }),
   ).toContainText("1 item");
+  await openWeek(page, 3);
+  await expect(page.getByTestId("schedule-item")).toHaveCount(0);
 });
 
-test("song search filters Music and the X button clears it", async ({
+test("music search filters Musik and the X button clears it", async ({
   page,
 }) => {
   await song(page, "Trust In God", ["Synthetic line one."]);
   await song(page, "Been So Good", ["Synthetic line two."]);
-  const search = page.getByLabel("Cari Lagu", { exact: true });
+  const search = page.getByLabel("Cari musik", { exact: true });
   await search.fill("Trust");
   await expect(page.getByTestId("song-row")).toHaveCount(1);
   await expect(page.getByText("1 lagu ditemukan")).toBeVisible();
@@ -133,7 +125,7 @@ test("songs dragged with the mouse land in the active Week without breaking item
   // Keep the Week and the Music list on screen together: Playwright's HTML5
   // drag cannot scroll the page mid-drag (Chrome itself auto-scrolls).
   await page.setViewportSize({ width: 1600, height: 1400 });
-  await playlist(page, "week1");
+  await openWeek(page, 1);
   await song(page, "Trust In God", ["Synthetic drag line."]);
   await song(page, "Been So Good", ["Second synthetic drag line."]);
   const items = page.getByTestId("schedule-item");
@@ -252,7 +244,7 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
 test("Schedule expands the open item into slides and the LIVE list jumps slides", async ({
   page,
 }) => {
-  await playlist(page, "week1");
+  await openWeek(page, 1);
   await song(page, "Expand song", [
     "Expand line one.",
     "Expand line two.",
@@ -293,7 +285,7 @@ test("Schedule expands the open item into slides and the LIVE list jumps slides"
 test("Presentations tab lists only PDF presentations and drags them into the Week", async ({
   page,
 }) => {
-  await playlist(page, "week1");
+  await openWeek(page, 1);
   await page.getByRole("tab", { name: "Presentations", exact: true }).click();
   await page.getByLabel("File presentasi", { exact: true }).setInputFiles({
     name: "khotbah.pdf",
@@ -348,27 +340,49 @@ test("Presentations tab lists only PDF presentations and drags them into the Wee
   ).toBeVisible();
 });
 
-test("dropping a song with no Week creates one automatically", async ({ page }) => {
+test("dropping a song before picking a Week fills Week 1", async ({ page }) => {
   await song(page, "First drop", ["Synthetic first drop line."]);
-  await expect(activeSchedule(page)).toHaveText("Schedule");
+  await expect(activeSchedule(page)).toHaveText("Jadwal Ibadah - Week 1");
+  await expect(page.getByTestId("week-drop-zone")).toContainText(
+    "Tarik lagu dari Musik ke sini",
+  );
   await dragToWeek(songRow(page, "First drop"));
-  await expect(activeSchedule(page)).toHaveText(/^Schedule - Ibadah /);
+  await expect(activeSchedule(page)).toHaveText("Jadwal Ibadah - Week 1");
   await expect(page.getByTestId("schedule-item")).toContainText("First drop");
-  await expect(page.getByRole("list", { name: "Playlists" }).getByRole("button")).toHaveCount(1);
+  const playlists = page.getByRole("list", { name: "Playlist Jadwal" });
+  await expect(
+    playlists
+      .getByRole("button", { name: /^Week 1 \d+$/ })
+      .locator(".side-count"),
+  ).toHaveText("1");
+  await expect(playlists.getByRole("button")).toHaveCount(4);
 });
 
-test("a second tab is clearly read-only and can take over editing", async ({ page, context }) => {
+test("a second tab is clearly read-only and can take over editing", async ({
+  page,
+  context,
+}) => {
   const second = await context.newPage();
   await second.goto("/");
   await expect(second.getByTestId("app-status")).toHaveText(/HANYA BACA/);
   const banner = second.getByTestId("readonly-banner");
   await expect(banner).toContainText("Tab ini hanya baca");
-  await expect(second.getByRole("button", { name: "Live", exact: true })).toBeDisabled();
-  await expect(second.getByRole("button", { name: "Go Live", exact: true })).toHaveAttribute("title", "Tab ini hanya baca");
+  await expect(
+    second.getByRole("button", { name: "Live", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    second.getByRole("button", { name: "Go Live", exact: true }),
+  ).toHaveAttribute("title", "Tab ini hanya baca");
   second.once("dialog", (d) => void d.accept());
-  await banner.getByRole("button", { name: "Edit di tab ini", exact: true }).click();
-  await expect(second.getByRole("button", { name: "Tambah lagu", exact: true })).toBeEnabled();
+  await banner
+    .getByRole("button", { name: "Edit di tab ini", exact: true })
+    .click();
+  await expect(
+    second.getByRole("button", { name: "Tambah lagu", exact: true }),
+  ).toBeEnabled();
   await expect(second.getByTestId("app-status")).toHaveText(/READY/);
   await expect(page.getByTestId("app-status")).toHaveText(/HANYA BACA/);
-  await expect(page.getByRole("button", { name: "Tambah lagu", exact: true })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Tambah lagu", exact: true }),
+  ).toBeDisabled();
 });

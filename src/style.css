@@ -3893,3 +3893,17 @@ footer > span:last-child {
   color: #ffd2c7;
   font-size: 12px;
 }
+.sagi-ui .songs-side .side-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sagi-ui .songs-side .side-list {
+  margin-bottom: 12px;
+}
+.sagi-ui .songs-side .side-list svg {
+  color: var(--sg-muted);
+}
+.sagi-ui .songs-side .active svg {
+  color: var(--sg-orange);
+}

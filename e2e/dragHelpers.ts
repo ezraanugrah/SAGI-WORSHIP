@@ -34,3 +34,25 @@ export function mediaCard(page: Page, title: string) {
       }),
     });
 }
+
+/** Heading of the Jadwal Ibadah pane: "Jadwal Ibadah - Week n". */
+export function activeSchedule(page: Page) {
+  return page
+    .getByRole("region", { name: "Jadwal ibadah" })
+    .getByRole("heading", { level: 2 });
+}
+
+/** Open Week 1–4 from "Playlist Jadwal" in the Songs tab (created on first use). */
+export async function openWeek(page: Page, week: number) {
+  const songs = page.getByRole("tab", { name: "Songs", exact: true });
+  if ((await songs.getAttribute("aria-selected")) !== "true")
+    await songs.click();
+  await page
+    .getByRole("list", { name: "Playlist Jadwal" })
+    .getByRole("button", { name: new RegExp(`^Week ${week} \\d+$`) })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Jadwal ibadah" }),
+  ).not.toHaveAttribute("aria-busy", "true");
+  await expect(activeSchedule(page)).toHaveText(`Jadwal Ibadah - Week ${week}`);
+}
