@@ -23,7 +23,7 @@ import { SongsLibrary } from "./SongsLibrary";
 import { SongEditor } from "./SongEditor";
 import { SchedulePanel } from "./SchedulePanel";
 
-const tabs = ["Songs", "Scriptures", "Media", "Themes"];
+const tabs = ["Songs", "Scriptures", "Media", "Presentations", "Themes"];
 export function Phase2Dashboard({
   repo,
   editable,
@@ -33,7 +33,9 @@ export function Phase2Dashboard({
   scriptureServices,
   mediaServices,
   themeServices,
+  onPreviewDirty,
 }: {
+  onPreviewDirty?: (dirty: boolean) => void;
   repo: Repository;
   editable: boolean;
   prefs: Preferences;
@@ -53,6 +55,11 @@ export function Phase2Dashboard({
     [mutationError, setMutationError] = useState("");
   const [previewDirty, setPreviewDirty] = useState(false);
   const markDirty = useCallback((dirty: boolean) => setPreviewDirty(dirty), []);
+  // The top-bar toolbar's Go Live follows the same "unapplied Preview" rule.
+  useEffect(() => {
+    onPreviewDirty?.(previewDirty);
+  }, [previewDirty, onPreviewDirty]);
+  useEffect(() => () => onPreviewDirty?.(false), [onPreviewDirty]);
   useEffect(() => {
     if (!loading) presentation.observeSources(data);
   }, [data, loading, presentation, presentationState.preview?.deck.id]);
@@ -395,6 +402,17 @@ export function Phase2Dashboard({
               onChanged={() => void reload()}
             />
           ) : tab === 3 ? (
+            <MediaLibrary
+              mode="presentations"
+              services={mediaServices}
+              data={data}
+              editable={editable}
+              onPreview={(selection) =>
+                void prepare({ kind: "media", selection })
+              }
+              onChanged={() => void reload()}
+            />
+          ) : tab === 4 ? (
             <ThemesLibrary
               services={themeServices}
               preview={presentationState.preview}

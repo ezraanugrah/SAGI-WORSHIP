@@ -34,13 +34,17 @@ export function MediaLibrary({
   editable,
   onPreview,
   onChanged,
+  mode = "media",
 }: {
   services: ReturnType<typeof useMedia>;
   data: Workspace;
   editable: boolean;
   onPreview: (s: MediaSelection) => void;
   onChanged: () => void;
+  /** "presentations" shows only PDF presentations (exported slides). */
+  mode?: "media" | "presentations";
 }) {
+  const presentations = mode === "presentations";
   const input = useRef<HTMLInputElement>(null),
     [query, setQuery] = useState(""),
     [filter, setFilter] = useState("all"),
@@ -66,9 +70,10 @@ export function MediaLibrary({
       active = false;
     };
   }, [data, services.repo]);
+  const kind = presentations ? "pdf" : filter;
   const assets = (data.mediaAssets ?? []).filter(
     (a) =>
-      (filter === "all" || a.kind === filter) &&
+      (kind === "all" || a.kind === kind) &&
       a.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
   );
   function selection() {
@@ -103,15 +108,19 @@ export function MediaLibrary({
     <div className="media-library">
       <div className="section-heading">
         <div>
-          <h3>Media lokal</h3>
-          <p>JPG · PNG · WebP · MP4 · WebM · PDF</p>
+          <h3>{presentations ? "Presentations" : "Media lokal"}</h3>
+          <p>
+            {presentations
+              ? "PDF hasil ekspor PowerPoint, Keynote, atau Google Slides"
+              : "JPG · PNG · WebP · MP4 · WebM · PDF"}
+          </p>
         </div>
         <button
           className="button primary"
           disabled={!editable || services.working}
           onClick={() => input.current?.click()}
         >
-          Impor media
+          {presentations ? "Impor presentasi" : "Impor media"}
         </button>
       </div>
       <input
@@ -119,8 +128,10 @@ export function MediaLibrary({
         ref={input}
         type="file"
         multiple
-        accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.pdf,.pptx"
-        aria-label="File media"
+        accept={
+          presentations ? ".pdf" : ".jpg,.jpeg,.png,.webp,.mp4,.webm,.pdf,.pptx"
+        }
+        aria-label={presentations ? "File presentasi" : "File media"}
         disabled={!editable || services.working}
         onChange={(e) => {
           const files = Array.from(e.target.files ?? []);
@@ -138,9 +149,9 @@ export function MediaLibrary({
       )}
       <div className="media-filters">
         <label>
-          Cari media
+          {presentations ? "Cari presentasi" : "Cari media"}
           <input
-            aria-label="Cari media"
+            aria-label={presentations ? "Cari presentasi" : "Cari media"}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -148,7 +159,7 @@ export function MediaLibrary({
             }}
           />
         </label>
-        <label>
+        <label hidden={presentations}>
           Jenis media
           <select
             aria-label="Jenis media"
@@ -172,8 +183,9 @@ export function MediaLibrary({
       )}
       {!assets.length && (
         <p>
-          Belum ada media yang sesuai. File tetap di perangkat ini. PPTX
-          memerlukan persetujuan terpisah; ekspor lokal sebagai PDF/gambar.
+          {presentations
+            ? "Belum ada presentasi. Ekspor PowerPoint/Keynote ke PDF, lalu impor di sini."
+            : "Belum ada media yang sesuai. File tetap di perangkat ini. PPTX memerlukan persetujuan terpisah; ekspor lokal sebagai PDF/gambar."}
         </p>
       )}
       <ul className="media-grid" aria-label="Daftar media">

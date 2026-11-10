@@ -7,6 +7,7 @@ import { usePresentation } from "./hooks/usePresentation";
 import { useWriter } from "./hooks/useWorkspace";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 import { ProjectorBar } from "./components/ProjectorBar";
+import { LiveToolbar } from "./components/LiveToolbar";
 import { Phase2Dashboard } from "./components/Phase2Dashboard";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -67,6 +68,7 @@ export default function App() {
   const { controller: presentation, state: presentationState } =
     usePresentation(gate);
   const wakeLock = useScreenWakeLock(!!presentationState.live);
+  const [previewDirty, setPreviewDirty] = useState(false);
   const pending = useRef(Promise.resolve());
   useEffect(() => {
     const refresh = () => {
@@ -212,22 +214,12 @@ export default function App() {
             )}
           </div>
           <div className="top-status">
-            {live && (
-              <button
-                className="button secondary"
-                disabled={!editable}
-                aria-label="Emergency Black"
-                onClick={() => {
-                  try {
-                    presentation.mode("black");
-                  } catch (e) {
-                    presentation.report(e);
-                  }
-                }}
-              >
-                Black
-              </button>
-            )}
+            <LiveToolbar
+              controller={presentation}
+              state={presentationState}
+              editable={editable && loaded}
+              dirty={previewDirty}
+            />
             <span
               className="ready-box"
               role="status"
@@ -325,6 +317,7 @@ export default function App() {
               repo={repo}
               editable={editable && loaded}
               prefs={prefs}
+              onPreviewDirty={setPreviewDirty}
             />
           ) : (
             <div className="settings-grid">

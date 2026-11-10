@@ -2940,30 +2940,93 @@ footer > span:last-child {
   line-height: 1.45;
 }
 
-/* Library: SONGS / SCRIPTURES / MEDIA / THEMES */
+/* Library tabs: slim text tabs, the active one underlined in orange. */
 .sagi-ui .library {
   margin-top: clamp(14px, 2vh, 24px);
 }
 .sagi-ui .tabs {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 10px;
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0;
+  padding: 0 8px;
+  overflow-x: auto;
+  background: linear-gradient(#2c2f34, #222428);
+  border-bottom: 1px solid #0d0e10;
 }
 .sagi-ui .tabs button {
+  flex: 0 0 auto;
   justify-content: center;
-  padding: clamp(8px, 1.1vh, 12px) 8px;
+  padding: 9px clamp(12px, 1.2vw, 20px) 7px;
   border: 0;
-  background: var(--sg-raised);
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: #c9ccd0;
+  font-size: var(--sg-fs);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+}
+.sagi-ui .tabs button:hover {
   color: #fff;
-  font-size: var(--sg-fs-big);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .sagi-ui .tabs .selected {
+  border-bottom-color: var(--sg-orange);
+  color: #fff;
+}
+
+/* Quick LIVE toolbar (top right) */
+.sagi-ui .live-toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px 4px;
+  background: linear-gradient(#2c2f34, #222428);
+}
+.sagi-ui .toolbar-divider {
+  width: 1px;
+  margin: 6px 4px;
+  background: #3a3e44;
+}
+.sagi-ui .tool-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: clamp(46px, 3.6vw, 58px);
+  padding: 5px 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: #e6e7e9;
+}
+.sagi-ui .tool-button:hover:enabled {
+  background: #34383e;
+}
+.sagi-ui .tool-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 22px;
+  border-radius: 3px;
+  background: #3a3e44;
+}
+.sagi-ui .tool-button.go .tool-icon {
   background: var(--sg-orange);
   color: #fff;
+}
+.sagi-ui .tool-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.sagi-ui .tool-button[aria-pressed="true"] {
+  border-bottom-color: var(--sg-orange);
+  color: var(--sg-orange);
+}
+.sagi-ui .tool-button[aria-pressed="true"] .tool-icon {
+  box-shadow: inset 0 0 0 2px var(--sg-orange);
 }
 .sagi-ui .library-panel {
   background: var(--sg-panel);
@@ -3224,13 +3287,12 @@ footer > span:last-child {
   }
   .sagi-ui .tabs button {
     font-size: 12px;
-    letter-spacing: 0.04em;
+  }
+  .sagi-ui .top-status {
+    flex-wrap: wrap;
   }
 }
 @media (max-width: 560px) {
-  .sagi-ui .tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .sagi-ui .live-row.three {
     grid-template-columns: 1fr 1fr;
   }

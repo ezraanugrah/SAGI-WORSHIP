@@ -19,7 +19,13 @@ Tampilan dashboard disesuaikan dengan desain SagiWorship versi Unity. Tidak ada 
 - Lagu di daftar **Music** bisa ditarik ke panel **Jadwal Ibadah** (kotak "Tarik lagu dari Music ke sini" atau di atas daftar item) untuk ditambahkan ke Week aktif. Tombol "Ke jadwal" tetap tersedia untuk keyboard. Pengurutan item dengan tarik-lepas tetap berjalan.
 - Ukuran tampilan dibuat ringkas dan cair (huruf, tombol, sidebar, jarak mengikuti lebar layar; monitor Preview/LIVE mengikuti tinggi layar). Dashboard (tiga panel + tab) muat satu layar di 1280×720, 1366×768, 1440×900, dan 1920×1080; tanpa geser samping di HP.
 - Tes E2E seret-lepas ditambahkan.
-- Berikutnya: tahap 3 (Text Style lengkap).
+
+### Toolbar kanan atas dan tab tipis
+
+- **Toolbar LIVE cepat** di kanan atas (tampil di semua halaman): **Go Live**, **Black**, **Clear**, dan **Live** (membuka/memfokuskan jendela proyektor; menyala saat tersinkron). Aturannya sama dengan panel LIVE; tombol Black di toolbar menggantikan tombol Black darurat sebelumnya.
+- **Tab bawah tipis**: Songs · Scriptures · Media · **Presentations** · Themes, dengan garis oranye pada tab aktif.
+- **Presentations**: daftar khusus PDF presentasi (hasil ekspor PowerPoint/Keynote/Google Slides) dengan impor, pilih halaman, Preview, dan Go Live. Memakai penyimpanan media yang sama; tanpa perubahan format data.
+- Berikutnya: Logo (nama gereja) dan Alerts (teks berjalan), lalu Text Style lengkap.
 
 ## [0.7.1] — 10 November 2026
 

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { imageFile, syntheticPDF } from "./mediaFixtures";
 
 // Tahap 1 (SagiWorship layout): status box, SONGS tab playlists/folders, search.
 async function song(page: Page, title: string, lyrics: string[]) {
@@ -101,4 +102,52 @@ test("Tahap 2: songs dragged from Music land in the active Week without breaking
   await expect(items).toHaveCount(2);
   await expect(items.nth(0)).toContainText("Been So Good");
   await expect(page.getByRole("region", { name: "Jadwal ibadah" })).toContainText("2 item");
+});
+
+test("top-right toolbar: Go Live, Black, Clear and Live drive the same LIVE controls", async ({ page }) => {
+  const toolbar = page.getByRole("toolbar", { name: "Kontrol LIVE cepat" });
+  const status = page.getByTestId("app-status");
+  await expect(toolbar.getByRole("button", { name: "Go Live dari toolbar" })).toBeDisabled();
+  await expect(toolbar.getByRole("button", { name: "Emergency Black" })).toBeDisabled();
+  await song(page, "Toolbar song", ["First toolbar line.", "Second toolbar line."]);
+  await page.getByRole("button", { name: "Preview Toolbar song", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Daftar slide Preview" })).toBeVisible();
+  // Live opens (or focuses) the projector window and lights up once synced.
+  const popup = page.waitForEvent("popup");
+  await toolbar.getByRole("button", { name: "Live: buka jendela proyektor" }).click();
+  const output = await popup;
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  await expect(toolbar.getByRole("button", { name: "Live: buka jendela proyektor" })).toHaveAttribute("aria-pressed", "true");
+  await toolbar.getByRole("button", { name: "Go Live dari toolbar" }).click();
+  await expect(status).toHaveText(/LIVE/);
+  await expect(output.locator(".slide-lines")).toHaveText("First toolbar line.");
+  const black = toolbar.getByRole("button", { name: "Emergency Black" });
+  await black.click();
+  await expect(output.getByTestId("slide-canvas")).toHaveAttribute("data-mode", "black");
+  await expect(black).toHaveAttribute("aria-pressed", "true");
+  await black.click();
+  await expect(output.getByTestId("slide-canvas")).toHaveAttribute("data-mode", "normal");
+  await toolbar.getByRole("button", { name: "Clear dari toolbar" }).click();
+  await expect(output.getByTestId("slide-canvas")).toHaveAttribute("data-mode", "clearText");
+  await expect(status).toHaveText(/CLEAR TEXT/);
+});
+
+test("Presentations tab lists only PDF presentations", async ({ page }) => {
+  await page.getByRole("tab", { name: "Presentations", exact: true }).click();
+  await page.getByLabel("File presentasi", { exact: true }).setInputFiles({
+    name: "khotbah.pdf",
+    mimeType: "application/pdf",
+    buffer: syntheticPDF(),
+  });
+  await expect(page.getByRole("button", { name: "Pilih media khotbah.pdf", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  await page.getByLabel("File media", { exact: true }).setInputFiles(await imageFile(page));
+  await expect(page.getByRole("button", { name: "Pilih media synthetic.png", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pilih media khotbah.pdf", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Presentations", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pilih media khotbah.pdf", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pilih media synthetic.png", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Pilih media khotbah.pdf", exact: true }).click();
+  await page.getByRole("button", { name: "Preview media", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Daftar slide Preview" })).toBeVisible();
 });
