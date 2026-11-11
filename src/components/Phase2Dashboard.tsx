@@ -3,7 +3,7 @@ import { resolveAppearance } from "../presentation/appearance";
 import type { useThemes } from "../hooks/useThemes";
 import { MediaLibrary } from "./MediaLibrary";
 import type { useMedia } from "../hooks/useMedia";
-import { ScripturesLibrary } from "./ScripturesLibrary";
+import { BibleLibrary } from "./BibleLibrary";
 import type { useScriptureServices } from "../hooks/useScriptures";
 import { useEffect, useCallback, useRef } from "react";
 import { PreviewWorkspace, slideSummary } from "./PreviewWorkspace";
@@ -53,6 +53,8 @@ export function Phase2Dashboard({
     [editor, setEditor] = useState<string | null>(null),
     // Song just created in the editor: highlighted in Musik for dragging.
     [fresh, setFresh] = useState<string | null>(null),
+    // The music search when that song's editor closed (see SongsLibrary).
+    freshQuery = useRef(""),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
@@ -406,6 +408,7 @@ export function Phase2Dashboard({
                 busy={locked}
                 onNew={() => open(id(), true)}
                 freshId={fresh}
+                freshQuery={freshQuery.current}
                 onEdit={(s) => open(s.id)}
                 onInspect={(s) => void prepare({ kind: "song", songId: s.id })}
                 onDuplicate={(s) =>
@@ -432,18 +435,7 @@ export function Phase2Dashboard({
                 }}
               />
             ) : tab === 1 ? (
-              <ScripturesLibrary
-                repo={scriptureServices.scriptureRepo}
-                importer={scriptureServices.importer}
-                importState={scriptureServices.importState}
-                data={data}
-                editable={editable}
-                busy={locked}
-                onPreview={(selection) =>
-                  void prepare({ kind: "scripture", selection })
-                }
-                onChanged={() => void reload()}
-              />
+              <BibleLibrary />
             ) : tab === 2 ? (
               <MediaLibrary
                 services={mediaServices}
@@ -520,6 +512,7 @@ export function Phase2Dashboard({
           onClose={() => {
             const created = creating.current ? editor : null;
             creating.current = false;
+            if (created) freshQuery.current = query;
             setEditor(null);
             void reload().then(() => {
               if (created) setFresh(created);

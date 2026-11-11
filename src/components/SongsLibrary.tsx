@@ -35,6 +35,7 @@ export function SongsLibrary({
   onDiscard,
   onWeek,
   freshId,
+  freshQuery,
 }: {
   data: Workspace;
   query: string;
@@ -52,19 +53,26 @@ export function SongsLibrary({
   onWeek: (week: number) => void;
   /** A song that was just added: highlighted and scrolled into view. */
   freshId?: string | null;
+  /** The music search as it was when that song's editor closed. */
+  freshQuery?: string;
 }) {
   const songs = searchSongs(data.songs, query);
   const weeks = weekSchedules(data.schedules);
   const freshRow = useRef<HTMLLIElement>(null);
   // Once per new song: a search that hides it is cleared so it can be
-  // dragged. Searching afterwards is left alone.
+  // dragged. Only the search that was there when the editor closed; one
+  // typed afterwards (even before the new song shows up) is left alone.
   const handledFresh = useRef<string | null>(null);
   useEffect(() => {
     if (!freshId || handledFresh.current === freshId) return;
     if (!data.songs.some((s) => s.id === freshId)) return;
     handledFresh.current = freshId;
-    if (!songs.some((s) => s.id === freshId)) onQuery("");
-  }, [freshId, data.songs, songs, onQuery]);
+    if (
+      query === (freshQuery ?? query) &&
+      !songs.some((s) => s.id === freshId)
+    )
+      onQuery("");
+  }, [freshId, freshQuery, data.songs, songs, query, onQuery]);
   useLayoutEffect(() => {
     revealInPane(freshRow.current, ".songs-main");
   }, [freshId, songs.length]);

@@ -1,6 +1,6 @@
 # SAGI WORSHIP
 
-Phase 7 Backup, Restore, Recovery & Security untuk aplikasi presentasi ibadah offline. Implementasi lokal sesuai [PRD](docs/PRD.md), tanpa backend, akun, analitik, atau materi berlisensi bawaan. Satu-satunya Alkitab bawaan adalah KJV (domain publik).
+Phase 7 Backup, Restore, Recovery & Security untuk aplikasi presentasi ibadah offline. Implementasi lokal sesuai [PRD](docs/PRD.md), tanpa backend, akun, analitik, atau materi berlisensi bawaan.
 
 ## Menjalankan
 
@@ -71,7 +71,7 @@ Tidak ada migrasi schema: IndexedDB tetap v1. Seluruh pemeriksaan produksi/offli
 
 ## Phase 4 — Scriptures
 
-Bagian **Alkitab bawaan** di tab Alkitab berisi **KJV** (King James Version, English, Kejadian–Wahyu, domain publik): klik **Pasang KJV** untuk mengunduhnya sekali, setelah itu tersimpan offline. Nama kitab Indonesia dan Inggris sama-sama bisa dipakai (`Yoh 3:16` atau `John 3:16`). Kartu **TB2** (Terjemahan Baru Edisi Kedua) bertanda **Perlu izin LAI**: Alkitab lengkap TB2 butuh izin tertulis LAI, jalur resminya Bible API LAI. Tab ini juga menerima file JSON lokal `sagi-scripture` v1 lain. Periksa metadata, pemberitahuan lisensi, atribusi, serta izin penyimpanan offline/proyeksi/snapshot lokal sebelum menyetujui impor. Format dan checksum: [docs/SCRIPTURE-DATASET.md](docs/SCRIPTURE-DATASET.md).
+Tab **Scriptures** saat ini hanya berisi bagian kosong **Alkitab / Bible**, yang akan diisi kemudian. Impor dataset, pencarian ayat, dan Alkitab bawaan tidak tersedia di tab ini untuk sementara. Mesin Scripture tetap ada: item Scripture yang sudah ada di jadwal, checkpoint, dan backup tetap dapat ditampilkan dan dipulihkan. Format dataset dan checksum: [docs/SCRIPTURE-DATASET.md](docs/SCRIPTURE-DATASET.md).
 
 Pilih terjemahan, kitab, pasal, lalu centang ayat; gunakan referensi seperti `John 3:16-18,20` berdasarkan nama/alias dataset, atau pencarian teks literal offline. Pilihan dapat ditambahkan ke jadwal bersama lagu, diurutkan, diduplikasi bersama jadwal, atau disiapkan untuk Preview. Teks ayat tidak dapat diedit dalam Preview. Slide menampilkan referensi, edisi terjemahan, serta atribusi pada setiap kelanjutan.
 

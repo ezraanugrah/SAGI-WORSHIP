@@ -1,33 +1,8 @@
 # Local Scripture dataset format v1
 
-Phase 4 accepts a UTF-8 JSON file, maximum 32 MiB (also checked after canonical serialization), either chosen by the user or the bundled King James Version below. There is no remote importer or conversion service in the app. Export and general backup/restore remain outside this phase. Keep the original authorized file separately.
+> **Current state:** the Scriptures tab now holds only an empty **Alkitab / Bible** section, to be filled later. The import dialog, verse browser and search shown below are not in the UI for now. The Scripture engine (this format, `ImportCoordinator`, `ScriptureRepository`, slides, checkpoints and backups) is unchanged, so existing Scripture schedule items and backups keep working.
 
-## Alkitab bawaan (bundled Bibles)
-
-The **Alkitab bawaan** section of the Scriptures tab lists:
-
-| Card | Translation | Status | Slide attribution |
-| --- | --- | --- | --- |
-| **TB2** | Alkitab Terjemahan Baru Edisi Kedua (LAI 2023), Bahasa Indonesia | Not bundled: **Perlu izin LAI** | — |
-| **KJV** | King James Version (1769), English, Genesis–Revelation, 31,102 verses | `public/scriptures/kjv.json`, `public-domain` | Public Domain |
-
-**Pasang KJV** downloads the file once and hands it to the normal importer: the same validation, SHA-256 check, license review and attestation checkbox as a user-chosen file. After import the Bible is stored offline like any other dataset; the button then reads **Buka KJV** (or **Sedang dibuka**). A failed download shows a message and writes nothing.
-
-**TB2 is not bundled.** TB2 is copyrighted by Lembaga Alkitab Indonesia (LAI). LAI's text-use policy (alkitab.or.id › Tentang Kami › Penggunaan Teks) allows non-commercial quotation without written permission only up to 1,000 verses and not a whole book; a complete Bible needs LAI's written permission. Neither alkitab-api project carries TB2 (both have TB 1974 only), and copying it from LAI's own site would ignore that policy. The official route is LAI's Bible API (bible-api.alkitab.or.id: account, API key and license agreement). Once a licensed TB2 file is imported with the same edition identity (publisher `Lembaga Alkitab Indonesia`, code `TB2`, edition `2023`, language `id`, versification `LAI TB`), the TB2 card shows it as installed; if LAI's license allows bundling, add a `file` to the TB2 entry in `src/scriptures/builtins.ts`.
-
-The KJV accepts Indonesian and English book names and common abbreviations (OSIS book IDs `Gen` … `Rev`), so `Yoh 3:16`, `Yohanes 3:16`, `John 3:16`, `Mzm 23` and `Psalm 23` all work. Switching between translations keeps the open book and chapter when the other one has it.
-
-### How kjv.json is built
-
-```bash
-node scripts/scripture/fetch-sabda.mjs av     # once; caches the 1,189 chapter pages in .cache/sabda
-node scripts/scripture/build-datasets.mjs
-```
-
-- Text comes from Alkitab Mobile SABDA (alkitab.mobi, version `av`), parsed the way alkitab-api-master does.
-- Brackets around supplied (italic) words, the `<< >>` marks around Psalm titles and the Hebrew letter headings of Psalm 119 (ALEPH, BETH, …) are dropped; the words themselves are unchanged. Psalm titles stay at the start of verse 1, as in the source.
-- The build stops if any chapter is missing, has verse numbers other than 1..n, text before verse 1, or leftover markup.
-- `src/scriptures/builtins.test.ts` checks the file with the app's own validator: 66 books, 1,189 chapters, 31,102 verses, no gaps, known verses (Gen 1:1, John 3:16, Ps 23:1, Rev 22:21) and bilingual references.
+Phase 4 accepts only a user-selected UTF-8 JSON file, maximum 32 MiB (also checked after canonical serialization). There is no bundled translation, remote importer, or conversion service. Export and general backup/restore remain outside this phase. Keep the original authorized file separately.
 
 ## Envelope
 

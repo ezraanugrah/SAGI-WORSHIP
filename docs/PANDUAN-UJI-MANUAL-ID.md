@@ -60,6 +60,8 @@ Status rilis: **HOLD — belum dinyatakan siap produksi.** Dokumen ini adalah le
 
 ### B02 — Scripture berizin dan atribusi · TANPA PROYEKTOR
 
+> **Sementara BLOCKED:** tab **Scriptures** kini hanya berisi bagian kosong **Alkitab / Bible**; impor dan pencarian ayat belum tersedia. Lewati B02 sampai bagian itu diisi.
+
 **Langkah:** 1) Buka tab **Alkitab**; pilih file pada **File dataset Alkitab**. 2) Baca metadata dan lisensi. Centang pernyataan hak penggunaan hanya jika benar, lalu **Konfirmasi dan impor**. 3) Pilih **Terjemahan**, kitab/pasal yang tersedia. 4) Isi **Referensi ayat** dengan referensi yang benar-benar ada dalam dataset; klik **Cari referensi**. 5) Pilih beberapa ayat yang menghasilkan lebih dari satu slide, lalu **Preview ayat**. 6) Buka setiap slide Preview dan bandingkan dengan sumber.
 
 **Hasil yang diharapkan:** teks persis sesuai dataset; urutan benar; setiap lanjutan menampilkan referensi, edisi dan atribusi. Tidak ada teks ayat yang ditulis ulang oleh operator. Dataset yang gagal validasi ditolak dengan pesan, bukan dianggap berhasil.

@@ -74,15 +74,12 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Versi baru tidak bisa tertahan lagi**: versi baru langsung aktif begitu terunduh walau jendela SAGI lain (mis. proyektor) masih terbuka. Halaman yang sedang dipakai tidak dimuat ulang sendiri; banner "Muat versi baru" muncul agar operator memuat ulang setelah ibadah.
 - Tes: unit test alert (validasi, Go Live/Black/navigasi, checkpoint, otorisasi) dan backup round-trip dengan alert; E2E diperbarui ke kontrol baru dan ditambah tes Alerts, daftar slide Schedule/LIVE, serta tarik media.
 
-### Alkitab bawaan: KJV lengkap, TB2 menunggu izin LAI
+### Tab Scriptures dikosongkan: hanya Alkitab / Bible
 
-- Tab **Scriptures** punya bagian **Alkitab bawaan**. **Pasang KJV** (King James Version 1769, domain publik) mengunduh Alkitab lengkap Kejadian–Wahyu (66 kitab, 1.189 pasal, 31.102 ayat) sekali, lalu melewati impor biasa: validasi, checksum, ringkasan lisensi, dan centang persetujuan. Setelah terpasang, Alkitab tersimpan offline dan tombolnya menjadi **Buka KJV / Sedang dibuka**.
-- Kartu **TB2** (Alkitab Terjemahan Baru Edisi Kedua, LAI 2023) tampil dengan tanda **Perlu izin LAI**. TB2 tidak ada di kedua alkitab-api (keduanya hanya TB 1974), dan menurut kebijakan LAI, Alkitab lengkap (lebih dari 1.000 ayat) wajib izin tertulis LAI. Jalur resminya Bible API LAI (bible-api.alkitab.or.id). Begitu file TB2 berizin diimpor, kartu ini otomatis menjadi **Buka TB2**.
-- Nama kitab Indonesia dan Inggris berlaku: `Yoh 3:16`, `Yohanes 3:16`, `John 3:16`, `Mzm 23`, `Psalm 23`, `1 Raja-raja 4:32`, `Wahyu 22:21`, dan singkatan umum lainnya.
-- Ganti terjemahan kini tetap di kitab dan pasal yang sama bila tersedia di terjemahan lain.
-- Footer slide KJV: "Psalms 23:1 · KJV · 1769" + "Public Domain".
-- Sumber KJV: Alkitab Mobile SABDA (cara pengambilan alkitab-api-master). Tanda kurung kata tambahan, tanda `<< >>` judul Mazmur, dan judul huruf Ibrani Mazmur 119 dihapus; kata-katanya tidak diubah. Skrip pembuatnya ada di `scripts/scripture/`; detail di `docs/SCRIPTURE-DATASET.md`.
-- Tes: unit test memvalidasi file KJV dengan validator aplikasi (66 kitab, 31.102 ayat, tanpa celah nomor, ayat acuan, nama kitab dua bahasa) dan daftar Alkitab bawaan; E2E memasang KJV, memeriksa kartu TB2, mencari dengan nama Indonesia, menayangkan ayat di LIVE, dan menangani unduhan gagal.
+- Semua isi tab **Scriptures** dihapus: impor dataset, pilih terjemahan/kitab/pasal, cari referensi dan teks ayat, serta **Alkitab bawaan** (KJV dan kartu TB2) yang sempat ditambahkan. File KJV bawaan dan skrip pembuatnya juga dihapus.
+- Tab kini hanya berisi satu bagian kosong **Alkitab / Bible** ("Belum ada isi."), yang akan diisi kemudian.
+- Mesin Scripture tidak diubah: item Scripture yang sudah ada di jadwal, checkpoint, dan backup tetap tampil, tersimpan, dan bisa dipulihkan. Data Alkitab yang sudah diimpor di perangkat tidak dihapus.
+- Tes: E2E yang memakai UI tab lama dihapus (`phase4.spec.ts`, Alkitab bawaan, ekspor Scripture terbatas) atau disesuaikan (tema phase6, backup gabungan phase7). Perilaku mesinnya tetap dicakup unit test. Ada 1 E2E baru untuk bagian Alkitab / Bible.
 
 ## [0.7.1] — 10 November 2026
 

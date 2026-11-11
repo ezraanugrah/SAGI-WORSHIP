@@ -1,15 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
-import {
-  previewReady,
-  closeTextEditor,
-  openTextEditor,
-} from "./previewHelpers";
+import { previewReady } from "./previewHelpers";
 import { dragToWeek, openWeek } from "./dragHelpers";
 import { imageFile, videoFile } from "./mediaFixtures";
-import { signFixture } from "../src/scriptures/testFixtures";
-const buffer = (
-  globalThis as unknown as { Buffer: { from(value: string): Uint8Array } }
-).Buffer;
 const lyric =
   "Original synthetic theme song.\nA clear second line for testing.";
 async function song(page: Page) {
@@ -347,7 +339,7 @@ test("theme assignment deletion discloses affected records and requires explicit
       .locator(".themed-lines"),
   ).toBeVisible();
 });
-test("advanced resolution/scaling affects preparation only and themed Scripture keeps attribution", async ({
+test("advanced resolution/scaling affects preparation only and the theme editor previews the current text", async ({
   page,
 }) => {
   await song(page);
@@ -373,45 +365,18 @@ test("advanced resolution/scaling affects preparation only and themed Scripture 
   ).toBeVisible();
   await expect(p.locator(".slide-reference")).toHaveCSS("width", "1920px");
   await page.getByRole("link", { name: "Dashboard", exact: true }).click();
-  await page.getByRole("tab", { name: /Scriptures/ }).click();
-  const data = await signFixture();
-  await page.getByLabel("File dataset Alkitab").setInputFiles({
-    name: "synthetic.json",
-    mimeType: "application/json",
-    buffer: buffer.from(JSON.stringify(data)),
-  });
+  // A new preparation uses the saved 720p reference canvas.
+  await page.getByRole("tab", { name: /Songs/ }).click();
   await page
-    .getByLabel(
-      "Saya berhak menyimpan, memproyeksikan, dan membuat snapshot lokal dataset ini",
-    )
-    .check();
-  await page
-    .getByRole("button", { name: "Konfirmasi dan impor", exact: true })
+    .getByTestId("song-row")
+    .getByRole("button", { name: /^Theme rehearsal/ })
     .click();
-  await expect(
-    page.getByText("Dataset diimpor. Seluruh ayat tersimpan offline."),
-  ).toBeVisible();
-  await page.getByLabel("Referensi ayat", { exact: true }).fill("John 3:16");
-  await page
-    .getByRole("button", { name: "Cari referensi", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Preview ayat", exact: true }).click();
-  await expect(
-    page
-      .getByRole("region", { name: "Preview workspace" })
-      .locator(".themed-lines"),
-  ).toHaveText(data.verses[0].text);
+  await previewReady(page);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(p.locator(".slide-reference")).toHaveCSS("width", "1280px");
-  await expect(p.locator(".scripture-footer")).toContainText("John 3:16");
-  await expect(p.locator(".scripture-attribution")).toHaveText(
-    data.translation.license.displayAttribution,
+  await expect(p.locator(".themed-lines")).toContainText(
+    "Original synthetic theme song.",
   );
-  await openTextEditor(page);
-  await expect(
-    page.getByLabel("Teks slide sementara", { exact: true }),
-  ).toHaveAttribute("readonly", "");
-  await closeTextEditor(page);
   await page.getByRole("tab", { name: /Themes/ }).click();
   await page
     .getByRole("button", { name: "Pilih tema Typography", exact: true })
@@ -424,12 +389,7 @@ test("advanced resolution/scaling affects preparation only and themed Scripture 
     .check();
   await expect(
     page.getByRole("region", { name: "Editor tema" }).locator(".themed-lines"),
-  ).toHaveText(data.verses[0].text);
-  await expect(
-    page
-      .getByRole("region", { name: "Editor tema" })
-      .locator(".scripture-attribution"),
-  ).toHaveText(data.translation.license.displayAttribution);
+  ).toContainText("Original synthetic theme song.");
 
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });

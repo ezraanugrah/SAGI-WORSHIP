@@ -11,7 +11,6 @@ import {
   videoFile,
   syntheticPDF,
 } from "./mediaFixtures";
-import { fixtureDataset, signFixture } from "../src/scriptures/testFixtures";
 const BufferNode = (globalThis as any).Buffer;
 async function settings(page: Page) {
   await page.getByRole("link", { name: "Pengaturan", exact: true }).click();
@@ -168,34 +167,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
       exact: true,
     }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: /Scriptures/ }).click();
-  const authorized = fixtureDataset();
-  authorized.translation.license.permissions.export = true;
-  const dataset = await signFixture(authorized);
-  await page.getByLabel("File dataset Alkitab").setInputFiles({
-    name: "authorized-synthetic.json",
-    mimeType: "application/json",
-    buffer: nodeBuffer.from(JSON.stringify(dataset)),
-  });
-  await page
-    .getByLabel(
-      "Saya berhak menyimpan, memproyeksikan, dan membuat snapshot lokal dataset ini",
-    )
-    .check();
-  await page
-    .getByRole("button", { name: "Konfirmasi dan impor", exact: true })
-    .click();
-  await expect(
-    page.getByText("Dataset diimpor. Seluruh ayat tersimpan offline."),
-  ).toBeVisible();
-  await page.getByLabel("Referensi ayat", { exact: true }).fill("John 3:16");
-  await page
-    .getByRole("button", { name: "Cari referensi", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Tambahkan ayat ke jadwal", exact: true })
-    .click();
-  await expect(page.getByTestId("schedule-item")).toHaveCount(4);
+  await expect(page.getByTestId("schedule-item")).toHaveCount(3);
   await settings(page);
   await offline(context, page);
   const file = await exportFile(page);
@@ -224,7 +196,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
       exact: true,
     }),
   ).toBeVisible();
-  await expect(target.getByTestId("schedule-item")).toHaveCount(4);
+  await expect(target.getByTestId("schedule-item")).toHaveCount(3);
   await target
     .getByTestId("song-row")
     .getByRole("button", { name: /^Backup composition/ })
@@ -234,14 +206,6 @@ test("offline portable backup restores mixed image, theme, song and settings int
     target.getByLabel("Teks slide sementara", { exact: true }),
   ).toHaveValue("Original portable override.");
   await closeTextEditor(target);
-  await target.getByRole("tab", { name: /Scriptures/ }).click();
-  await target.getByLabel("Referensi ayat", { exact: true }).fill("John 3:16");
-  await target
-    .getByRole("button", { name: "Cari referensi", exact: true })
-    .click();
-  await expect(
-    target.getByText(dataset.verses[0].text, { exact: true }),
-  ).toBeVisible();
   await target.getByRole("tab", { name: /Media/ }).click();
   await expect(
     target.getByRole("button", { name: "Pilih media backup.png", exact: true }),
@@ -301,40 +265,6 @@ test("backup during LIVE does not change output; restore requires End Session an
   await expect(
     page.getByRole("region", { name: "Pemulihan presentasi" }),
   ).toBeVisible();
-});
-test("restricted Scripture export is explicitly partial and contains no dataset text", async ({
-  page,
-}) => {
-  await page.getByRole("tab", { name: /Scriptures/ }).click();
-  const data = await signFixture(fixtureDataset());
-  await page.getByLabel("File dataset Alkitab").setInputFiles({
-    name: "synthetic.json",
-    mimeType: "application/json",
-    buffer: nodeBuffer.from(JSON.stringify(data)),
-  });
-  await expect(
-    page.getByRole("button", { name: "Konfirmasi dan impor", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByLabel(
-      "Saya berhak menyimpan, memproyeksikan, dan membuat snapshot lokal dataset ini",
-    )
-    .check();
-  await page
-    .getByRole("button", { name: "Konfirmasi dan impor", exact: true })
-    .click();
-  await expect(
-    page.getByText("Dataset diimpor. Seluruh ayat tersimpan offline."),
-  ).toBeVisible();
-  await settings(page);
-  page.once("dialog", (d) => d.accept());
-  const file = await exportFile(page);
-  expect(file.buffer.toString("utf8")).not.toContain(data.verses[0].text);
-  await page.getByLabel("File backup", { exact: true }).setInputFiles(file);
-  await page
-    .getByRole("button", { name: "Verifikasi file", exact: true })
-    .click();
-  await expect(page.getByText(/Verifikasi lulus:.*PARSIAL/)).toBeVisible();
 });
 test("malformed backup, cancelled confirmation and secondary-tab staging preserve data", async ({
   page,
