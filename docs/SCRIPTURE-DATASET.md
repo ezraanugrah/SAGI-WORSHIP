@@ -15,7 +15,18 @@ Both cover Genesis–Revelation (66 books, 1,189 chapters, 31,102 verses) with t
 - **Pick:** Kitab, Pasal, Ayat dari–sampai, or the quick search box (one range within one chapter). Selections are stored on the AYT dataset, exactly like any Scripture selection, so schedules, backups and restore are unchanged.
 - **Pairing:** when slides are prepared, `ScriptureRepository.resolveWorkspace` adds the KJV verses with the same coordinates (`partnerOf` / `partnerKey` in `src/scriptures/bilingual.ts`). Without KJV installed the slides stay one-language.
 - **Slides:** each verse becomes one or more two-column slides. `Page.parallel` holds the right-hand slice and `ScriptureCaption.parallel` its reference, edition, attribution and full text. Each column is cut with text measured as `PARALLEL_WIDTH` (2.1) times wider, a little narrower than the rendered column (48% of the line, 4% gap), so it always fits; the slide count follows the longer side and the shorter side gets empty slices. `validDeck` requires a licence entry for both datasets and that the slices of each column join back to its exact verse text.
-- **Not bundled:** TB Edisi Kedua (© LAI) and ESV (© Crossway) forbid distributing a complete Bible without written permission. Their official routes are LAI's Bible API (bible-api.alkitab.or.id) and the ESV API (api.esv.org), each with the church's own API key; only selected passages would then be fetched.
+- **Not bundled:** TB Edisi Kedua (© LAI) and ESV (© Crossway) forbid distributing a complete Bible without written permission; they are available through their official APIs instead (below).
+
+### Online TB2 and ESV (official APIs, church's own key)
+
+The **Sumber online** panel under the verse table sets the left column to **TB2** (LAI Bible API) and/or the right column to **ESV** (ESV API). Code: `src/scriptures/online.ts`.
+
+- **Keys** are typed by the operator and kept only in that browser's `localStorage` (`sagi-bible-online`). They are never in the code, the public site, IndexedDB or backups. "Hapus key" removes the key and its cached text.
+- **Consent:** each version needs its own checkbox (LAI licence agreement; ESV API conditions) before it can be chosen.
+- **Fetching:** only the picked range is requested, 0.5 s after the pick and again on Preview / Tambahkan ke jadwal if anything is missing. ESV: `GET https://api.esv.org/v3/passage/text/?q=BBCCCVVV-BBCCCVVV` with `Authorization: Token <key>`, footnotes and headings off; verses are split on the `[n]` markers. TB2: `GET <alamat API>/bible/<kode versi>/<kitab>/<pasal>/<ayat>` with `Authorization: Bearer <key>` (book as `kejadian`, `1-raja-raja`, `kisah-para-rasul`), following the example on bible-api.alkitab.or.id; LAI's Postman documentation links were offline, so the address and version code (`tb2`) are editable and **Tes TB2** checks four books. Answers must contain exactly the requested verses or they are refused; text is never reworded (only verse markers and indentation are removed).
+- **Cache:** at most 500 verses per version (oldest dropped), expiring after 30 days, clearable with **Hapus cache online** — within the ESV API's 500-verse storage limit.
+- **Slides:** selections stay on AYT. When slides are prepared, `applyOnline` swaps a column for the cached TB2/ESV text (translation `online:tb2` / `online:esv`, licence kind `permission`, export off, so checkpoints holding it are left out of backups). Attributions: `TB2 © LAI 2023`, `ESV® © Crossway · esv.org`; the ESV copyright notice and a link to www.esv.org are shown in the panel. Verses not cached (e.g. offline) stay AYT/KJV, labelled as such, and the operator gets a note. The ESV omits some verses (e.g. Matthew 17:21); such ranges are refused with a message.
+- Not verified against the live APIs without real keys; unit and E2E tests use mocked responses.
 
 ### Building the files
 

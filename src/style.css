@@ -2050,6 +2050,67 @@ footer > span:last-child {
   color: #edba70;
   font-weight: 700;
 }
+.bible-online {
+  margin-top: 16px;
+  border: 1px solid #3a424e;
+  border-radius: 8px;
+  background: #161c23;
+  padding: 12px 16px;
+  max-width: 820px;
+}
+.bible-online summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e6e9ef;
+}
+.bible-online[open] summary {
+  margin-bottom: 10px;
+}
+.bible-columns-choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.bible-api {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #2c333d;
+  border-radius: 6px;
+  padding: 10px 12px 12px;
+  margin: 0 0 12px;
+}
+.bible-api legend {
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #edba70;
+}
+.bible-columns-choice select,
+.bible-api input:not([type="checkbox"]) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 6px;
+  background: #10161e;
+  color: #e6e9ef;
+  border: 1px solid #465265;
+  border-radius: 5px;
+  padding: 8px 10px;
+}
+.bible-api .attestation {
+  margin: 4px 0;
+}
+.bible-api-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.bible-online a {
+  color: #edba70;
+}
 @media (max-width: 700px) {
   .bible-selectors {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2063,6 +2124,9 @@ footer > span:last-child {
   }
   .bible-head {
     display: none;
+  }
+  .bible-columns-choice {
+    grid-template-columns: minmax(0, 1fr);
   }
   .bible-reference input,
   .bible-selectors select {

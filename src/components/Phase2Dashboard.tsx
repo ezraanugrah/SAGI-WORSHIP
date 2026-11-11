@@ -4,6 +4,7 @@ import type { useThemes } from "../hooks/useThemes";
 import { MediaLibrary } from "./MediaLibrary";
 import type { useMedia } from "../hooks/useMedia";
 import { BibleLibrary } from "./BibleLibrary";
+import { applyOnline, loadSettings } from "../scriptures/online";
 import type { useScriptureServices } from "../hooks/useScriptures";
 import { useEffect, useCallback, useRef } from "react";
 import { PreviewWorkspace, slideSummary } from "./PreviewWorkspace";
@@ -105,6 +106,10 @@ export function Phase2Dashboard({
           typeof scriptureServices.scriptureRepo.resolveWorkspace
         >[1],
       );
+      // TB2 / ESV columns from the official APIs, when chosen and cached.
+      const online = await applyOnline(resolved, loadSettings());
+      resolved = online.data;
+      if (online.notes.length) setMessage(online.notes.join(" "));
       resolved = await mediaServices.repo.resolveWorkspace(
         resolved,
         selection as Parameters<typeof mediaServices.repo.resolveWorkspace>[1],

@@ -20,6 +20,19 @@ import {
   downloadBible,
   findBible,
 } from "../scriptures/bilingual";
+import {
+  LAI_BASE,
+  ONLINE_ATTRIBUTION,
+  ONLINE_LIMIT,
+  OnlineCache,
+  ensureOnline,
+  fetchEsv,
+  fetchLai,
+  loadSettings,
+  saveSettings,
+  usesOnline,
+  type OnlineSettings,
+} from "../scriptures/online";
 type Target = { id: string; name: string; revision: number };
 /** Waits until the importer reaches one of the given phases. */
 function settle(importer: ImportCoordinator, phases: ImportState["phase"][]) {
@@ -226,7 +239,12 @@ function Picker({
       right: [],
     }),
     [message, setMessage] = useState(""),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [settings, setSettings] = useState(() => loadSettings()),
+    [cache] = useState(() => new OnlineCache()),
+    // Bumped after online text is cached so the table re-reads it.
+    [cached, setCached] = useState(0),
+    [fetching, setFetching] = useState(false);
   const book = id.books.find((b) => b.id === bookId) ?? id.books[0],
     english = en.books.find((b) => b.id === book.id),
     verses =
@@ -247,15 +265,54 @@ function Picker({
       current = false;
     };
   }, [repo, id.id, en.id, book.id, chapter]);
+  const online = usesOnline(settings),
+    passage = {
+      book: {
+        id: book.id,
+        order: book.order,
+        idName: book.name,
+        enName: english?.name ?? book.id,
+      },
+      chapter,
+      from,
+      to,
+    };
+  /** Fetches TB2/ESV for the picked verses; errors are shown, never thrown. */
+  async function fetchOnline() {
+    if (!online) return;
+    setFetching(true);
+    try {
+      await ensureOnline(settings, passage, cache);
+      setError("");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setFetching(false);
+      setCached((n) => n + 1);
+    }
+  }
+  useEffect(() => {
+    if (!online) return;
+    const timer = setTimeout(() => void fetchOnline(), 500);
+    return () => clearTimeout(timer);
+  }, [online, settings, book.id, chapter, from, to]);
   const shown = useMemo(
     () =>
       range(from, to).map((n) => ({
         n,
-        left: rows.left.find((v) => v.verse === n),
-        right: rows.right.find((v) => v.verse === n),
+        left:
+          settings.left === "tb2"
+            ? cache.get("tb2", book.id, chapter, n)
+            : rows.left.find((v) => v.verse === n)?.text,
+        right:
+          settings.right === "esv"
+            ? cache.get("esv", book.id, chapter, n)
+            : rows.right.find((v) => v.verse === n)?.text,
       })),
-    [rows, from, to],
+    [rows, from, to, settings, cached, book.id, chapter],
   );
+  const leftName = settings.left === "tb2" ? "TB2 (online)" : "AYT",
+    rightName = settings.right === "esv" ? "ESV (online)" : "KJV";
   const label = `${book.name} ${chapter}:${from}${to > from ? `–${to}` : ""}`;
   function selection(): ScriptureSelection {
     return {
@@ -295,6 +352,7 @@ function Picker({
     }
   }
   async function add() {
+    await fetchOnline();
     try {
       const schedule = await onTarget();
       await repo.addToSchedule(schedule.id, selection(), schedule.revision);
@@ -402,7 +460,7 @@ function Picker({
         <button
           className="button secondary"
           disabled={busy}
-          onClick={() => onPreview(selection())}
+          onClick={() => void fetchOnline().then(() => onPreview(selection()))}
         >
           Preview
         </button>
@@ -419,6 +477,15 @@ function Picker({
           {message}
         </p>
       )}
+      {fetching && (
+        <p className="field-help" role="status">
+          Mengambil{" "}
+          {[settings.left === "tb2" && "TB2", settings.right === "esv" && "ESV"]
+            .filter(Boolean)
+            .join(" dan ")}{" "}
+          dari API resmi…
+        </p>
+      )}
       {error && (
         <div className="alert" role="alert">
           {error}
@@ -428,8 +495,8 @@ function Picker({
       <div className="bible-columns" role="table" aria-label="Ayat dua bahasa">
         <div className="bible-row bible-head" role="row">
           <span role="columnheader">Ayat</span>
-          <span role="columnheader">Indonesia · AYT</span>
-          <span role="columnheader">English · KJV</span>
+          <span role="columnheader">Indonesia · {leftName}</span>
+          <span role="columnheader">English · {rightName}</span>
         </div>
         {shown.map(({ n, left, right }) => (
           <div className="bible-row" role="row" key={n}>
@@ -437,18 +504,333 @@ function Picker({
               {chapter}:{n}
             </span>
             <span role="cell" className="exact-text">
-              {left?.text ?? "…"}
+              {left ?? "…"}
             </span>
             <span role="cell" className="exact-text">
-              {right?.text ?? "…"}
+              {right ?? "…"}
             </span>
           </div>
         ))}
       </div>
       <p className="field-help">
-        AYT © YLSA · CC BY-NC-SA · KJV Public Domain. Atribusi ikut tampil di
-        setiap slide.
+        {settings.left === "tb2"
+          ? ONLINE_ATTRIBUTION.tb2
+          : "AYT © YLSA · CC BY-NC-SA"}{" "}
+        ·{" "}
+        {settings.right === "esv"
+          ? ONLINE_ATTRIBUTION.esv
+          : "KJV Public Domain"}
+        . Atribusi ikut tampil di setiap slide.
       </p>
+      <OnlineSources
+        settings={settings}
+        cache={cache}
+        onChange={(next) => {
+          setSettings(next);
+          setCached((n) => n + 1);
+        }}
+      />
     </div>
+  );
+}
+
+/**
+ * TB2 (LAI Bible API) and ESV (ESV API) with the church's own API keys,
+ * kept only in this browser. See src/scriptures/online.ts for the rules.
+ */
+function OnlineSources({
+  settings,
+  cache,
+  onChange,
+}: {
+  settings: OnlineSettings;
+  cache: OnlineCache;
+  onChange: (settings: OnlineSettings) => void;
+}) {
+  const [tb2Key, setTb2Key] = useState(settings.tb2?.key ?? ""),
+    [tb2Base, setTb2Base] = useState(settings.tb2?.base ?? LAI_BASE),
+    [tb2Version, setTb2Version] = useState(settings.tb2?.version ?? "tb2"),
+    [tb2Agreed, setTb2Agreed] = useState(settings.tb2?.agreed ?? false),
+    [esvKey, setEsvKey] = useState(settings.esv?.key ?? ""),
+    [esvAgreed, setEsvAgreed] = useState(settings.esv?.agreed ?? false),
+    [status, setStatus] = useState({ tb2: "", esv: "" }),
+    [, setTick] = useState(0);
+  const tb2 = {
+      key: tb2Key.trim(),
+      base: tb2Base.trim() || LAI_BASE,
+      version: tb2Version.trim() || "tb2",
+      agreed: tb2Agreed,
+    },
+    esv = { key: esvKey.trim(), agreed: esvAgreed };
+  function save(next: OnlineSettings, version: "tb2" | "esv", note: string) {
+    try {
+      saveSettings(next);
+      onChange(next);
+      setStatus((s) => ({ ...s, [version]: note }));
+    } catch (e) {
+      setStatus((s) => ({ ...s, [version]: (e as Error).message }));
+    }
+  }
+  const refresh = () => setTick((n) => n + 1),
+    counts = { tb2: cache.count("tb2"), esv: cache.count("esv") };
+  async function test(version: "tb2" | "esv") {
+    setStatus((s) => ({ ...s, [version]: "Menguji…" }));
+    try {
+      if (version === "esv") {
+        const [v] = await fetchEsv(esv.key, 1, 1, 1, 1);
+        setStatus((s) => ({ ...s, esv: `Berhasil · Genesis 1:1: ${v.text}` }));
+      } else {
+        const checked: string[] = [];
+        for (const [name, chapter] of [
+          ["Kejadian", 1],
+          ["1 Raja-raja", 1],
+          ["Kisah Para Rasul", 1],
+          ["Wahyu", 22],
+        ] as const) {
+          await fetchLai(tb2, name, chapter, 1, 1);
+          checked.push(`${name} ${chapter}:1`);
+        }
+        setStatus((s) => ({ ...s, tb2: `Berhasil · ${checked.join(", ")}` }));
+      }
+    } catch (e) {
+      setStatus((s) => ({ ...s, [version]: (e as Error).message }));
+    }
+  }
+  return (
+    <details className="bible-online">
+      <summary>Sumber online: TB2 dan ESV (API resmi, perlu API key)</summary>
+      <p className="field-help">
+        API key hanya disimpan di browser perangkat ini; tidak masuk kode,
+        situs, atau backup. Hanya ayat yang dipilih yang diambil, paling banyak{" "}
+        {ONLINE_LIMIT} ayat per versi (dihapus otomatis setelah 30 hari). Tanpa
+        internet, ayat yang belum tersimpan memakai AYT/KJV dan slide menyebut
+        versinya.
+      </p>
+      <div className="bible-columns-choice">
+        <label>
+          Kolom kiri (Indonesia)
+          <select
+            aria-label="Kolom kiri"
+            value={settings.left}
+            onChange={(e) =>
+              save(
+                { ...settings, left: e.target.value as OnlineSettings["left"] },
+                "tb2",
+                "",
+              )
+            }
+          >
+            <option value="ayt">AYT · offline</option>
+            <option value="tb2" disabled={!settings.tb2?.agreed}>
+              TB2 · online (Bible API LAI)
+            </option>
+          </select>
+        </label>
+        <label>
+          Kolom kanan (English)
+          <select
+            aria-label="Kolom kanan"
+            value={settings.right}
+            onChange={(e) =>
+              save(
+                {
+                  ...settings,
+                  right: e.target.value as OnlineSettings["right"],
+                },
+                "esv",
+                "",
+              )
+            }
+          >
+            <option value="kjv">KJV · offline</option>
+            <option value="esv" disabled={!settings.esv?.agreed}>
+              ESV · online (ESV API)
+            </option>
+          </select>
+        </label>
+      </div>
+      <fieldset className="bible-api">
+        <legend>TB2 · Bible API Lembaga Alkitab Indonesia</legend>
+        <p className="field-help">
+          Minta akses ke LAI (info@alkitab.or.id, bible-api.alkitab.or.id). Isi
+          alamat dan kode versi sesuai dokumentasi yang diberikan LAI.
+        </p>
+        <label>
+          API key / token LAI
+          <input
+            aria-label="API key LAI"
+            type="password"
+            autoComplete="off"
+            spellCheck={false}
+            value={tb2Key}
+            onChange={(e) => setTb2Key(e.target.value)}
+          />
+        </label>
+        <label>
+          Alamat API
+          <input
+            aria-label="Alamat API LAI"
+            spellCheck={false}
+            value={tb2Base}
+            onChange={(e) => setTb2Base(e.target.value)}
+          />
+        </label>
+        <label>
+          Kode versi
+          <input
+            aria-label="Kode versi LAI"
+            spellCheck={false}
+            value={tb2Version}
+            onChange={(e) => setTb2Version(e.target.value)}
+          />
+        </label>
+        <label className="attestation">
+          <input
+            type="checkbox"
+            checked={tb2Agreed}
+            onChange={(e) => setTb2Agreed(e.target.checked)}
+          />
+          Gereja kami punya akses resmi Bible API LAI dan mengikuti perjanjian
+          lisensinya untuk TB2.
+        </label>
+        <div className="bible-api-actions">
+          <button
+            className="button primary"
+            disabled={!tb2.key || !tb2Agreed}
+            onClick={() =>
+              save(
+                { ...settings, tb2 },
+                "tb2",
+                "Tersimpan di perangkat ini. Pilih TB2 di Kolom kiri.",
+              )
+            }
+          >
+            Simpan TB2
+          </button>
+          <button
+            className="button secondary"
+            disabled={!tb2.key}
+            onClick={() => void test("tb2")}
+          >
+            Tes TB2
+          </button>
+          <button
+            className="text-button"
+            disabled={!settings.tb2}
+            onClick={() => {
+              cache.clear("tb2");
+              refresh();
+              setTb2Key("");
+              setTb2Agreed(false);
+              save(
+                { ...settings, tb2: null, left: "ayt" },
+                "tb2",
+                "Key TB2 dan cache dihapus.",
+              );
+            }}
+          >
+            Hapus key
+          </button>
+        </div>
+        {status.tb2 && (
+          <p className="field-help" role="status">
+            {status.tb2}
+          </p>
+        )}
+      </fieldset>
+      <fieldset className="bible-api">
+        <legend>ESV · ESV API (Crossway)</legend>
+        <p className="field-help">
+          Daftar gratis untuk non-komersial di api.esv.org (atas nama gereja).
+        </p>
+        <label>
+          API key ESV
+          <input
+            aria-label="API key ESV"
+            type="password"
+            autoComplete="off"
+            spellCheck={false}
+            value={esvKey}
+            onChange={(e) => setEsvKey(e.target.value)}
+          />
+        </label>
+        <label className="attestation">
+          <input
+            type="checkbox"
+            checked={esvAgreed}
+            onChange={(e) => setEsvAgreed(e.target.checked)}
+          />
+          Dipakai untuk ibadah non-komersial sesuai ketentuan ESV API: paling
+          banyak 500 ayat tersimpan, teks tidak diubah, atribusi ESV dan
+          www.esv.org.
+        </label>
+        <div className="bible-api-actions">
+          <button
+            className="button primary"
+            disabled={!esv.key || !esvAgreed}
+            onClick={() =>
+              save(
+                { ...settings, esv },
+                "esv",
+                "Tersimpan di perangkat ini. Pilih ESV di Kolom kanan.",
+              )
+            }
+          >
+            Simpan ESV
+          </button>
+          <button
+            className="button secondary"
+            disabled={!esv.key}
+            onClick={() => void test("esv")}
+          >
+            Tes ESV
+          </button>
+          <button
+            className="text-button"
+            disabled={!settings.esv}
+            onClick={() => {
+              cache.clear("esv");
+              refresh();
+              setEsvKey("");
+              setEsvAgreed(false);
+              save(
+                { ...settings, esv: null, right: "kjv" },
+                "esv",
+                "Key ESV dan cache dihapus.",
+              );
+            }}
+          >
+            Hapus key
+          </button>
+        </div>
+        {status.esv && (
+          <p className="field-help" role="status">
+            {status.esv}
+          </p>
+        )}
+        <p className="field-help">
+          {ONLINE_ATTRIBUTION.esvNotice}{" "}
+          <a href="https://www.esv.org" target="_blank" rel="noreferrer">
+            www.esv.org
+          </a>
+        </p>
+      </fieldset>
+      <div className="bible-api-actions">
+        <span className="field-help">
+          Tersimpan: TB2 {counts.tb2}/{ONLINE_LIMIT} ayat · ESV {counts.esv}/
+          {ONLINE_LIMIT} ayat
+        </span>
+        <button
+          className="text-button"
+          onClick={() => {
+            cache.clear("tb2");
+            cache.clear("esv");
+            refresh();
+          }}
+        >
+          Hapus cache online
+        </button>
+      </div>
+    </details>
   );
 }

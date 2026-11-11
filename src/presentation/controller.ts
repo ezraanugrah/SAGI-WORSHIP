@@ -375,7 +375,9 @@ export class PresentationController {
                 a.id === source.id && a.original.digest === source.checksum,
             )
           : source.kind === "scripture"
-            ? !data.translations?.some(
+            ? // TB2/ESV text from the online APIs is a frozen copy, not a stored dataset.
+              !source.id.startsWith("online:") &&
+              !data.translations?.some(
                 (t) => t.id === source.id && t.contentHash === source.checksum,
               )
             : !data.songs.some(

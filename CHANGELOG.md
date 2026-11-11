@@ -92,6 +92,15 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Diperbaiki: backup gagal ("field/record tidak didukung") bila checkpoint LIVE berisi slide dua bahasa; validasi backup kini mengenal kolom kanan. Ada unit test backup → restore untuk kasus ini.
 - Tes: unit test (kedua file lewat validator aplikasi, 31.102 ayat berpasangan, referensi dua bahasa, slide dua kolom termasuk Ester 8:9, penolakan teks kolom yang diubah, tetap satu bahasa tanpa KJV) dan 4 E2E (pasang, Kejadian 1:3–10 dua kolom sampai LIVE, cari cepat + jadwal + reload, unduhan gagal, tema).
 
+### TB2 dan ESV lewat API resmi (API key gereja)
+
+- Di tab **Scriptures**, panel **Sumber online: TB2 dan ESV** (di bawah tabel ayat): isi **API key LAI** (Bible API LAI) dan/atau **API key ESV** (api.esv.org), centang ketentuan masing-masing, **Simpan**, lalu **Tes TB2 / Tes ESV**. Setelah itu **Kolom kiri** bisa TB2 dan **Kolom kanan** bisa ESV.
+- Hanya ayat yang dipilih yang diambil dari API, lalu tampil di tabel, Preview, dan LIVE dengan footer "Kejadian 1:3 · TB2 · 2023 | Genesis 1:3 · ESV · 2016" dan atribusi "TB2 © LAI 2023 · ESV® © Crossway · esv.org".
+- Sesuai ketentuan penerbit: API key hanya disimpan di browser perangkat ini (tidak di kode, situs, atau backup); paling banyak 500 ayat per versi tersimpan, kedaluwarsa 30 hari, bisa dihapus; teks tidak diubah; checkpoint berisi TB2/ESV tidak ikut backup.
+- Tanpa internet, ayat yang belum tersimpan memakai AYT/KJV, dan slide serta pesan status menyebut versinya.
+- Catatan: dokumentasi Bible API LAI (Postman) sedang tidak bisa dibuka, jadi alamat dan kode versi TB2 bisa diubah dan jawaban yang tidak cocok ditolak. Belum diuji dengan API key asli.
+- Tes: 9 unit test (pengaturan, cache 500 ayat, permintaan ESV/LAI, penolakan jawaban salah, penggantian kolom, tanpa peringatan "sumber berubah") dan 2 E2E dengan API tiruan.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.
