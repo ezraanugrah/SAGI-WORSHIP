@@ -107,7 +107,8 @@ async function exactCheckpoint(c: any) {
     "scriptureLicenses",
   ]);
   fields(d.style, ["font", "fontSize", "safeMargin", "theme", "lines"]);
-  for (const p of d.pages) fields(p, ["text", "scripture", "media", "themed"]);
+  for (const p of d.pages)
+    fields(p, ["text", "scripture", "media", "themed", "parallel"]);
   for (const f of d.frames) {
     fields(f, [
       "id",
@@ -134,6 +135,16 @@ async function exactCheckpoint(c: any) {
         "originalText",
         "part",
         "total",
+        "parallel",
+      ]);
+    if (f.scripture?.parallel)
+      fields(f.scripture.parallel, [
+        "datasetId",
+        "verseId",
+        "reference",
+        "translation",
+        "attribution",
+        "originalText",
       ]);
   }
   for (const s of d.sources) fields(s, ["id", "revision", "kind", "checksum"]);

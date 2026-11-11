@@ -15,7 +15,8 @@ import { ScriptureRepository } from "../data/scriptureRepository";
 import { PresentationRepository } from "../data/presentationRepository";
 import { payload } from "../media/integrity";
 import { defaultType } from "../themes/models";
-import { preparedFixture } from "../scriptures/testFixtures";
+import { fixtureDataset, preparedFixture } from "../scriptures/testFixtures";
+import { ENGLISH, INDONESIAN } from "../scriptures/bilingual";
 import {
   parseDataset,
   canonicalJSON,
@@ -176,6 +177,71 @@ it("round trips exportable Scripture, themes, signatures, frozen checkpoint and 
   ).loadCheckpoint();
   expect(restored?.sessionId).not.toBe("old-session");
   expect(restored?.live?.alert).toEqual({ text: "Parkir penuh" });
+});
+it("backs up and restores a two-language LIVE checkpoint (left and right columns)", async () => {
+  // Two small datasets with the bundled AYT / KJV identities, so they pair.
+  async function bible(identity: typeof INDONESIAN.identity, suffix: string) {
+    const value = fixtureDataset();
+    value.translation = {
+      ...value.translation,
+      ...identity,
+      abbreviation: identity.code,
+      license: {
+        ...value.translation.license,
+        displayAttribution: `${identity.code} attribution`,
+        permissions: { ...value.translation.license.permissions, export: true },
+      },
+    };
+    value.verses.forEach((v) => (v.text += ` ${suffix}`));
+    value.integrity.contentHash = await sha256(canonicalJSON(unsigned(value)));
+    return parseDataset(new TextEncoder().encode(JSON.stringify(value)));
+  }
+  const scripture = new ScriptureRepository(w.gate, name);
+  const left = await scripture.importDataset(
+    await bible(INDONESIAN.identity, "(kiri)"),
+    true,
+  );
+  await scripture.importDataset(await bible(ENGLISH.identity, "(right)"), true);
+  const selection = {
+    datasetId: left.id,
+    checksum: left.contentHash,
+    verseIds: [`v|${left.id}|001|003|0016`],
+    label: "John 3:16",
+  };
+  const data = await scripture.resolveWorkspace(await repo.load(), {
+    kind: "scripture",
+    selection,
+  });
+  const { deck } = await generateSlides(
+    data,
+    { kind: "scripture", selection },
+    { font: "Arial", fontSize: 64, safeMargin: 8, theme: "black", lines: 6 },
+    (t) => t.length * 20,
+  );
+  expect(deck.pages[0].parallel).toMatch(/\(right\)$/);
+  await new PresentationRepository(w.gate, name).checkpoint(
+    { deck, index: 0, mode: "normal" },
+    "old-session",
+    2,
+    0,
+  );
+  const archive = await backup.create(),
+    s = await stageTo(dest, archive.blob),
+    restore = new RestoreRepository(w.gate, () => {}, dest),
+    plan = await restore.preview(s, "fresh");
+  await restore.publish(plan.id, true);
+  await validateRows(await readSnapshot(dest));
+  const restored = await new PresentationRepository(
+    w.gate,
+    dest,
+  ).loadCheckpoint();
+  const frame = restored!.live!.deck.frames[0];
+  expect(restored!.live!.deck.pages[frame.page].parallel).toBe(
+    deck.pages[0].parallel,
+  );
+  expect(
+    frame.kind === "scripture" && frame.scripture.parallel?.attribution,
+  ).toBe("KJV attribution");
 });
 it("excludes restricted dataset and whole affected schedule/checkpoint without leaking verse text", async () => {
   const p = await preparedFixture();

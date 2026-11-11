@@ -89,6 +89,7 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Tambahkan ke jadwal** memasukkan ayat ke Week aktif, atau Week 1 bila belum memilih Week (sama seperti menarik lagu).
 - Kenapa bukan TB Edisi Kedua dan ESV: keduanya berhak cipta (LAI dan Crossway) dan melarang menyebarkan Alkitab lengkap tanpa izin tertulis; `mdbible-main.zip` berisi ESV. AYT (CC BY-NC-SA, YLSA) dan KJV (domain publik) boleh dipakai dan disebarkan untuk ibadah non-komersial. TB2/ESV bisa disambungkan lewat API resmi (LAI Bible API, ESV API) setelah gereja punya API key.
 - Format jadwal, backup, dan restore tidak berubah: pilihan disimpan pada AYT; pasangan KJV ditambahkan saat slide disiapkan.
+- Diperbaiki: backup gagal ("field/record tidak didukung") bila checkpoint LIVE berisi slide dua bahasa; validasi backup kini mengenal kolom kanan. Ada unit test backup → restore untuk kasus ini.
 - Tes: unit test (kedua file lewat validator aplikasi, 31.102 ayat berpasangan, referensi dua bahasa, slide dua kolom termasuk Ester 8:9, penolakan teks kolom yang diubah, tetap satu bahasa tanpa KJV) dan 4 E2E (pasang, Kejadian 1:3–10 dua kolom sampai LIVE, cari cepat + jadwal + reload, unduhan gagal, tema).
 
 ## [0.7.1] — 10 November 2026
