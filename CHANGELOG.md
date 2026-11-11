@@ -81,6 +81,16 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Mesin Scripture tidak diubah: item Scripture yang sudah ada di jadwal, checkpoint, dan backup tetap tampil, tersimpan, dan bisa dipulihkan. Data Alkitab yang sudah diimpor di perangkat tidak dihapus.
 - Tes: E2E yang memakai UI tab lama dihapus (`phase4.spec.ts`, Alkitab bawaan, ekspor Scripture terbatas) atau disesuaikan (tema phase6, backup gabungan phase7). Perilaku mesinnya tetap dicakup unit test. Ada 1 E2E baru untuk bagian Alkitab / Bible.
 
+### Alkitab / Bible dua bahasa: Indonesia kiri, English kanan
+
+- Tab **Scriptures** kini berisi **Alkitab / Bible** lengkap Kejadian–Wahyu dalam dua bahasa: **Alkitab Yang Terbuka (AYT)** dan **King James Version (KJV)**. Klik **Pasang Alkitab** sekali (centang persetujuan non-komersial); kedua Alkitab diunduh, divalidasi, dan tersimpan offline.
+- Pilih **Kitab**, **Pasal**, dan **Ayat dari–sampai** (mis. Kejadian 1:3–10), atau ketik di **Cari cepat** (`Kej 1:3-10`, `Yoh 3:16`, `Psalm 23`). Ayat tampil berdampingan: kiri Indonesia, kanan English.
+- **Preview** dan **LIVE** menampilkan dua kolom: kiri AYT, kanan KJV, dengan footer "Kejadian 1:3 · AYT · 2024 | Genesis 1:3 · KJV · 1769" dan atribusi "AYT © YLSA · CC BY-NC-SA · Public Domain". Ayat panjang dipecah ke beberapa slide; teks tiap kolom tetap utuh. Berlaku juga dengan tema.
+- **Tambahkan ke jadwal** memasukkan ayat ke Week aktif, atau Week 1 bila belum memilih Week (sama seperti menarik lagu).
+- Kenapa bukan TB Edisi Kedua dan ESV: keduanya berhak cipta (LAI dan Crossway) dan melarang menyebarkan Alkitab lengkap tanpa izin tertulis; `mdbible-main.zip` berisi ESV. AYT (CC BY-NC-SA, YLSA) dan KJV (domain publik) boleh dipakai dan disebarkan untuk ibadah non-komersial. TB2/ESV bisa disambungkan lewat API resmi (LAI Bible API, ESV API) setelah gereja punya API key.
+- Format jadwal, backup, dan restore tidak berubah: pilihan disimpan pada AYT; pasangan KJV ditambahkan saat slide disiapkan.
+- Tes: unit test (kedua file lewat validator aplikasi, 31.102 ayat berpasangan, referensi dua bahasa, slide dua kolom termasuk Ester 8:9, penolakan teks kolom yang diubah, tetap satu bahasa tanpa KJV) dan 4 E2E (pasang, Kejadian 1:3–10 dua kolom sampai LIVE, cari cepat + jadwal + reload, unduhan gagal, tema).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

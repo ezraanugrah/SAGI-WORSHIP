@@ -435,7 +435,23 @@ export function Phase2Dashboard({
                 }}
               />
             ) : tab === 1 ? (
-              <BibleLibrary />
+              <BibleLibrary
+                repo={scriptureServices.scriptureRepo}
+                importer={scriptureServices.importer}
+                importState={scriptureServices.importState}
+                data={data}
+                editable={editable}
+                busy={locked}
+                onPreview={(selection) =>
+                  void prepare({ kind: "scripture", selection })
+                }
+                onChanged={() => void reload()}
+                onTarget={() =>
+                  weekFor(
+                    data.schedules.find((s) => s.id === data.activeId) ?? null,
+                  )
+                }
+              />
             ) : tab === 2 ? (
               <MediaLibrary
                 services={mediaServices}

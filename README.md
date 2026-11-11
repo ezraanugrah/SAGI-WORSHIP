@@ -1,6 +1,6 @@
 # SAGI WORSHIP
 
-Phase 7 Backup, Restore, Recovery & Security untuk aplikasi presentasi ibadah offline. Implementasi lokal sesuai [PRD](docs/PRD.md), tanpa backend, akun, analitik, atau materi berlisensi bawaan.
+Phase 7 Backup, Restore, Recovery & Security untuk aplikasi presentasi ibadah offline. Implementasi lokal sesuai [PRD](docs/PRD.md), tanpa backend, akun, atau analitik. Alkitab bawaan: AYT (Indonesia, CC BY-NC-SA) dan KJV (English, domain publik).
 
 ## Menjalankan
 
@@ -71,7 +71,7 @@ Tidak ada migrasi schema: IndexedDB tetap v1. Seluruh pemeriksaan produksi/offli
 
 ## Phase 4 — Scriptures
 
-Tab **Scriptures** saat ini hanya berisi bagian kosong **Alkitab / Bible**, yang akan diisi kemudian. Impor dataset, pencarian ayat, dan Alkitab bawaan tidak tersedia di tab ini untuk sementara. Mesin Scripture tetap ada: item Scripture yang sudah ada di jadwal, checkpoint, dan backup tetap dapat ditampilkan dan dipulihkan. Format dataset dan checksum: [docs/SCRIPTURE-DATASET.md](docs/SCRIPTURE-DATASET.md).
+Tab **Scriptures** berisi **Alkitab / Bible** dua bahasa: **Alkitab Yang Terbuka (AYT)** di kiri dan **King James Version (KJV)** di kanan, Kejadian sampai Wahyu. Klik **Pasang Alkitab** sekali (centang persetujuan pemakaian non-komersial), lalu pilih **Kitab**, **Pasal**, **Ayat** dari–sampai (atau ketik `Kej 1:3-10` / `John 3:16`). Daftar ayat tampil berdampingan; **Preview** dan LIVE menampilkan dua kolom dengan referensi dan atribusi kedua edisi. **Tambahkan ke jadwal** memasukkan ayat ke Week aktif (atau Week 1). TB Edisi Kedua (© LAI) dan ESV (© Crossway) tidak dibundel karena lisensinya melarang menyebarkan Alkitab lengkap; jalur resminya API LAI / ESV API dengan API key gereja. Format dataset dan checksum: [docs/SCRIPTURE-DATASET.md](docs/SCRIPTURE-DATASET.md).
 
 Pilih terjemahan, kitab, pasal, lalu centang ayat; gunakan referensi seperti `John 3:16-18,20` berdasarkan nama/alias dataset, atau pencarian teks literal offline. Pilihan dapat ditambahkan ke jadwal bersama lagu, diurutkan, diduplikasi bersama jadwal, atau disiapkan untuk Preview. Teks ayat tidak dapat diedit dalam Preview. Slide menampilkan referensi, edisi terjemahan, serta atribusi pada setiap kelanjutan.
 

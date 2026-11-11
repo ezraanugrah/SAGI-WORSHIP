@@ -25,6 +25,8 @@ export type Page = {
   scripture?: true;
   media?: true;
   themed?: true;
+  /** Two-language Scripture: the right-hand column (may be "" when only the left continues). */
+  parallel?: string;
 };
 export type FrameBase = {
   id: string;
@@ -43,6 +45,16 @@ export type ScriptureCaption = {
   originalText: string;
   part: number;
   total: number;
+  /** Two-language Scripture: the same verse in the right-hand translation. */
+  parallel?: ParallelCaption;
+};
+export type ParallelCaption = {
+  datasetId: string;
+  verseId: string;
+  reference: string;
+  translation: string;
+  attribution: string;
+  originalText: string;
 };
 export type Frame = FrameBase &
   (
@@ -158,7 +170,11 @@ export function validDeck(v: unknown): v is Deck {
           p.scripture === true ||
           p.media === true ||
           (p.themed === true && v.render !== undefined)) &&
-        p.text.length <= 30000,
+        p.text.length <= 30000 &&
+        (p.parallel === undefined ||
+          (p.scripture === true &&
+            typeof p.parallel === "string" &&
+            p.parallel.length <= 30000)),
     )
   )
     return false;
@@ -225,13 +241,29 @@ export function validDeck(v: unknown): v is Deck {
     const groups = new Map<string, typeof scriptureFrames>();
     for (const frame of scriptureFrames) {
       const c = frame.scripture as ScriptureCaption;
-      const license = v.scriptureLicenses.find(
-        (l) => l.datasetId === c.datasetId,
-      );
+      const licensed = (d: {
+        datasetId: string;
+        translation: string;
+        attribution: string;
+      }) => {
+        const license = (
+          v.scriptureLicenses as {
+            datasetId: string;
+            translation: string;
+            license: License;
+          }[]
+        ).find((l) => l.datasetId === d.datasetId);
+        return (
+          !!license &&
+          license.translation === d.translation &&
+          license.license.displayAttribution === d.attribution
+        );
+      };
       if (
-        !license ||
-        license.translation !== c.translation ||
-        license.license.displayAttribution !== c.attribution ||
+        !licensed(c) ||
+        (c.parallel !== undefined && !licensed(c.parallel)) ||
+        (c.parallel !== undefined) !==
+          ((v.pages as Page[])[frame.page].parallel !== undefined) ||
         (v.overrides as unknown[] | undefined)?.some(
           (o) => object(o) && o.frameId === frame.id,
         )
@@ -254,13 +286,20 @@ export function validDeck(v: unknown): v is Deck {
             c.originalText !== first.originalText ||
             c.reference !== first.reference ||
             c.translation !== first.translation ||
-            c.attribution !== first.attribution
+            c.attribution !== first.attribution ||
+            JSON.stringify(c.parallel) !== JSON.stringify(first.parallel)
           );
         })
       )
         return false;
       const text = frames.map((f) => (v.pages as Page[])[f.page].text).join("");
       if (text !== first.originalText) return false;
+      if (
+        first.parallel &&
+        frames.map((f) => (v.pages as Page[])[f.page].parallel).join("") !==
+          first.parallel.originalText
+      )
+        return false;
     }
   }
   const ids = new Set(v.frames.map((f) => f.id));
@@ -427,7 +466,22 @@ export function validCaption(v: unknown): v is ScriptureCaption {
     v.originalText.length <= 30000 &&
     integer(v.part, 1, 10000) &&
     integer(v.total, 1, 10000) &&
-    v.part <= v.total
+    v.part <= v.total &&
+    (v.parallel === undefined || validParallelCaption(v.parallel))
+  );
+}
+function validParallelCaption(v: unknown): v is ParallelCaption {
+  return (
+    object(v) &&
+    Object.keys(v).length === 6 &&
+    string(v.datasetId, 160) &&
+    string(v.verseId, 160) &&
+    string(v.reference, 160) &&
+    string(v.translation, 240) &&
+    string(v.attribution, 300) &&
+    typeof v.originalText === "string" &&
+    !!v.originalText.trim() &&
+    v.originalText.length <= 30000
   );
 }
 export function legacyOnly(live: Live | null) {

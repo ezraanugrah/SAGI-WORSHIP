@@ -8,6 +8,7 @@ import {
 } from "../media/models";
 import { useLayoutEffect, useRef, useState } from "react";
 import { frameText, type Deck, type Live } from "../presentation/models";
+import { CaptionText, SlideText } from "./ScriptureText";
 export function SlideCanvas({
   deck,
   index = 0,
@@ -41,7 +42,11 @@ export function SlideCanvas({
   const theme = deck ? themeFor(deck, index) : undefined;
   const text = deck ? frameText(deck, index) : "";
   const frame = deck?.frames[index],
-    caption = frame?.kind === "scripture" ? frame.scripture : null;
+    caption = frame?.kind === "scripture" ? frame.scripture : null,
+    parallel =
+      deck && frame?.kind === "scripture"
+        ? deck.pages[frame.page]?.parallel
+        : undefined;
   const footer = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const element = container.current;
@@ -131,7 +136,7 @@ export function SlideCanvas({
             }}
           >
             <div
-              className="slide-lines"
+              className={`slide-lines${parallel !== undefined ? " slide-columns" : ""}`}
               ref={lines}
               style={{
                 fontFamily: deck.style.font,
@@ -139,7 +144,7 @@ export function SlideCanvas({
                 lineHeight: 1.3,
               }}
             >
-              {text}
+              <SlideText text={text} parallel={parallel} />
             </div>
           </div>
         )}
@@ -155,11 +160,7 @@ export function SlideCanvas({
               fontFamily: deck.style.font,
             }}
           >
-            <div className="scripture-reference">
-              {caption.reference} · {caption.translation}
-              {caption.total > 1 ? ` · ${caption.part}/${caption.total}` : ""}
-            </div>
-            <div className="scripture-attribution">{caption.attribution}</div>
+            <CaptionText caption={caption} />
           </div>
         )}
         {alert && mode !== "black" && (

@@ -65,6 +65,17 @@ export function fits(text: string, style: Style, measure: Measure) {
   );
 }
 
+/**
+ * Two-language Scripture slides put each language in its own column. Text
+ * is measured as if it were PARALLEL_WIDTH times wider, so a column gets a
+ * little under half the line width; the renderers use two equal columns
+ * with a gap (see .slide-columns), which is slightly wider than this.
+ */
+export const PARALLEL_WIDTH = 2.1;
+export const columnMeasure =
+  (measure: Measure): Measure =>
+  (text, style) =>
+    measure(text, style) * PARALLEL_WIDTH;
 /** Slice original text at measured page boundaries; concatenation is byte-for-byte identical. */
 export const SCRIPTURE_FOOTER = 170;
 export function paginateExact(

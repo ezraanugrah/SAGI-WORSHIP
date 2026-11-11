@@ -4,7 +4,7 @@ import type {
   AdvancedSettings,
 } from "../themes/models";
 import type { Deck, Style } from "./models";
-import type { Measure } from "./layout";
+import { columnMeasure, type Measure } from "./layout";
 import type { Workspace } from "../domain/models";
 import type { Selection } from "./generateSlides";
 import type { ThemeRepository } from "../data/themeRepository";
@@ -111,14 +111,20 @@ export function fitsAppearance(deck: Deck, index: number, measure: Measure) {
   const frame = deck.frames[index],
     text =
       deck.overrides.find((o) => o.frameId === frame.id)?.text ??
-      deck.pages[frame.page].text;
+      deck.pages[frame.page].text,
+    spec = { ...theme.spec, type: { ...type, fit: "paginate" as const } },
+    parallel = deck.pages[frame.page].parallel;
+  // Two-language Scripture: each non-empty column fits on its own.
+  if (parallel !== undefined)
+    return [text, parallel].every(
+      (side) =>
+        !side ||
+        layoutText(side, spec, columnMeasure(measure), true).pages.length ===
+          1,
+    );
   return (
-    layoutText(
-      text,
-      { ...theme.spec, type: { ...type, fit: "paginate" } },
-      measure,
-      frame.kind === "scripture",
-    ).pages.length === 1
+    layoutText(text, spec, measure, frame.kind === "scripture").pages
+      .length === 1
   );
 }
 export async function resolveAppearance(

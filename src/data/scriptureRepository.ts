@@ -28,6 +28,7 @@ import {
   type ScriptureSelection,
   type ScriptureSnapshot,
 } from "../scriptures/models";
+import { partnerKey, partnerOf } from "../scriptures/bilingual";
 import type { IDBPTransaction } from "idb";
 type Tx = IDBPTransaction<unknown, string[], "readwrite">;
 export function notifyScriptures() {
@@ -270,6 +271,7 @@ export class ScriptureRepository {
   private async snapshotIn(
     tx: IDBPTransaction<unknown, string[], "readonly" | "readwrite">,
     selection: ScriptureSelection,
+    translations?: Translation[],
   ): Promise<ScriptureSnapshot> {
     if (!validScriptureSelection(selection))
       throw new Error("Pilihan ayat tidak valid.");
@@ -285,7 +287,23 @@ export class ScriptureRepository {
     );
     if (verses.some((v) => !validVerse(v)))
       throw new Error("Pilihan mengandung ayat hilang/rusak.");
-    return { translation: t, verses: verses as Verse[] };
+    const snapshot: ScriptureSnapshot = {
+      translation: t,
+      verses: verses as Verse[],
+    };
+    // Two-language Bible: attach the same verses from the English partner
+    // when it is installed and has every one of them.
+    const partner = translations && partnerOf(t, translations);
+    if (partner) {
+      const rows = await Promise.all(
+        selection.verseIds.map((key) =>
+          tx.objectStore("scripture_verses").get(partnerKey(key, partner.id)),
+        ),
+      );
+      if (rows.every((v) => validVerse(v) && v.datasetId === partner.id))
+        snapshot.parallel = { translation: partner, verses: rows as Verse[] };
+    }
+    return snapshot;
   }
   async resolve(selection: ScriptureSelection) {
     const db = await openDatabase(this.name);
@@ -467,13 +485,23 @@ export class ScriptureRepository {
         }
       }
       for (const [key, chosen] of selections)
-        result.scriptureSnapshots![key] = await this.snapshotIn(tx, chosen);
+        result.scriptureSnapshots![key] = await this.snapshotIn(
+          tx,
+          chosen,
+          result.translations,
+        );
       await tx.done;
     } finally {
       db.close();
     }
-    for (const snapshot of Object.values(result!.scriptureSnapshots!))
+    for (const snapshot of Object.values(result!.scriptureSnapshots!)) {
       await checkVerses(snapshot.translation, snapshot.verses);
+      if (snapshot.parallel)
+        await checkVerses(
+          snapshot.parallel.translation,
+          snapshot.parallel.verses,
+        );
+    }
     return result!;
   }
 }

@@ -181,19 +181,17 @@ export async function generateSlides(
     if ("scriptureKey" in item) {
       const snapshot = data.scriptureSnapshots?.[item.scriptureKey];
       if (!snapshot) throw new Error("Sumber Scripture hilang.");
-      appendScripture(
-        deck,
-        snapshot,
-        item.itemId,
-        style,
-        measure,
-        theme
-          ? (text) => {
-              const result = layoutText(text, theme.spec, measure, true);
-              effectiveSizes.push(...result.pages.map(() => result.size));
-              return result.pages;
-            }
-          : undefined,
+      effectiveSizes.push(
+        ...appendScripture(
+          deck,
+          snapshot,
+          item.itemId,
+          style,
+          measure,
+          theme
+            ? (text, m) => layoutText(text, theme.spec, m, true)
+            : undefined,
+        ),
       );
       capture(theme, start, effectiveSizes);
       continue;

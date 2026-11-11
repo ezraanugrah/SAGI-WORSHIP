@@ -570,20 +570,3 @@ test("Themes Library imports media (image or video) like the Media tab", async (
       page.getByRole("button", { name: `Pilih media ${name}`, exact: true }),
     ).toHaveCount(1);
 });
-
-test("Scriptures tab holds only an empty Alkitab / Bible section", async ({
-  page,
-}) => {
-  await page.getByRole("tab", { name: /Scriptures/ }).click();
-  const bible = page.getByRole("region", { name: "Alkitab / Bible" });
-  await expect(bible).toBeVisible();
-  await expect(bible.getByRole("heading")).toHaveText("Alkitab / Bible");
-  await expect(bible).toContainText("Belum ada isi.");
-  await expect(
-    page.getByRole("region", { name: "Impor dataset Alkitab" }),
-  ).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Alkitab bawaan" })).toHaveCount(
-    0,
-  );
-  await expect(page.getByLabel("Referensi ayat")).toHaveCount(0);
-});

@@ -1720,6 +1720,25 @@ footer > span:last-child {
   width: 100%;
   text-shadow: 0 2px 8px #0009;
 }
+/* Two-language Scripture: left Indonesian, right English. Each column is
+   48% of the line width; slides are cut assuming a little less
+   (PARALLEL_WIDTH in presentation/layout.ts), so the text always fits. */
+.slide-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 4%;
+  align-items: start;
+}
+.slide-column {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.scripture-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 4%;
+}
 .deck-position {
   display: flex;
   justify-content: space-between;
@@ -1912,6 +1931,143 @@ footer > span:last-child {
 /* Phase 4 local Scriptures library. */
 .scriptures-content {
   padding: 20px;
+}
+/* Scriptures tab: two-language Bible (AYT left, KJV right). */
+.bible-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.bible-heading h3 {
+  color: #e6e9ef;
+  font-size: 13px;
+}
+.bible-heading p {
+  font-size: 10px;
+  color: #8d9aaa;
+  margin-top: 5px;
+}
+.bible-install {
+  border: 1px solid #3a424e;
+  background: #161c23;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 720px;
+}
+.bible-editions {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.bible-editions li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid #2c333d;
+  border-radius: 6px;
+  background: #10161e;
+}
+.bible-editions strong {
+  font-size: 12px;
+  color: #e6e9ef;
+}
+.bible-editions span {
+  font-size: 10px;
+  color: #8d9aaa;
+}
+.bible-reference {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 520px;
+}
+.bible-reference label {
+  flex: 1;
+}
+.bible-reference input,
+.bible-selectors select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 6px;
+  background: #10161e;
+  color: #e6e9ef;
+  border: 1px solid #465265;
+  border-radius: 5px;
+  padding: 8px 10px;
+}
+.bible-selectors {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) repeat(3, minmax(64px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+  max-width: 720px;
+}
+.bible-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bible-actions strong {
+  color: #edba70;
+  font-size: 12px;
+  margin-right: auto;
+}
+.bible-columns {
+  border: 1px solid #2c333d;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.bible-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 9px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #d9dee6;
+  border-top: 1px solid #222831;
+}
+.bible-row:first-child {
+  border-top: 0;
+}
+.bible-head {
+  background: #1b2129;
+  color: #8d9aaa;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bible-number {
+  color: #edba70;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .bible-selectors {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .bible-selectors > label:first-child {
+    grid-column: 1 / -1;
+  }
+  .bible-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .bible-head {
+    display: none;
+  }
+  .bible-reference input,
+  .bible-selectors select {
+    font-size: 16px;
+  }
 }
 .scripture-import {
   border: 1px solid #4a4133;

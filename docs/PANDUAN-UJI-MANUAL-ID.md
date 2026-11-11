@@ -60,7 +60,7 @@ Status rilis: **HOLD — belum dinyatakan siap produksi.** Dokumen ini adalah le
 
 ### B02 — Scripture berizin dan atribusi · TANPA PROYEKTOR
 
-> **Sementara BLOCKED:** tab **Scriptures** kini hanya berisi bagian kosong **Alkitab / Bible**; impor dan pencarian ayat belum tersedia. Lewati B02 sampai bagian itu diisi.
+> **Tab Scriptures sekarang berisi Alkitab dua bahasa.** Langkah di bawah (impor file sendiri) tidak lagi ada di UI. Gantinya: 1) Buka **Scriptures**, centang persetujuan, klik **Pasang Alkitab** (perlu internet sekali). 2) Pilih **Kejadian**, pasal **1**, ayat **3** sampai **10**; pastikan kolom kiri Indonesia (AYT) dan kanan English (KJV) untuk setiap ayat. 3) **Preview**, buka proyektor, **Go Live**; bandingkan kiri/kanan dan footer (dua referensi + atribusi). 4) Ulangi dengan ayat panjang (Ester 8:9) dan dengan tema. 5) Matikan internet, reload: Alkitab tetap ada.
 
 **Langkah:** 1) Buka tab **Alkitab**; pilih file pada **File dataset Alkitab**. 2) Baca metadata dan lisensi. Centang pernyataan hak penggunaan hanya jika benar, lalu **Konfirmasi dan impor**. 3) Pilih **Terjemahan**, kitab/pasal yang tersedia. 4) Isi **Referensi ayat** dengan referensi yang benar-benar ada dalam dataset; klik **Cari referensi**. 5) Pilih beberapa ayat yang menghasilkan lebih dari satu slide, lalu **Preview ayat**. 6) Buka setiap slide Preview dan bandingkan dengan sumber.
 

@@ -7,6 +7,7 @@ import {
   effectPadding,
 } from "../presentation/appearance";
 import { frameText, type Deck, type Live } from "../presentation/models";
+import { CaptionText, SlideText } from "./ScriptureText";
 import { MediaCanvas } from "./MediaCanvas";
 import type { Playback, PlaybackFeedback } from "../media/models";
 export function ThemedFrame({
@@ -33,6 +34,8 @@ export function ThemedFrame({
     bg = theme.spec.background,
     frame = deck.frames[index],
     caption = frame.kind === "scripture" ? frame.scripture : null,
+    parallel =
+      frame.kind === "scripture" ? deck.pages[frame.page]?.parallel : undefined,
     scale = (deck.render?.canvas.height ?? 1080) / 1080,
     pad = effectPadding(type),
     body = useRef<HTMLDivElement>(null),
@@ -142,7 +145,7 @@ export function ThemedFrame({
       >
         <div
           ref={body}
-          className="slide-lines themed-lines"
+          className={`slide-lines themed-lines${parallel !== undefined ? " slide-columns" : ""}`}
           style={{
             fontFamily: type.font,
             fontSize: type.size * scale,
@@ -162,7 +165,7 @@ export function ThemedFrame({
                 : "none",
           }}
         >
-          {frameText(deck, index)}
+          <SlideText text={frameText(deck, index)} parallel={parallel} />
         </div>
       </div>
       {caption && (
@@ -180,16 +183,11 @@ export function ThemedFrame({
             color: "#fff",
           }}
         >
-          <div className="scripture-reference" style={{ fontSize: 32 * scale }}>
-            {caption.reference} · {caption.translation}
-            {caption.total > 1 ? ` · ${caption.part}/${caption.total}` : ""}
-          </div>
-          <div
-            className="scripture-attribution"
-            style={{ fontSize: 24 * scale }}
-          >
-            {caption.attribution}
-          </div>
+          <CaptionText
+            caption={caption}
+            referenceStyle={{ fontSize: 32 * scale }}
+            attributionStyle={{ fontSize: 24 * scale }}
+          />
         </div>
       )}
     </>

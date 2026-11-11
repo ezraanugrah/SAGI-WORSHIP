@@ -1,6 +1,33 @@
 # Local Scripture dataset format v1
 
-> **Current state:** the Scriptures tab now holds only an empty **Alkitab / Bible** section, to be filled later. The import dialog, verse browser and search shown below are not in the UI for now. The Scripture engine (this format, `ImportCoordinator`, `ScriptureRepository`, slides, checkpoints and backups) is unchanged, so existing Scripture schedule items and backups keep working.
+## Two-language Bible (Scriptures tab)
+
+The Scriptures tab holds one section, **Alkitab / Bible**: Indonesian on the left, English on the right.
+
+| File | Translation | License | Slide attribution |
+| --- | --- | --- | --- |
+| `public/scriptures/ayt.json` | Alkitab Yang Terbuka (AYT) 2024, Bahasa Indonesia | YLSA-AYT, CC BY-NC-SA (non-commercial, attribution) | AYT © YLSA · CC BY-NC-SA |
+| `public/scriptures/kjv.json` | King James Version (KJV) 1769, English | Public domain | Public Domain |
+
+Both cover Genesis–Revelation (66 books, 1,189 chapters, 31,102 verses) with the same OSIS book IDs, book order and verse manifest, so every verse has exactly one partner. Book names and common abbreviations work in Indonesian and English (`Kej 1:3-10`, `Genesis 1:3-10`, `Yoh 3:16`).
+
+- **Install:** **Pasang Alkitab** (after the non-commercial consent checkbox) downloads both files once and runs each through the normal importer (`ImportCoordinator`: worker validation, SHA-256, atomic write). They are then ordinary offline datasets.
+- **Pick:** Kitab, Pasal, Ayat dari–sampai, or the quick search box (one range within one chapter). Selections are stored on the AYT dataset, exactly like any Scripture selection, so schedules, backups and restore are unchanged.
+- **Pairing:** when slides are prepared, `ScriptureRepository.resolveWorkspace` adds the KJV verses with the same coordinates (`partnerOf` / `partnerKey` in `src/scriptures/bilingual.ts`). Without KJV installed the slides stay one-language.
+- **Slides:** each verse becomes one or more two-column slides. `Page.parallel` holds the right-hand slice and `ScriptureCaption.parallel` its reference, edition, attribution and full text. Each column is cut with text measured as `PARALLEL_WIDTH` (2.1) times wider, a little narrower than the rendered column (48% of the line, 4% gap), so it always fits; the slide count follows the longer side and the shorter side gets empty slices. `validDeck` requires a licence entry for both datasets and that the slices of each column join back to its exact verse text.
+- **Not bundled:** TB Edisi Kedua (© LAI) and ESV (© Crossway) forbid distributing a complete Bible without written permission. Their official routes are LAI's Bible API (bible-api.alkitab.or.id) and the ESV API (api.esv.org), each with the church's own API key; only selected passages would then be fetched.
+
+### Building the files
+
+```bash
+node scripts/scripture/build-ayt.mjs <indayt_vpl.txt>   # from https://ebible.org/details.php?id=indayt (indayt_vpl.zip)
+node scripts/scripture/fetch-sabda.mjs av                # once; caches KJV chapter pages in .cache/sabda
+node scripts/scripture/build-kjv.mjs
+```
+
+AYT text is kept exactly as published. KJV comes from Alkitab Mobile SABDA (the alkitab-api-master source); supplied-word brackets, `<< >>` title marks, Psalm 119 letter headings and the subscriptions after Paul's letters are dropped, and the result was checked letter by letter against a second KJV source. `src/scriptures/bilingual.test.ts` validates both files with the app's own importer and checks the two-column slides.
+
+## Dataset format
 
 Phase 4 accepts only a user-selected UTF-8 JSON file, maximum 32 MiB (also checked after canonical serialization). There is no bundled translation, remote importer, or conversion service. Export and general backup/restore remain outside this phase. Keep the original authorized file separately.
 
