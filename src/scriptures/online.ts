@@ -30,6 +30,21 @@ export const ONLINE_LIMIT = 500,
   CACHE_DAYS = 30;
 export const LAI_BASE = "https://bible-api.alkitab.or.id/bible-api/api/v1",
   ESV_URL = "https://api.esv.org/v3/passage/text/";
+/** esv.org pages used by the operator: sign-up, API key and terms. */
+export const ESV_LINKS = {
+  register: "https://www.esv.org/account/register/",
+  signIn: "https://api.esv.org/account/",
+  createKey: "https://api.esv.org/account/create-application/",
+  terms: "https://api.esv.org/",
+};
+/** The passage on www.esv.org, e.g. https://www.esv.org/Genesis+1:3-10/ */
+export const esvPassageUrl = (
+  englishBook: string,
+  chapter: number,
+  from: number,
+  to: number,
+) =>
+  `https://www.esv.org/${encodeURIComponent(englishBook).replace(/%20/g, "+")}+${chapter}:${from}${to > from ? `-${to}` : ""}/`;
 export type OnlineSettings = {
   tb2: { key: string; base: string; version: string; agreed: boolean } | null;
   esv: { key: string; agreed: boolean } | null;

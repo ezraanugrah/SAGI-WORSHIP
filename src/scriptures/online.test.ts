@@ -11,6 +11,7 @@ import {
   OnlineCache,
   applyOnline,
   ensureOnline,
+  esvPassageUrl,
   esvUrl,
   fetchEsv,
   fetchLai,
@@ -141,6 +142,17 @@ describe("ESV API", () => {
     expect(calls[0].headers.Authorization).toBe("Token esv-key");
     expect(calls[0].url).toContain("include-footnotes=false");
     expect(calls[0].url).toContain("include-headings=false");
+  });
+  it("links the picked passage on www.esv.org", () => {
+    expect(esvPassageUrl("Genesis", 1, 3, 10)).toBe(
+      "https://www.esv.org/Genesis+1:3-10/",
+    );
+    expect(esvPassageUrl("Song of Solomon", 2, 1, 1)).toBe(
+      "https://www.esv.org/Song+of+Solomon+2:1/",
+    );
+    expect(esvPassageUrl("1 John", 1, 9, 9)).toBe(
+      "https://www.esv.org/1+John+1:9/",
+    );
   });
   it("refuses missing verses, wrong keys and unknown answers", async () => {
     await expect(

@@ -120,6 +120,14 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Sesi login dan catatan sinkron disimpan di browser laptop itu, tidak ikut backup. Yang disinkronkan baru lagu; Week, ayat, media, dan tema belum.
 - Tes: 8 unit test dengan server Supabase tiruan (login, refresh token, offline, tambah/ubah/hapus antar dua laptop, bentrok, perubahan di tengah sinkron, edit menang atas hapus, gabung dua pustaka, data server rusak dilewati) dan 2 E2E dengan dua profil browser.
 
+### ESV lewat esv.org
+
+- Panel **Sumber online** kini menaruh **ESV · esv.org (Crossway)** paling atas, dengan langkah bernomor dan tautan langsung: buat akun gratis di esv.org, buat aplikasi di api.esv.org untuk mendapatkan API key, lalu tempel, centang ketentuan, Simpan, dan Tes.
+- Di samping perikop yang dipilih ada tautan **esv.org ↗** (mis. `https://www.esv.org/Genesis+1:3-10/`) untuk membuka atau membandingkan perikop di esv.org; baris atribusi menautkan ke www.esv.org bila ESV dipakai, sesuai ketentuan ESV API.
+- Teks penjelasan panel dipersingkat.
+- Dicek: `esv-api-master.zip` adalah pembungkus untuk ESV API **versi 2** (`esvapi.org/v2`, key "IP"), yang sudah dihentikan Crossway (HTTP 410) dan dialihkan ke api.esv.org. SagiWorship sudah memakai versi terbarunya (v3), jadi tidak dipakai.
+- Tes: unit test tautan esv.org; E2E memeriksa tautan perikop, tautan pembuatan API key, dan www.esv.org.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

@@ -55,7 +55,7 @@ async function install(page: Page) {
   });
 }
 async function configure(page: Page) {
-  await page.getByText("Sumber online: TB2 dan ESV").click();
+  await page.getByText(/^Sumber online: ESV \(esv\.org\)/).click();
   await page.getByLabel("API key LAI", { exact: true }).fill("church-lai-key");
   await page.getByLabel(/akses resmi Bible API LAI/).check();
   await page.getByRole("button", { name: "Simpan TB2", exact: true }).click();
@@ -99,6 +99,16 @@ test("TB2 left and ESV right from the official APIs, with the church's keys, thr
   await expect(rows(page).nth(1)).toContainText("TB2 uji ayat 3.");
   await expect(rows(page).nth(1)).toContainText("ESV test verse 3.");
   await expect(rows(page).last()).toContainText("TB2 uji ayat 5.");
+  // The passage and the key steps point at esv.org.
+  await expect(
+    bible(page).getByRole("link", { name: "esv.org ↗" }),
+  ).toHaveAttribute("href", "https://www.esv.org/Genesis+1:3-5/");
+  await expect(
+    bible(page).getByRole("link", { name: "Buat aplikasi di api.esv.org" }),
+  ).toHaveAttribute("href", "https://api.esv.org/account/create-application/");
+  await expect(
+    bible(page).getByRole("link", { name: "www.esv.org", exact: true }).first(),
+  ).toHaveAttribute("href", "https://www.esv.org");
 
   const lai = seen.lai.find((r) => r.url.endsWith("/bible/tb2/kejadian/1/3-5"));
   expect(lai?.auth).toBe("Bearer church-lai-key");

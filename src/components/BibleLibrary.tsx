@@ -21,11 +21,13 @@ import {
   findBible,
 } from "../scriptures/bilingual";
 import {
+  ESV_LINKS,
   LAI_BASE,
   ONLINE_ATTRIBUTION,
   ONLINE_LIMIT,
   OnlineCache,
   ensureOnline,
+  esvPassageUrl,
   fetchEsv,
   fetchLai,
   loadSettings,
@@ -457,6 +459,17 @@ function Picker({
             ? ` · ${english.name} ${chapter}:${from}${to > from ? `–${to}` : ""}`
             : ""}
         </strong>
+        {english && (
+          <a
+            className="bible-esv-link"
+            href={esvPassageUrl(english.name, chapter, from, to)}
+            target="_blank"
+            rel="noreferrer"
+            title="Buka perikop ini di www.esv.org"
+          >
+            esv.org ↗
+          </a>
+        )}
         <button
           className="button secondary"
           disabled={busy}
@@ -517,9 +530,16 @@ function Picker({
           ? ONLINE_ATTRIBUTION.tb2
           : "AYT © YLSA · CC BY-NC-SA"}{" "}
         ·{" "}
-        {settings.right === "esv"
-          ? ONLINE_ATTRIBUTION.esv
-          : "KJV Public Domain"}
+        {settings.right === "esv" ? (
+          <>
+            ESV® © Crossway ·{" "}
+            <a href="https://www.esv.org" target="_blank" rel="noreferrer">
+              www.esv.org
+            </a>
+          </>
+        ) : (
+          "KJV Public Domain"
+        )}
         . Atribusi ikut tampil di setiap slide.
       </p>
       <OnlineSources
@@ -535,7 +555,8 @@ function Picker({
 }
 
 /**
- * TB2 (LAI Bible API) and ESV (ESV API) with the church's own API keys,
+ * ESV (esv.org's official ESV API) and TB2 (LAI Bible API) with the
+ * church's own API keys,
  * kept only in this browser. See src/scriptures/online.ts for the rules.
  */
 function OnlineSources({
@@ -598,13 +619,14 @@ function OnlineSources({
   }
   return (
     <details className="bible-online">
-      <summary>Sumber online: TB2 dan ESV (API resmi, perlu API key)</summary>
+      <summary>
+        Sumber online: ESV (esv.org) dan TB2 (LAI) · perlu API key
+      </summary>
       <p className="field-help">
-        API key hanya disimpan di browser perangkat ini; tidak masuk kode,
-        situs, atau backup. Hanya ayat yang dipilih yang diambil, paling banyak{" "}
-        {ONLINE_LIMIT} ayat per versi (dihapus otomatis setelah 30 hari). Tanpa
-        internet, ayat yang belum tersimpan memakai AYT/KJV dan slide menyebut
-        versinya.
+        Teks diambil lewat API resmi penerbit. API key hanya disimpan di browser
+        ini (tidak ikut backup). Hanya ayat yang dipilih yang diambil, maks.{" "}
+        {ONLINE_LIMIT} ayat per versi, terhapus otomatis setelah 30 hari. Tanpa
+        internet, ayat yang belum tersimpan memakai AYT/KJV.
       </p>
       <div className="bible-columns-choice">
         <label>
@@ -649,6 +671,107 @@ function OnlineSources({
           </select>
         </label>
       </div>
+      <fieldset className="bible-api">
+        <legend>ESV · esv.org (Crossway)</legend>
+        <ol className="bible-steps">
+          <li>
+            <a href={ESV_LINKS.register} target="_blank" rel="noreferrer">
+              Buat akun gratis di esv.org
+            </a>{" "}
+            atas nama gereja, atau{" "}
+            <a href={ESV_LINKS.signIn} target="_blank" rel="noreferrer">
+              masuk
+            </a>
+            .
+          </li>
+          <li>
+            <a href={ESV_LINKS.createKey} target="_blank" rel="noreferrer">
+              Buat aplikasi di api.esv.org
+            </a>
+            : beri nama (mis. SagiWorship) dan keterangan "proyeksi ayat untuk
+            ibadah gereja, non-komersial".
+          </li>
+          <li>
+            Salin <strong>API key</strong> aplikasi itu ke kolom di bawah,
+            centang ketentuan, klik <strong>Simpan ESV</strong> lalu{" "}
+            <strong>Tes ESV</strong>.
+          </li>
+        </ol>
+        <label>
+          API key ESV
+          <input
+            aria-label="API key ESV"
+            type="password"
+            autoComplete="off"
+            spellCheck={false}
+            value={esvKey}
+            onChange={(e) => setEsvKey(e.target.value)}
+          />
+        </label>
+        <label className="attestation">
+          <input
+            type="checkbox"
+            checked={esvAgreed}
+            onChange={(e) => setEsvAgreed(e.target.checked)}
+          />
+          Dipakai untuk ibadah non-komersial sesuai{" "}
+          <a href={ESV_LINKS.terms} target="_blank" rel="noreferrer">
+            ketentuan ESV API
+          </a>
+          : paling banyak 500 ayat tersimpan, teks tidak diubah, atribusi ESV
+          dan www.esv.org.
+        </label>
+        <div className="bible-api-actions">
+          <button
+            className="button primary"
+            disabled={!esv.key || !esvAgreed}
+            onClick={() =>
+              save(
+                { ...settings, esv },
+                "esv",
+                "Tersimpan di perangkat ini. Pilih ESV di Kolom kanan.",
+              )
+            }
+          >
+            Simpan ESV
+          </button>
+          <button
+            className="button secondary"
+            disabled={!esv.key}
+            onClick={() => void test("esv")}
+          >
+            Tes ESV
+          </button>
+          <button
+            className="text-button"
+            disabled={!settings.esv}
+            onClick={() => {
+              cache.clear("esv");
+              refresh();
+              setEsvKey("");
+              setEsvAgreed(false);
+              save(
+                { ...settings, esv: null, right: "kjv" },
+                "esv",
+                "Key ESV dan cache dihapus.",
+              );
+            }}
+          >
+            Hapus key
+          </button>
+        </div>
+        {status.esv && (
+          <p className="field-help" role="status">
+            {status.esv}
+          </p>
+        )}
+        <p className="field-help">
+          {ONLINE_ATTRIBUTION.esvNotice}{" "}
+          <a href="https://www.esv.org" target="_blank" rel="noreferrer">
+            www.esv.org
+          </a>
+        </p>
+      </fieldset>
       <fieldset className="bible-api">
         <legend>TB2 · Bible API Lembaga Alkitab Indonesia</legend>
         <p className="field-help">
@@ -737,83 +860,6 @@ function OnlineSources({
             {status.tb2}
           </p>
         )}
-      </fieldset>
-      <fieldset className="bible-api">
-        <legend>ESV · ESV API (Crossway)</legend>
-        <p className="field-help">
-          Daftar gratis untuk non-komersial di api.esv.org (atas nama gereja).
-        </p>
-        <label>
-          API key ESV
-          <input
-            aria-label="API key ESV"
-            type="password"
-            autoComplete="off"
-            spellCheck={false}
-            value={esvKey}
-            onChange={(e) => setEsvKey(e.target.value)}
-          />
-        </label>
-        <label className="attestation">
-          <input
-            type="checkbox"
-            checked={esvAgreed}
-            onChange={(e) => setEsvAgreed(e.target.checked)}
-          />
-          Dipakai untuk ibadah non-komersial sesuai ketentuan ESV API: paling
-          banyak 500 ayat tersimpan, teks tidak diubah, atribusi ESV dan
-          www.esv.org.
-        </label>
-        <div className="bible-api-actions">
-          <button
-            className="button primary"
-            disabled={!esv.key || !esvAgreed}
-            onClick={() =>
-              save(
-                { ...settings, esv },
-                "esv",
-                "Tersimpan di perangkat ini. Pilih ESV di Kolom kanan.",
-              )
-            }
-          >
-            Simpan ESV
-          </button>
-          <button
-            className="button secondary"
-            disabled={!esv.key}
-            onClick={() => void test("esv")}
-          >
-            Tes ESV
-          </button>
-          <button
-            className="text-button"
-            disabled={!settings.esv}
-            onClick={() => {
-              cache.clear("esv");
-              refresh();
-              setEsvKey("");
-              setEsvAgreed(false);
-              save(
-                { ...settings, esv: null, right: "kjv" },
-                "esv",
-                "Key ESV dan cache dihapus.",
-              );
-            }}
-          >
-            Hapus key
-          </button>
-        </div>
-        {status.esv && (
-          <p className="field-help" role="status">
-            {status.esv}
-          </p>
-        )}
-        <p className="field-help">
-          {ONLINE_ATTRIBUTION.esvNotice}{" "}
-          <a href="https://www.esv.org" target="_blank" rel="noreferrer">
-            www.esv.org
-          </a>
-        </p>
       </fieldset>
       <div className="bible-api-actions">
         <span className="field-help">
