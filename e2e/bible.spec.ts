@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { previewPosition } from "./previewHelpers";
 // Scriptures tab: the two-language Bible (AYT left, KJV right) installed
 // from public/scriptures, picked by book / chapter / verse range.
 const bible = (page: Page) =>
@@ -62,15 +63,19 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   await bible(page)
     .getByRole("button", { name: "Preview", exact: true })
     .click();
+  // All eight verses of Kejadian 1:3–10 share one slide, each numbered.
   const preview = page.getByRole("region", { name: "Preview workspace" });
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
   await expect(
     preview.locator('.slide-column[data-column="left"]').first(),
-  ).toHaveText(
-    "Kemudian, Allah berfirman, “Jadilah terang.” Lalu, terang itu jadi.",
+  ).toContainText(
+    /³\s?Kemudian, Allah berfirman, “Jadilah terang\.”.*⁴\s?Allah melihat/,
   );
   await expect(
     preview.locator('.slide-column[data-column="right"]').first(),
-  ).toHaveText("And God said, Let there be light: and there was light.");
+  ).toContainText(
+    /³\s?And God said, Let there be light.*⁴\s?And God saw the light/,
+  );
 
   const pending = page.waitForEvent("popup");
   await page.getByRole("button", { name: "Live", exact: true }).click();
@@ -79,15 +84,13 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(
     projector.locator('.slide-column[data-column="left"]'),
-  ).toHaveText(
-    "Kemudian, Allah berfirman, “Jadilah terang.” Lalu, terang itu jadi.",
-  );
+  ).toContainText(/³\s?Kemudian, Allah berfirman/);
   await expect(
     projector.locator('.slide-column[data-column="right"]'),
-  ).toHaveText("And God said, Let there be light: and there was light.");
+  ).toContainText(/³\s?And God said, Let there be light/);
   const footer = projector.locator(".scripture-footer");
-  await expect(footer).toContainText("Kejadian 1:3 · AYT · 2024");
-  await expect(footer).toContainText("Genesis 1:3 · KJV · 1769");
+  await expect(footer).toContainText("Kejadian 1:3–10 · AYT · 2024");
+  await expect(footer).toContainText("Genesis 1:3–10 · KJV · 1769");
   await expect(footer).toContainText(
     "AYT © YLSA · CC BY-NC-SA · Public Domain",
   );
@@ -102,11 +105,52 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   await projector.screenshot({
     path: test.info().outputPath("bible-projector.png"),
   });
-  await page
-    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
+});
+
+test("Preview shows the whole picked range together: Bilangan 4:4–7 on one slide", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await install(page);
+  await page.getByLabel("Kitab", { exact: true }).selectOption("Num");
+  await page.getByLabel("Pasal", { exact: true }).selectOption("4");
+  await page.getByLabel("Ayat dari", { exact: true }).selectOption("4");
+  await page.getByLabel("Ayat sampai", { exact: true }).selectOption("7");
+  await bible(page)
+    .getByRole("button", { name: "Preview", exact: true })
     .click();
-  await expect(footer).toContainText("Kejadian 1:4");
-  await expect(footer).toContainText("Genesis 1:4");
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
+  const preview = page.getByRole("region", { name: "Preview workspace" });
+  for (const column of ["left", "right"])
+    await expect(
+      preview.locator(`.slide-column[data-column="${column}"]`),
+    ).toContainText(/⁴.*⁵.*⁶.*⁷/);
+  await expect(preview.locator(".scripture-footer")).toContainText(
+    "Bilangan 4:4–7 · AYT · 2024",
+  );
+  await expect(preview.locator(".scripture-footer")).toContainText(
+    "Numbers 4:4–7 · KJV · 1769",
+  );
+  await page.screenshot({
+    path: test.info().outputPath("bible-range.png"),
+  });
+
+  // A long range spreads over several slides; the next one carries on.
+  await page.getByLabel("Cari ayat", { exact: true }).fill("Mzm 119:1-40");
+  await page.getByRole("button", { name: "Pilih", exact: true }).click();
+  await bible(page)
+    .getByRole("button", { name: "Preview", exact: true })
+    .click();
+  await expect(previewPosition(page)).toHaveText(/^Slide 1 of ([2-9]|\d\d)$/);
+  const footer = preview.locator(".scripture-footer");
+  await expect(footer).toContainText(/Mazmur 119:1–(\d+) · AYT/);
+  const end = Number(
+    (await footer.innerText()).match(/Mazmur 119:1–(\d+)/)![1],
+  );
+  await page
+    .getByRole("button", { name: "Preview berikutnya", exact: true })
+    .click();
+  await expect(footer).toContainText(`Mazmur 119:${end + 1}`);
 });
 
 test("quick search in either language, add to the Week, and stay installed after reload", async ({

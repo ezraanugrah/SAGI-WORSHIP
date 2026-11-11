@@ -205,8 +205,9 @@ it("backs up and restores a two-language LIVE checkpoint (left and right columns
   const selection = {
     datasetId: left.id,
     checksum: left.contentHash,
-    verseIds: [`v|${left.id}|001|003|0016`],
-    label: "John 3:16",
+    // Two verses share one slide, which then has its own font size.
+    verseIds: [`v|${left.id}|001|003|0016`, `v|${left.id}|001|003|0017`],
+    label: "John 3:16–17",
   };
   const data = await scripture.resolveWorkspace(await repo.load(), {
     kind: "scripture",
@@ -219,6 +220,7 @@ it("backs up and restores a two-language LIVE checkpoint (left and right columns
     (t) => t.length * 20,
   );
   expect(deck.pages[0].parallel).toMatch(/\(right\)$/);
+  expect(deck.pages[0].fontSize).toBeGreaterThan(0);
   await new PresentationRepository(w.gate, name).checkpoint(
     { deck, index: 0, mode: "normal" },
     "old-session",
@@ -236,9 +238,10 @@ it("backs up and restores a two-language LIVE checkpoint (left and right columns
     dest,
   ).loadCheckpoint();
   const frame = restored!.live!.deck.frames[0];
-  expect(restored!.live!.deck.pages[frame.page].parallel).toBe(
-    deck.pages[0].parallel,
-  );
+  expect(restored!.live!.deck.pages[frame.page]).toMatchObject({
+    parallel: deck.pages[0].parallel,
+    fontSize: deck.pages[0].fontSize,
+  });
   expect(
     frame.kind === "scripture" && frame.scripture.parallel?.attribution,
   ).toBe("KJV attribution");

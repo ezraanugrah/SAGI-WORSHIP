@@ -108,7 +108,7 @@ async function exactCheckpoint(c: any) {
   ]);
   fields(d.style, ["font", "fontSize", "safeMargin", "theme", "lines"]);
   for (const p of d.pages)
-    fields(p, ["text", "scripture", "media", "themed", "parallel"]);
+    fields(p, ["text", "scripture", "media", "themed", "parallel", "fontSize"]);
   for (const f of d.frames) {
     fields(f, [
       "id",

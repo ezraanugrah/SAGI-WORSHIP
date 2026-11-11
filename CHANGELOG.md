@@ -128,6 +128,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Dicek: `esv-api-master.zip` adalah pembungkus untuk ESV API **versi 2** (`esvapi.org/v2`, key "IP"), yang sudah dihentikan Crossway (HTTP 410) dan dialihkan ke api.esv.org. SagiWorship sudah memakai versi terbarunya (v3), jadi tidak dipakai.
 - Tes: unit test tautan esv.org; E2E memeriksa tautan perikop, tautan pembuatan API key, dan www.esv.org.
 
+### Preview menampilkan rentang ayat bersama, dan TB dari Alkitab SABDA
+
+- **Rentang ayat tampil bersama.** Pilih misalnya Bilangan 4:4–7 lalu **Preview**: keempat ayat muncul dalam satu slide, masing-masing diberi nomor kecil (⁴ ⁵ ⁶ ⁷), di kedua kolom. Huruf otomatis mengecil secukupnya (paling kecil setengah ukuran normal) dan memakai tinggi layar penuh. Rentang yang terlalu panjang dibagi ke sesedikit mungkin slide dengan jumlah ayat yang seimbang; kolom Indonesia dan Inggris selalu memuat ayat yang sama. Footer menyebut rentangnya: "Bilangan 4:4–7 · AYT · 2024 | Numbers 4:4–7 · KJV · 1769". Slide yang berisi satu ayat tetap seperti sebelumnya (teks persis, ukuran normal, dipecah bila terlalu panjang).
+- **TB dari Alkitab SABDA.** Kolom kiri kini bisa **TB · online (Alkitab SABDA)**, tanpa API key: centang persetujuan, klik **Pakai TB**, lalu **Tes TB**. Hanya perikop yang dipilih yang diambil dari API passage SABDA (lewat alamat `/api/sabda` milik situs ini), paling banyak 500 ayat tersimpan, dengan atribusi "TB © LAI 1974". Sesuai kebijakan teks LAI, kutipan untuk ibadah non-komersial (tidak lebih dari 1.000 ayat, bukan satu kitab utuh) tidak memerlukan izin tertulis. TB lengkap tetap tidak dibundel.
+- Tautan **sabda.org ↗** membuka pasal yang dipilih di sabda.org (format `https://sabda.org/alkitab/tb/?kitab=4&pasal=4`).
+- Tes: unit test pengepakan ayat (kedua kolom sama, footer rentang, semua ayat tercakup, ukuran huruf per slide di backup) dan SABDA (alamat, XML, penolakan kitab/pasal salah, kolom kiri TB); E2E Bilangan 4:4–7 dalam satu slide, Mazmur 119:1–40 bersambung, dan TB SABDA dengan server tiruan.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

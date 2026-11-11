@@ -46,6 +46,11 @@ export function SlideCanvas({
     parallel =
       deck && frame?.kind === "scripture"
         ? deck.pages[frame.page]?.parallel
+        : undefined,
+    // A slide holding several verses may use a smaller font.
+    pageFontSize =
+      deck && frame?.kind === "scripture"
+        ? deck.pages[frame.page]?.fontSize
         : undefined;
   const footer = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -140,7 +145,7 @@ export function SlideCanvas({
               ref={lines}
               style={{
                 fontFamily: deck.style.font,
-                fontSize: deck.style.fontSize,
+                fontSize: pageFontSize ?? deck.style.fontSize,
                 lineHeight: 1.3,
               }}
             >

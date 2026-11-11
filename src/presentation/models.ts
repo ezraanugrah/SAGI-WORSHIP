@@ -27,6 +27,8 @@ export type Page = {
   themed?: true;
   /** Two-language Scripture: the right-hand column (may be "" when only the left continues). */
   parallel?: string;
+  /** Scripture slide holding several verses: its own font size (plain style). */
+  fontSize?: number;
 };
 export type FrameBase = {
   id: string;
@@ -174,7 +176,9 @@ export function validDeck(v: unknown): v is Deck {
         (p.parallel === undefined ||
           (p.scripture === true &&
             typeof p.parallel === "string" &&
-            p.parallel.length <= 30000)),
+            p.parallel.length <= 30000)) &&
+        (p.fontSize === undefined ||
+          (p.scripture === true && integer(p.fontSize, 12, 120))),
     )
   )
     return false;

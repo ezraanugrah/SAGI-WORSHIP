@@ -55,7 +55,7 @@ async function install(page: Page) {
   });
 }
 async function configure(page: Page) {
-  await page.getByText(/^Sumber online: ESV \(esv\.org\)/).click();
+  await page.getByText(/^Sumber online:/).click();
   await page.getByLabel("API key LAI", { exact: true }).fill("church-lai-key");
   await page.getByLabel(/akses resmi Bible API LAI/).check();
   await page.getByRole("button", { name: "Simpan TB2", exact: true }).click();
@@ -131,13 +131,15 @@ test("TB2 left and ESV right from the official APIs, with the church's keys, thr
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(
     projector.locator('.slide-column[data-column="left"]'),
-  ).toHaveText("TB2 uji ayat 3.");
+  ).toContainText(
+    /³\s?TB2 uji ayat 3\. ⁴\s?TB2 uji ayat 4\. ⁵\s?TB2 uji ayat 5\./,
+  );
   await expect(
     projector.locator('.slide-column[data-column="right"]'),
-  ).toHaveText("ESV test verse 3.");
+  ).toContainText(/³\s?ESV test verse 3\..*⁵\s?ESV test verse 5\./);
   const footer = projector.locator(".scripture-footer");
-  await expect(footer).toContainText("Kejadian 1:3 · TB2 · 2023");
-  await expect(footer).toContainText("Genesis 1:3 · ESV · 2016");
+  await expect(footer).toContainText("Kejadian 1:3–5 · TB2 · 2023");
+  await expect(footer).toContainText("Genesis 1:3–5 · ESV · 2016");
   await expect(footer).toContainText(
     "TB2 © LAI 2023 · ESV® © Crossway · esv.org",
   );
@@ -175,11 +177,77 @@ test("without internet, verses not fetched yet fall back to AYT / KJV and say so
   ).toContainText("For God so loved the world");
 
   // The online sources panel is still open from configure().
-  await expect(bible(page)).toContainText(/Tersimpan: TB2 \d+\/500 ayat/);
+  await expect(bible(page)).toContainText(
+    /Tersimpan: TB \d+\/500 · TB2 \d+\/500 · ESV \d+\/500 ayat/,
+  );
   await page
     .getByRole("button", { name: "Hapus cache online", exact: true })
     .click();
   await expect(bible(page)).toContainText(
-    "Tersimpan: TB2 0/500 ayat · ESV 0/500 ayat",
+    "Tersimpan: TB 0/500 · TB2 0/500 · ESV 0/500 ayat",
+  );
+});
+
+test("TB from Alkitab SABDA in the left column, without an API key", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const asked: string[] = [];
+  await page.route("**/api/sabda?**", (route) => {
+    const url = new URL(route.request().url());
+    asked.push(url.searchParams.get("passage") ?? "");
+    const [, name, chapter, a, b] = url.searchParams
+      .get("passage")!
+      .match(/^(.+) (\d+):(\d+)(?:-(\d+))?$/)!;
+    const order = name === "Yohanes" ? 43 : 1;
+    const verses = Array.from(
+      { length: Number(b ?? a) - Number(a) + 1 },
+      (_, i) =>
+        `<verse><number>${Number(a) + i}</number><title>Judul</title><text>TB uji ayat ${Number(a) + i}.</text></verse>`,
+    ).join("");
+    return route.fulfill({
+      contentType: "text/xml",
+      body: `<?xml version="1.0"?><bible><book name="${name}"><book_id>${order}</book_id><chapter><chap>${chapter}</chap><verses>${verses}</verses></chapter></book></bible>`,
+    });
+  });
+  await install(page);
+  await page.getByText(/^Sumber online:/).click();
+  await expect(
+    page.getByLabel("Kolom kiri", { exact: true }).locator("option[value=tb]"),
+  ).toHaveAttribute("disabled", "");
+  await page.getByLabel(/TB dipakai untuk ibadah non-komersial/).check();
+  await page.getByRole("button", { name: "Pakai TB", exact: true }).click();
+  await expect(page.getByLabel("Kolom kiri", { exact: true })).toHaveValue(
+    "tb",
+  );
+  await page.getByRole("button", { name: "Tes TB", exact: true }).click();
+  await expect(bible(page)).toContainText(
+    "Berhasil · Yohanes 3:16: TB uji ayat 16.",
+  );
+
+  await page.getByLabel("Cari ayat", { exact: true }).fill("Kej 1:3-5");
+  await page.getByRole("button", { name: "Pilih", exact: true }).click();
+  await expect(rows(page).first()).toContainText("Indonesia · TB (SABDA)");
+  await expect(rows(page).nth(1)).toContainText("TB uji ayat 3.");
+  await expect(rows(page).nth(1)).toContainText(
+    "And God said, Let there be light: and there was light.",
+  );
+  expect(asked).toContain("Kejadian 1:3-5");
+  await expect(
+    bible(page).getByRole("link", { name: "sabda.org ↗" }),
+  ).toHaveAttribute("href", "https://sabda.org/alkitab/tb/?kitab=1&pasal=1");
+
+  await bible(page)
+    .getByRole("button", { name: "Preview", exact: true })
+    .click();
+  const preview = page.getByRole("region", { name: "Preview workspace" });
+  await expect(
+    preview.locator('.slide-column[data-column="left"]').first(),
+  ).toContainText(/³\s?TB uji ayat 3\..*⁵\s?TB uji ayat 5\./);
+  await expect(preview.locator(".scripture-footer").first()).toContainText(
+    "Kejadian 1:3–5 · TB · 1974",
+  );
+  await expect(preview.locator(".scripture-footer").first()).toContainText(
+    "TB © LAI 1974 · Public Domain",
   );
 });

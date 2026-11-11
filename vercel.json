@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/sabda",
+      "destination": "https://alkitab.sabda.org/api/passage.php"
+    }
+  ]
+}

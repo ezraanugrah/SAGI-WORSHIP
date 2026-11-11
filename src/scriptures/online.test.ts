@@ -15,6 +15,10 @@ import {
   esvUrl,
   fetchEsv,
   fetchLai,
+  fetchSabda,
+  sabdaChapterUrl,
+  sabdaUrl,
+  sabdaVerses,
   laiBook,
   laiUrl,
   laiVerses,
@@ -46,6 +50,7 @@ function memory(): Storage {
 }
 const tb2 = { key: "lai-key", base: LAI_BASE, version: "tb2", agreed: true };
 const online: OnlineSettings = {
+  tb: null,
   tb2,
   esv: { key: "esv-key", agreed: true },
   left: "tb2",
@@ -245,6 +250,86 @@ describe("Bible API LAI (TB2)", () => {
   });
 });
 
+describe("TB from Alkitab SABDA", () => {
+  const xml = (book: number, chap: number, verses: [number, string][]) =>
+    `<?xml version="1.0"?><bible><title>x</title><book name="Kejadian"><book_id>${book}</book_id><chapter><chap>${chap}</chap><verses>${verses
+      .map(
+        ([n, t], i) =>
+          `<verse><number>${n}</number>${i === 0 ? "<title>Judul perikop</title>" : ""}<text>${t}</text></verse>`,
+      )
+      .join("")}</verses></chapter></book></bible>`;
+  it("asks SABDA's passage API through the app's own address", () => {
+    expect(sabdaUrl("Kejadian", 1, 3, 10)).toBe(
+      "/api/sabda?passage=Kejadian+1%3A3-10&version=tb",
+    );
+    expect(sabdaUrl("1 Raja-raja", 4, 32, 32)).toBe(
+      "/api/sabda?passage=1+Raja-raja+4%3A32&version=tb",
+    );
+    expect(sabdaChapterUrl(33, 2)).toBe(
+      "https://sabda.org/alkitab/tb/?kitab=33&pasal=2",
+    );
+  });
+  it("reads verses, skips section titles, decodes entities and checks book and chapter", async () => {
+    expect(
+      sabdaVerses(
+        xml(1, 1, [
+          [3, "Berfirmanlah Allah: &quot;Jadilah terang.&quot;"],
+          [4, "Satu &amp; dua"],
+        ]),
+        1,
+        1,
+      ),
+    ).toEqual([
+      { verse: 3, text: 'Berfirmanlah Allah: "Jadilah terang."' },
+      { verse: 4, text: "Satu & dua" },
+    ]);
+    expect(() => sabdaVerses(xml(2, 1, [[1, "x"]]), 1, 1)).toThrow(
+      /kitab\/pasal lain/,
+    );
+    const calls: string[] = [];
+    const reply = (body: string, status = 200) =>
+      (async (url: string) => {
+        calls.push(url);
+        return new Response(body, { status });
+      }) as typeof fetch;
+    expect(
+      await fetchSabda(
+        "Kejadian",
+        1,
+        1,
+        3,
+        4,
+        reply(
+          xml(1, 1, [
+            [3, "tiga"],
+            [4, "empat"],
+          ]),
+        ),
+      ),
+    ).toEqual([
+      { verse: 3, text: "tiga" },
+      { verse: 4, text: "empat" },
+    ]);
+    expect(calls[0]).toBe("/api/sabda?passage=Kejadian+1%3A3-4&version=tb");
+    await expect(
+      fetchSabda("Kejadian", 1, 1, 3, 5, reply(xml(1, 1, [[3, "tiga"]]))),
+    ).rejects.toThrow(/tidak memuat ayat 4, 5/);
+    await expect(
+      fetchSabda("Kejadian", 1, 1, 3, 3, reply("", 502)),
+    ).rejects.toThrow(/HTTP 502/);
+  });
+  it("keeps the TB choice only with consent", () => {
+    const store = memory();
+    saveSettings({ ...NO_SETTINGS, tb: { agreed: true }, left: "tb" }, store);
+    expect(loadSettings(store)).toMatchObject({
+      left: "tb",
+      tb: { agreed: true },
+    });
+    saveSettings({ ...NO_SETTINGS, left: "tb" }, store);
+    expect(loadSettings(store).left).toBe("ayt");
+  });
+});
+
 describe("slides with TB2 / ESV columns", () => {
   let name: string,
     writer: ReturnType<typeof writerFixture>,
@@ -316,11 +401,14 @@ describe("slides with TB2 / ESV columns", () => {
     const deck = controller.snapshot().preview!.deck;
     expect(validDeck(deck)).toBe(true);
     const frame = deck.frames[0];
+    // Both verses fit, so they share one slide with their numbers.
+    expect(deck.frames).toHaveLength(1);
     expect(deck.pages[frame.page]).toMatchObject({
-      text: "TB2 uji enam belas.",
-      parallel: "ESV test sixteen.",
+      text: "¹⁶\u2009TB2 uji enam belas. ¹⁷\u2009TB2 uji tujuh belas.",
+      parallel: "¹⁶\u2009ESV test sixteen. ¹⁷\u2009ESV test seventeen.",
     });
     expect(frame.kind === "scripture" && frame.scripture).toMatchObject({
+      reference: "John 3:16–17",
       translation: "TB2 · 2023",
       attribution: "TB2 © LAI 2023",
       parallel: {
@@ -334,6 +422,47 @@ describe("slides with TB2 / ESV columns", () => {
     ).toBe(true);
     controller.observeSources(await songs.load());
     expect(controller.snapshot().sourceChanged).toBe(false);
+  });
+  it("uses cached SABDA TB text in the left column", async () => {
+    const ayt = await repo.importDataset(
+      await bible(INDONESIAN.identity),
+      true,
+    );
+    await repo.importDataset(await bible(ENGLISH.identity), true);
+    const selection = {
+      datasetId: ayt.id,
+      checksum: ayt.contentHash,
+      verseIds: [`v|${ayt.id}|001|003|0016`],
+      label: "John 3:16",
+    };
+    const cache = new OnlineCache(memory());
+    cache.put("tb", [
+      { book: "John", chapter: 3, verse: 16, text: "TB uji enam belas." },
+    ]);
+    const { data, notes } = await applyOnline(
+      await repo.resolveWorkspace(await songs.load(), {
+        kind: "scripture",
+        selection,
+      }),
+      { ...NO_SETTINGS, tb: { agreed: true }, left: "tb" },
+      cache,
+    );
+    expect(notes).toEqual([]);
+    const controller = new PresentationController(
+      writer.gate,
+      new PresentationRepository(writer.gate, name),
+      measure,
+    );
+    await controller.loadRecovery();
+    await controller.prepare(data, { kind: "scripture", selection }, style);
+    const deck = controller.snapshot().preview!.deck;
+    expect(validDeck(deck)).toBe(true);
+    const frame = deck.frames[0];
+    expect(deck.pages[frame.page].text).toBe("TB uji enam belas.");
+    expect(frame.kind === "scripture" && frame.scripture).toMatchObject({
+      translation: "TB · 1974",
+      attribution: "TB © LAI 1974",
+    });
   });
   it("fall back to AYT / KJV with a note when the online text is not cached", async () => {
     const ayt = await repo.importDataset(

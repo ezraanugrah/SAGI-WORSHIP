@@ -30,6 +30,8 @@ import {
   esvPassageUrl,
   fetchEsv,
   fetchLai,
+  fetchSabda,
+  sabdaChapterUrl,
   loadSettings,
   saveSettings,
   usesOnline,
@@ -303,9 +305,9 @@ function Picker({
       range(from, to).map((n) => ({
         n,
         left:
-          settings.left === "tb2"
-            ? cache.get("tb2", book.id, chapter, n)
-            : rows.left.find((v) => v.verse === n)?.text,
+          settings.left === "ayt"
+            ? rows.left.find((v) => v.verse === n)?.text
+            : cache.get(settings.left, book.id, chapter, n),
         right:
           settings.right === "esv"
             ? cache.get("esv", book.id, chapter, n)
@@ -313,7 +315,12 @@ function Picker({
       })),
     [rows, from, to, settings, cached, book.id, chapter],
   );
-  const leftName = settings.left === "tb2" ? "TB2 (online)" : "AYT",
+  const leftName =
+      settings.left === "tb"
+        ? "TB (SABDA)"
+        : settings.left === "tb2"
+          ? "TB2 (online)"
+          : "AYT",
     rightName = settings.right === "esv" ? "ESV (online)" : "KJV";
   const label = `${book.name} ${chapter}:${from}${to > from ? `–${to}` : ""}`;
   function selection(): ScriptureSelection {
@@ -459,6 +466,15 @@ function Picker({
             ? ` · ${english.name} ${chapter}:${from}${to > from ? `–${to}` : ""}`
             : ""}
         </strong>
+        <a
+          className="bible-esv-link"
+          href={sabdaChapterUrl(book.order, chapter)}
+          target="_blank"
+          rel="noreferrer"
+          title="Buka pasal ini (TB) di sabda.org"
+        >
+          sabda.org ↗
+        </a>
         {english && (
           <a
             className="bible-esv-link"
@@ -493,7 +509,11 @@ function Picker({
       {fetching && (
         <p className="field-help" role="status">
           Mengambil{" "}
-          {[settings.left === "tb2" && "TB2", settings.right === "esv" && "ESV"]
+          {[
+            settings.left === "tb" && "TB dari Alkitab SABDA",
+            settings.left === "tb2" && "TB2",
+            settings.right === "esv" && "ESV",
+          ]
             .filter(Boolean)
             .join(" dan ")}{" "}
           dari API resmi…
@@ -526,9 +546,11 @@ function Picker({
         ))}
       </div>
       <p className="field-help">
-        {settings.left === "tb2"
-          ? ONLINE_ATTRIBUTION.tb2
-          : "AYT © YLSA · CC BY-NC-SA"}{" "}
+        {settings.left === "tb"
+          ? `${ONLINE_ATTRIBUTION.tb} (Alkitab SABDA)`
+          : settings.left === "tb2"
+            ? ONLINE_ATTRIBUTION.tb2
+            : "AYT © YLSA · CC BY-NC-SA"}{" "}
         ·{" "}
         {settings.right === "esv" ? (
           <>
@@ -574,7 +596,8 @@ function OnlineSources({
     [tb2Agreed, setTb2Agreed] = useState(settings.tb2?.agreed ?? false),
     [esvKey, setEsvKey] = useState(settings.esv?.key ?? ""),
     [esvAgreed, setEsvAgreed] = useState(settings.esv?.agreed ?? false),
-    [status, setStatus] = useState({ tb2: "", esv: "" }),
+    [tbAgreed, setTbAgreed] = useState(settings.tb?.agreed ?? false),
+    [status, setStatus] = useState({ tb: "", tb2: "", esv: "" }),
     [, setTick] = useState(0);
   const tb2 = {
       key: tb2Key.trim(),
@@ -583,7 +606,11 @@ function OnlineSources({
       agreed: tb2Agreed,
     },
     esv = { key: esvKey.trim(), agreed: esvAgreed };
-  function save(next: OnlineSettings, version: "tb2" | "esv", note: string) {
+  function save(
+    next: OnlineSettings,
+    version: "tb" | "tb2" | "esv",
+    note: string,
+  ) {
     try {
       saveSettings(next);
       onChange(next);
@@ -593,11 +620,18 @@ function OnlineSources({
     }
   }
   const refresh = () => setTick((n) => n + 1),
-    counts = { tb2: cache.count("tb2"), esv: cache.count("esv") };
-  async function test(version: "tb2" | "esv") {
+    counts = {
+      tb: cache.count("tb"),
+      tb2: cache.count("tb2"),
+      esv: cache.count("esv"),
+    };
+  async function test(version: "tb" | "tb2" | "esv") {
     setStatus((s) => ({ ...s, [version]: "Menguji…" }));
     try {
-      if (version === "esv") {
+      if (version === "tb") {
+        const [v] = await fetchSabda("Yohanes", 43, 3, 16, 16);
+        setStatus((s) => ({ ...s, tb: `Berhasil · Yohanes 3:16: ${v.text}` }));
+      } else if (version === "esv") {
         const [v] = await fetchEsv(esv.key, 1, 1, 1, 1);
         setStatus((s) => ({ ...s, esv: `Berhasil · Genesis 1:1: ${v.text}` }));
       } else {
@@ -619,14 +653,13 @@ function OnlineSources({
   }
   return (
     <details className="bible-online">
-      <summary>
-        Sumber online: ESV (esv.org) dan TB2 (LAI) · perlu API key
-      </summary>
+      <summary>Sumber online: TB (SABDA), ESV (esv.org), TB2 (LAI)</summary>
       <p className="field-help">
-        Teks diambil lewat API resmi penerbit. API key hanya disimpan di browser
-        ini (tidak ikut backup). Hanya ayat yang dipilih yang diambil, maks.{" "}
-        {ONLINE_LIMIT} ayat per versi, terhapus otomatis setelah 30 hari. Tanpa
-        internet, ayat yang belum tersimpan memakai AYT/KJV.
+        Teks diambil per perikop dari sumber resmi. Pengaturan dan API key hanya
+        disimpan di browser ini (tidak ikut backup). Hanya ayat yang dipilih
+        yang diambil, maks. {ONLINE_LIMIT} ayat per versi, terhapus otomatis
+        setelah 30 hari. Tanpa internet, ayat yang belum tersimpan memakai
+        AYT/KJV.
       </p>
       <div className="bible-columns-choice">
         <label>
@@ -643,6 +676,9 @@ function OnlineSources({
             }
           >
             <option value="ayt">AYT · offline</option>
+            <option value="tb" disabled={!settings.tb?.agreed}>
+              TB · online (Alkitab SABDA)
+            </option>
             <option value="tb2" disabled={!settings.tb2?.agreed}>
               TB2 · online (Bible API LAI)
             </option>
@@ -671,6 +707,81 @@ function OnlineSources({
           </select>
         </label>
       </div>
+      <fieldset className="bible-api">
+        <legend>TB · Alkitab SABDA (sabda.org)</legend>
+        <p className="field-help">
+          Alkitab Terjemahan Baru 1974 © LAI, diambil per perikop dari{" "}
+          <a
+            href="https://sabda.org/alkitab/tb/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Alkitab SABDA
+          </a>
+          . Tanpa API key. Sesuai{" "}
+          <a
+            href="https://www.alkitab.or.id/tentang-kami/penggunaan-teks"
+            target="_blank"
+            rel="noreferrer"
+          >
+            kebijakan teks LAI
+          </a>
+          , kutipan untuk ibadah non-komersial (bukan satu kitab utuh) boleh
+          tanpa izin tertulis.
+        </p>
+        <label className="attestation">
+          <input
+            type="checkbox"
+            checked={tbAgreed}
+            onChange={(e) => setTbAgreed(e.target.checked)}
+          />
+          TB dipakai untuk ibadah non-komersial, per perikop, dengan atribusi
+          "TB © LAI 1974" di setiap slide.
+        </label>
+        <div className="bible-api-actions">
+          <button
+            className="button primary"
+            disabled={!tbAgreed}
+            onClick={() =>
+              save(
+                { ...settings, tb: { agreed: true }, left: "tb" },
+                "tb",
+                "TB aktif di Kolom kiri.",
+              )
+            }
+          >
+            Pakai TB
+          </button>
+          <button className="button secondary" onClick={() => void test("tb")}>
+            Tes TB
+          </button>
+          <button
+            className="text-button"
+            disabled={!settings.tb}
+            onClick={() => {
+              cache.clear("tb");
+              refresh();
+              setTbAgreed(false);
+              save(
+                {
+                  ...settings,
+                  tb: null,
+                  left: settings.left === "tb" ? "ayt" : settings.left,
+                },
+                "tb",
+                "TB dimatikan dan cache-nya dihapus.",
+              );
+            }}
+          >
+            Matikan TB
+          </button>
+        </div>
+        {status.tb && (
+          <p className="field-help" role="status">
+            {status.tb}
+          </p>
+        )}
+      </fieldset>
       <fieldset className="bible-api">
         <legend>ESV · esv.org (Crossway)</legend>
         <ol className="bible-steps">
@@ -863,12 +974,13 @@ function OnlineSources({
       </fieldset>
       <div className="bible-api-actions">
         <span className="field-help">
-          Tersimpan: TB2 {counts.tb2}/{ONLINE_LIMIT} ayat · ESV {counts.esv}/
-          {ONLINE_LIMIT} ayat
+          Tersimpan: TB {counts.tb}/{ONLINE_LIMIT} · TB2 {counts.tb2}/
+          {ONLINE_LIMIT} · ESV {counts.esv}/{ONLINE_LIMIT} ayat
         </span>
         <button
           className="text-button"
           onClick={() => {
+            cache.clear("tb");
             cache.clear("tb2");
             cache.clear("esv");
             refresh();

@@ -2,7 +2,18 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+// TB from Alkitab SABDA: same address as vercel.json uses in production.
+const sabda = {
+  "/api/sabda": {
+    target: "https://alkitab.sabda.org",
+    changeOrigin: true,
+    rewrite: (path: string) =>
+      path.replace(/^\/api\/sabda/, "/api/passage.php"),
+  },
+};
 export default defineConfig({
+  server: { proxy: sabda },
+  preview: { proxy: sabda },
   plugins: [
     react(),
     tailwindcss(),

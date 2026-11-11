@@ -189,7 +189,10 @@ export async function generateSlides(
           style,
           measure,
           theme
-            ? (text, m) => layoutText(text, theme.spec, m, true)
+            ? (text, m) => ({
+                ...layoutText(text, theme.spec, m, true),
+                base: theme.spec.type.size,
+              })
             : undefined,
         ),
       );

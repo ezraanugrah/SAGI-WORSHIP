@@ -25,11 +25,21 @@ import {
 import { ENGLISH, INDONESIAN } from "./bilingual";
 import type { Workspace } from "../domain/models";
 
-export type OnlineVersion = "tb2" | "esv";
+export type OnlineVersion = "tb" | "tb2" | "esv";
 export const ONLINE_LIMIT = 500,
   CACHE_DAYS = 30;
 export const LAI_BASE = "https://bible-api.alkitab.or.id/bible-api/api/v1",
   ESV_URL = "https://api.esv.org/v3/passage/text/";
+/**
+ * TB 1974 from Alkitab SABDA's passage API. SABDA sends no CORS headers, so
+ * the app calls it through its own address: vercel.json (production) and the
+ * Vite dev/preview proxy (local) forward /api/sabda to
+ * https://alkitab.sabda.org/api/passage.php.
+ */
+export const SABDA_PROXY = "/api/sabda";
+/** The chapter on sabda.org, e.g. https://sabda.org/alkitab/tb/?kitab=33&pasal=2 */
+export const sabdaChapterUrl = (bookOrder: number, chapter: number) =>
+  `https://sabda.org/alkitab/tb/?kitab=${bookOrder}&pasal=${chapter}`;
 /** esv.org pages used by the operator: sign-up, API key and terms. */
 export const ESV_LINKS = {
   register: "https://www.esv.org/account/register/",
@@ -46,13 +56,16 @@ export const esvPassageUrl = (
 ) =>
   `https://www.esv.org/${encodeURIComponent(englishBook).replace(/%20/g, "+")}+${chapter}:${from}${to > from ? `-${to}` : ""}/`;
 export type OnlineSettings = {
+  /** TB 1974 from Alkitab SABDA: no key, only the operator's consent. */
+  tb: { agreed: boolean } | null;
   tb2: { key: string; base: string; version: string; agreed: boolean } | null;
   esv: { key: string; agreed: boolean } | null;
   /** Left (Indonesian) and right (English) column sources. */
-  left: "ayt" | "tb2";
+  left: "ayt" | "tb" | "tb2";
   right: "kjv" | "esv";
 };
 export const NO_SETTINGS: OnlineSettings = {
+  tb: null,
   tb2: null,
   esv: null,
   left: "ayt",
@@ -90,10 +103,17 @@ export function loadSettings(store = storage()): OnlineSettings {
       value.esv && typeof value.esv.key === "string" && value.esv.key
         ? { key: value.esv.key, agreed: value.esv.agreed === true }
         : null;
+    const tb = value.tb?.agreed === true ? { agreed: true } : null;
     return {
+      tb,
       tb2,
       esv,
-      left: value.left === "tb2" && tb2?.agreed ? "tb2" : "ayt",
+      left:
+        value.left === "tb2" && tb2?.agreed
+          ? "tb2"
+          : value.left === "tb" && tb
+            ? "tb"
+            : "ayt",
       right: value.right === "esv" && esv?.agreed ? "esv" : "kjv",
     };
   } catch {
@@ -108,6 +128,7 @@ export function saveSettings(settings: OnlineSettings, store = storage()) {
   }
 }
 export const usesOnline = (s: OnlineSettings) =>
+  (s.left === "tb" && !!s.tb?.agreed) ||
   (s.left === "tb2" && !!s.tb2?.agreed) ||
   (s.right === "esv" && !!s.esv?.agreed);
 
@@ -122,12 +143,12 @@ export class OnlineCache {
     private now = () => Date.now(),
   ) {}
   private read(): CacheData {
-    const empty: CacheData = { tb2: {}, esv: {} };
+    const empty: CacheData = { tb: {}, tb2: {}, esv: {} };
     try {
       const value = JSON.parse(this.store?.getItem(CACHE_KEY) ?? "null");
       if (!value || typeof value !== "object") return empty;
       const oldest = this.now() - CACHE_DAYS * 86400000;
-      for (const version of ["tb2", "esv"] as const)
+      for (const version of ["tb", "tb2", "esv"] as const)
         for (const [key, entry] of Object.entries(value[version] ?? {}) as [
           string,
           Entry,
@@ -364,6 +385,81 @@ export async function fetchLai(
   return expectRange(laiVerses(json), from, to, "TB2");
 }
 
+const xmlText = (value: string) =>
+  value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (_, e: string) => {
+      const named: Record<string, string> = {
+        amp: "&",
+        lt: "<",
+        gt: ">",
+        quot: '"',
+        apos: "'",
+      };
+      if (e[0] !== "#") return named[e.toLowerCase()];
+      return String.fromCodePoint(
+        e[1].toLowerCase() === "x"
+          ? parseInt(e.slice(2), 16)
+          : parseInt(e.slice(1), 10),
+      );
+    });
+/** Reads SABDA's passage XML: <book_id>, <chap>, and <verse><number>/<text>; section <title>s are skipped. */
+export function sabdaVerses(xml: string, bookOrder: number, chapter: number) {
+  const bookId = xml.match(/<book_id>\s*(\d+)\s*<\/book_id>/)?.[1],
+    chap = xml.match(/<chap>\s*(\d+)\s*<\/chap>/)?.[1];
+  if (Number(bookId) !== bookOrder || Number(chap) !== chapter)
+    throw new Error(
+      "Alkitab SABDA mengirim kitab/pasal lain. Coba lagi atau pakai AYT.",
+    );
+  const found: Fetched = [];
+  for (const [, body] of xml.matchAll(/<verse>([\s\S]*?)<\/verse>/g)) {
+    const number = body.match(/<number>\s*(\d+)\s*<\/number>/)?.[1],
+      text = body.match(/<text>([\s\S]*?)<\/text>/)?.[1];
+    if (number && text !== undefined)
+      found.push({ verse: Number(number), text: layoutOnly(xmlText(text)) });
+  }
+  return found;
+}
+export function sabdaUrl(
+  bookName: string,
+  chapter: number,
+  from: number,
+  to: number,
+  base = SABDA_PROXY,
+) {
+  const passage = `${bookName} ${chapter}:${from}${to > from ? `-${to}` : ""}`;
+  return `${base}?${new URLSearchParams({ passage, version: "tb" })}`;
+}
+export async function fetchSabda(
+  bookName: string,
+  bookOrder: number,
+  chapter: number,
+  from: number,
+  to: number,
+  fetcher: typeof fetch = fetch,
+): Promise<Fetched> {
+  let response: Response;
+  try {
+    response = await fetcher(sabdaUrl(bookName, chapter, from, to), {
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(
+      "Alkitab SABDA tidak bisa dihubungi. Periksa koneksi internet.",
+    );
+  }
+  if (!response.ok)
+    throw new Error(
+      `Alkitab SABDA: permintaan gagal (HTTP ${response.status}).`,
+    );
+  return expectRange(
+    sabdaVerses(await response.text(), bookOrder, chapter),
+    from,
+    to,
+    "TB",
+  );
+}
+
 export type Passage = {
   book: { id: string; order: number; idName: string; enName: string };
   chapter: number;
@@ -382,6 +478,13 @@ export async function ensureOnline(
     Array.from({ length: to - from + 1 }, (_, i) => from + i).some(
       (n) => cache.get(version, book.id, chapter, n) === undefined,
     );
+  if (settings.left === "tb" && settings.tb?.agreed && missing("tb"))
+    cache.put(
+      "tb",
+      (
+        await fetchSabda(book.idName, book.order, chapter, from, to, fetcher)
+      ).map((v) => ({ ...v, book: book.id, chapter })),
+    );
   if (settings.left === "tb2" && settings.tb2?.agreed && missing("tb2"))
     cache.put(
       "tb2",
@@ -399,6 +502,29 @@ export async function ensureOnline(
 }
 
 const INFO = {
+  tb: {
+    publisher: "Lembaga Alkitab Indonesia",
+    code: "TB",
+    name: "Alkitab Terjemahan Baru",
+    abbreviation: "TB",
+    edition: "1974",
+    language: "id",
+    source: "Alkitab SABDA (alkitab.sabda.org), per perikop yang dipilih",
+    license: {
+      kind: "permission" as const,
+      notice:
+        "Alkitab Terjemahan Baru © Lembaga Alkitab Indonesia 1974. Dikutip per perikop untuk ibadah non-komersial sesuai kebijakan penggunaan teks LAI (tidak lebih dari 1.000 ayat dan bukan satu kitab utuh); teks diambil dari Alkitab SABDA. Paling banyak 500 ayat disimpan di perangkat ini.",
+      reference:
+        "Lembaga Alkitab Indonesia · alkitab.or.id · alkitab.sabda.org",
+      displayAttribution: "TB © LAI 1974",
+      permissions: {
+        offlineStorage: true as const,
+        projection: true as const,
+        localSnapshots: true as const,
+        export: false,
+      },
+    },
+  },
   tb2: {
     publisher: "Lembaga Alkitab Indonesia",
     code: "TB2",
@@ -445,6 +571,7 @@ const INFO = {
   },
 };
 export const ONLINE_ATTRIBUTION = {
+  tb: INFO.tb.license.displayAttribution,
   tb2: INFO.tb2.license.displayAttribution,
   esv: INFO.esv.license.displayAttribution,
   esvNotice: INFO.esv.license.notice,
@@ -528,19 +655,24 @@ export async function applyOnline(
     let next = snapshot;
     const first = snapshot.verses[0],
       label = `${snapshot.translation.books.find((b) => b.id === first?.book)?.name ?? ""} ${first?.chapter}:${first?.verse}`;
-    if (
-      settings.left === "tb2" &&
-      settings.tb2?.agreed &&
-      isBible(snapshot.translation, INDONESIAN.identity)
-    ) {
+    const left =
+      settings.left === "tb" && settings.tb?.agreed
+        ? "tb"
+        : settings.left === "tb2" && settings.tb2?.agreed
+          ? "tb2"
+          : null;
+    if (left && isBible(snapshot.translation, INDONESIAN.identity)) {
       const swapped = await overlay(
-        "tb2",
+        left,
         snapshot.translation,
         snapshot.verses,
         cache,
       );
       if (swapped) next = { ...next, ...swapped };
-      else notes.push(`${label}: teks TB2 belum tersimpan, memakai AYT.`);
+      else
+        notes.push(
+          `${label}: teks ${left.toUpperCase()} belum tersimpan, memakai AYT.`,
+        );
     }
     if (
       settings.right === "esv" &&

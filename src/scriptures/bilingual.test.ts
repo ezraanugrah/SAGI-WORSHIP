@@ -44,9 +44,7 @@ beforeAll(async () => {
   };
   for (const key of ["ayt", "kjv"] as const)
     sets[key] = (
-      await parseDataset(
-        new TextEncoder().encode((await files[key]()).default),
-      )
+      await parseDataset(new TextEncoder().encode((await files[key]()).default))
     ).dataset;
 }, 60000);
 const text = (d: Dataset, book: string, chapter: number, verse: number) =>
@@ -72,9 +70,7 @@ describe("bundled two-language Bible (AYT + KJV)", () => {
     expect(editionKey(sets.ayt.translation)).toBe(
       editionKey(INDONESIAN.identity),
     );
-    expect(editionKey(sets.kjv.translation)).toBe(
-      editionKey(ENGLISH.identity),
-    );
+    expect(editionKey(sets.kjv.translation)).toBe(editionKey(ENGLISH.identity));
     expect(sets.ayt.translation.license.displayAttribution).toBe(
       "AYT © YLSA · CC BY-NC-SA",
     );
@@ -151,6 +147,25 @@ async function subset(full: Dataset, keep: [string, number][]) {
   return parseDataset(new TextEncoder().encode(JSON.stringify(value)));
 }
 
+const DIGITS = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+/** Verse numbers written into a packed slide ("⁴ … ⁵ …"). */
+const numbersIn = (text: string) =>
+  [...text.matchAll(/([⁰¹²³⁴⁵⁶⁷⁸⁹]+)\u2009/g)].map((m) =>
+    Number([...m[1]].map((c) => DIGITS.indexOf(c)).join("")),
+  );
+/** Every verse number shown in the deck, in slide order, once each. */
+function coverage(deck: Deck) {
+  const seen: number[] = [];
+  for (const frame of deck.frames) {
+    if (frame.kind !== "scripture") continue;
+    const packed = numbersIn(deck.pages[frame.page].text),
+      verses = packed.length
+        ? packed
+        : [Number(frame.scripture.reference.split(":")[1])];
+    for (const n of verses) if (!seen.includes(n)) seen.push(n);
+  }
+  return seen;
+}
 describe("two-language slides", () => {
   const keep: [string, number][] = [
     ["Gen", 1],
@@ -170,7 +185,7 @@ describe("two-language slides", () => {
     writer.stop();
     await deleteDB(name);
   });
-  async function prepare(selection: ScriptureSelection) {
+  async function prepare(selection: ScriptureSelection, look = style) {
     const data = await repo.resolveWorkspace(await songs.load(), {
       kind: "scripture",
       selection,
@@ -181,7 +196,7 @@ describe("two-language slides", () => {
       measure,
     );
     await controller.loadRecovery();
-    await controller.prepare(data, { kind: "scripture", selection }, style);
+    await controller.prepare(data, { kind: "scripture", selection }, look);
     return { data, deck: controller.snapshot().preview!.deck };
   }
   const choose = (t: Translation, ref: string): ScriptureSelection => ({
@@ -198,23 +213,28 @@ describe("two-language slides", () => {
       8,
     );
     expect(validDeck(deck)).toBe(true);
-    // 8 verses; a long one may take two slides.
+    // All 8 verses, in order, whether they share a slide or not.
+    expect(coverage(deck)).toEqual([3, 4, 5, 6, 7, 8, 9, 10]);
+    // Eight verses on two slides, split evenly, with a smaller font.
+    expect(deck.frames).toHaveLength(2);
+    const first = deck.frames[0],
+      page = deck.pages[first.page];
     expect(
-      new Set(
-        deck.frames.map((f) => f.kind === "scripture" && f.scripture.verseId),
-      ).size,
-    ).toBe(8);
-    const first = deck.frames[0];
-    expect(deck.pages[first.page]).toMatchObject({
-      text: text(sets.ayt, "Gen", 1, 3),
-      parallel: text(sets.kjv, "Gen", 1, 3),
-    });
+      page.text.startsWith(`³\u2009${text(sets.ayt, "Gen", 1, 3)} ⁴\u2009`),
+    ).toBe(true);
+    expect(
+      page.parallel!.startsWith(
+        `³\u2009${text(sets.kjv, "Gen", 1, 3)} ⁴\u2009`,
+      ),
+    ).toBe(true);
+    expect(page.fontSize).toBeGreaterThanOrEqual(32);
+    expect(page.fontSize).toBeLessThan(64);
     expect(first.kind === "scripture" && first.scripture).toMatchObject({
-      reference: "Kejadian 1:3",
+      reference: "Kejadian 1:3–6",
       translation: "AYT · 2024",
       attribution: "AYT © YLSA · CC BY-NC-SA",
       parallel: {
-        reference: "Genesis 1:3",
+        reference: "Genesis 1:3–6",
         translation: "KJV · 1769",
         attribution: "Public Domain",
       },
@@ -223,9 +243,40 @@ describe("two-language slides", () => {
       "AYT · 2024",
       "KJV · 1769",
     ]);
-    expect(deck.frames.every((_, i) => fitsFrame(deck, i, measure))).toBe(
+    expect(deck.frames.every((_, i) => fitsFrame(deck, i, measure))).toBe(true);
+  });
+  it("puts several picked verses on one slide, both columns covering the same verses", async () => {
+    const ayt = await repo.importDataset(
+      await subset(sets.ayt, [["Num", 4]]),
       true,
     );
+    await repo.importDataset(await subset(sets.kjv, [["Num", 4]]), true);
+    // A smaller font so that several of these verses fit on one slide.
+    const { deck } = await prepare(choose(ayt, "Bil 4:4-7"), {
+      ...style,
+      fontSize: 28,
+      lines: 12,
+    });
+    expect(validDeck(deck)).toBe(true);
+    expect(coverage(deck)).toEqual([4, 5, 6, 7]);
+    expect(deck.frames.length).toBeLessThan(4);
+    let packedSlides = 0;
+    for (const frame of deck.frames) {
+      if (frame.kind !== "scripture") continue;
+      const page = deck.pages[frame.page],
+        left = numbersIn(page.text);
+      if (!left.length) continue;
+      packedSlides++;
+      expect(numbersIn(page.parallel ?? "")).toEqual(left);
+      expect(frame.scripture.reference).toBe(
+        `Bilangan 4:${left[0]}–${left.at(-1)}`,
+      );
+      expect(frame.scripture.parallel?.reference).toBe(
+        `Numbers 4:${left[0]}–${left.at(-1)}`,
+      );
+    }
+    expect(packedSlides).toBeGreaterThan(0);
+    expect(deck.frames.every((_, i) => fitsFrame(deck, i, measure))).toBe(true);
   });
   it("splits a long verse over several slides, each column keeping its exact text", async () => {
     const ayt = await repo.importDataset(await subset(sets.ayt, keep), true);
@@ -238,9 +289,7 @@ describe("two-language slides", () => {
     expect(deck.frames.map((f) => deck.pages[f.page].parallel).join("")).toBe(
       text(sets.kjv, "Esth", 8, 9),
     );
-    expect(deck.frames.every((_, i) => fitsFrame(deck, i, measure))).toBe(
-      true,
-    );
+    expect(deck.frames.every((_, i) => fitsFrame(deck, i, measure))).toBe(true);
     const tampered = structuredClone(deck) as Deck;
     tampered.pages[tampered.frames[0].page].parallel += " extra";
     expect(validDeck(tampered)).toBe(false);
@@ -262,8 +311,10 @@ describe("two-language slides", () => {
 
 describe("downloading the bundled files", () => {
   it("hands back a JSON File and explains offline and server errors", async () => {
-    const file = await downloadBible(INDONESIAN, (async () =>
-      new Response("{}")) as typeof fetch);
+    const file = await downloadBible(
+      INDONESIAN,
+      (async () => new Response("{}")) as typeof fetch,
+    );
     expect([file.name, file.type]).toEqual(["ayt.json", "application/json"]);
     await expect(
       downloadBible(ENGLISH, (async () => {
