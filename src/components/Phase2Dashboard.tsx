@@ -5,6 +5,8 @@ import { MediaLibrary } from "./MediaLibrary";
 import type { useMedia } from "../hooks/useMedia";
 import { BibleLibrary } from "./BibleLibrary";
 import { applyOnline, loadSettings } from "../scriptures/online";
+import { useFolderWatch } from "../hooks/useFolderWatch";
+import { fileKey, inLibrary } from "../media/folderWatch";
 import type { useScriptureServices } from "../hooks/useScriptures";
 import { useEffect, useCallback, useRef } from "react";
 import { PreviewWorkspace, slideSummary } from "./PreviewWorkspace";
@@ -60,6 +62,24 @@ export function Phase2Dashboard({
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
   const [previewDirty, setPreviewDirty] = useState(false);
+  // Watched laptop folder: checked while the app is open, whatever tab is shown.
+  const watch = useFolderWatch({
+    enabled: true,
+    assets: data.mediaAssets ?? [],
+    editable,
+    working: mediaServices.working,
+    importFiles: mediaServices.importFiles,
+  });
+  const newMedia =
+    watch.state.status === "watching"
+      ? (() => {
+          const s = watch.state;
+          return s.files.filter(
+            (f) =>
+              s.fresh.has(fileKey(f)) && !inLibrary(f, data.mediaAssets ?? []),
+          ).length;
+        })()
+      : 0;
   const markDirty = useCallback((dirty: boolean) => setPreviewDirty(dirty), []);
   // The top-bar toolbar's Go Live follows the same "unapplied Preview" rule.
   useEffect(() => {
@@ -394,6 +414,9 @@ export function Phase2Dashboard({
                 }}
               >
                 {name}
+                {name === "Media" && newMedia > 0 && (
+                  <span className="tab-badge">{newMedia} baru</span>
+                )}
               </button>
             ))}
           </div>
@@ -460,6 +483,7 @@ export function Phase2Dashboard({
             ) : tab === 2 ? (
               <MediaLibrary
                 services={mediaServices}
+                watch={watch}
                 data={data}
                 editable={editable}
                 onPreview={(selection) =>

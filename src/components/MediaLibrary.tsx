@@ -5,6 +5,8 @@ import type { Workspace } from "../domain/models";
 import type { AssetRef, MediaAsset, MediaSelection } from "../media/models";
 import { readAsset } from "../media/assetReader";
 import { endDrag, startDrag } from "./dragState";
+import type { useFolderWatch } from "../hooks/useFolderWatch";
+import { FolderWatchControls, FolderWatchList } from "./FolderWatch";
 /** Drag payload type: a JSON MediaSelection dragged into the active Week. */
 export const MEDIA_DRAG_TYPE = "application/x-sagi-media";
 const KINDS = [
@@ -44,8 +46,11 @@ export function MediaLibrary({
   onPreview,
   onChanged,
   mode = "media",
+  watch,
 }: {
   services: ReturnType<typeof useMedia>;
+  /** Watched laptop folder (Media tab); kept by the dashboard so it runs on every tab. */
+  watch?: ReturnType<typeof useFolderWatch>;
   data: Workspace;
   editable: boolean;
   onPreview: (s: MediaSelection) => void;
@@ -224,6 +229,13 @@ export function MediaLibrary({
             ? "PDF hasil ekspor PowerPoint, Keynote, atau Google Slides."
             : "JPG · PNG · WebP · MP4 · WebM · PDF"}
         </p>
+        {watch && (
+          <FolderWatchControls
+            watch={watch}
+            editable={editable}
+            assets={data.mediaAssets ?? []}
+          />
+        )}
       </aside>
       <div className="lib-main">
         <div className="lib-head">
@@ -232,6 +244,14 @@ export function MediaLibrary({
             {assets.length} item · tarik ke Schedule
           </span>
         </div>
+        {watch && (
+          <FolderWatchList
+            watch={watch}
+            assets={data.mediaAssets ?? []}
+            editable={editable}
+            working={services.working}
+          />
+        )}
         {error && (
           <p role="alert" className="error-text">
             {error}

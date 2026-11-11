@@ -83,6 +83,8 @@ Skema IndexedDB tetap v1. Checkpoint baru dan protokol proyektor menggunakan ver
 
 Tab **Media** mengimpor JPG/PNG/WebP, MP4/WebM yang dapat didekode browser, serta PDF. File disimpan offline sebagai Blob IndexedDB; metadata, thumbnail, checksum, jadwal, dan pin presentasi memiliki transaksi tervalidasi. Skema database tetap v1. Tidak ada unggahan atau layanan konversi eksternal.
 
+**Folder pantauan:** di sidebar Media, klik **Pilih folder** (mis. Downloads) sekali. Selama aplikasi terbuka (tab apa pun), folder diperiksa tiap 5 detik; file media baru muncul di atas grid dengan tanda **Baru** dan tombol **Impor** / **Impor semua**, dan tab Media menampilkan jumlahnya. Centang **Impor otomatis file baru** agar unduhan yang sudah selesai langsung masuk Media. Butuh Chrome/Edge di laptop; aplikasi hanya membaca folder itu, dan pilihan folder tidak ikut backup.
+
 Pilih kartu media, periksa metadata/kompatibilitas, lalu gunakan **Preview media** atau **Tambahkan media ke jadwal**. PDF mendukung thumbnail halaman dan input rentang seperti `1-3,5`. Halaman terpilih dirasterisasi lokal sebelum presentasi. Jadwal dapat mencampur lagu, ayat, gambar, video, dan halaman PDF.
 
 Video masuk LIVE dalam kondisi paused. **Play LIVE**, **Pause LIVE**, Loop, Mute, dan Volume hanya mengendalikan output yang dipasangkan. Kontrol video Preview terpisah; monitor LIVE operator tidak mengeluarkan audio. Black menyembunyikan output, menghentikan video, dan mematikan suaranya; Restore tidak otomatis memulai playback kembali. Refresh/recovery video selalu paused dan membutuhkan Play baru.

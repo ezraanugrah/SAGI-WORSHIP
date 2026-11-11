@@ -31,6 +31,16 @@ Search matches filenames/titles locally. Filters select images, video or PDF. Th
 
 Secondary tabs can browse and inspect media but cannot import, delete, clean storage, edit schedules or control LIVE. Images/videos can be prepared locally for Preview. PDF page browsing is read-only; preparing persistent PDF presentation rasters requires the writer tab.
 
+## Watched folder (new downloads)
+
+The Media sidebar has **Folder pantauan**. **Pilih folder** opens the browser's folder picker (File System Access API, Chrome/Edge on a laptop; read-only access). The choice is kept in a separate IndexedDB database (`sagi-folder-watch`), so it is not part of workspace backups; after a browser restart the browser may ask for access again (**Izinkan akses folder**, one click).
+
+- While the app is open, on any tab, the folder is scanned every 5 seconds and when the window gets focus. Only files directly in the folder with a supported extension are considered (JPG, JPEG, PNG, WebP, MP4, WebM, PDF); hidden files and unfinished downloads (`.crdownload`, `.part`, `.partial`, `.download`, `.tmp`) are ignored.
+- A file counts as already in Media when a library item has the same file name and size (identical content is refused on import anyway).
+- Files that appeared after the folder was chosen, or were changed since, are **Baru**: they are listed above the grid with **Impor** / **Impor semua**, and the Media tab shows how many. Older files not in Media can be listed with **Lihat semua yang belum di Media**.
+- **Impor otomatis file baru** imports a new file once its size and date have stayed the same for two scans (so a download still being written is not taken), only in the writer tab, and tries each file once; failures show in the import status.
+- Import goes through the normal validation above. Implementation: `src/media/folderWatch.ts`, `src/hooks/useFolderWatch.ts`, `src/components/FolderWatch.tsx`.
+
 ## PDF pages
 
 Use the page-thumbnail picker or **Halaman PDF**, for example `1-3,5`. Selection is unique, ascending and limited to 100 pages. Invalid/reversed/out-of-document ranges fail. No page is silently skipped when preparing the selected sequence.

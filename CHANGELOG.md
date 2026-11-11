@@ -101,6 +101,16 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Catatan: dokumentasi Bible API LAI (Postman) sedang tidak bisa dibuka, jadi alamat dan kode versi TB2 bisa diubah dan jawaban yang tidak cocok ditolak. Belum diuji dengan API key asli.
 - Tes: 9 unit test (pengaturan, cache 500 ayat, permintaan ESV/LAI, penolakan jawaban salah, penggantian kolom, tanpa peringatan "sumber berubah") dan 2 E2E dengan API tiruan.
 
+### Media: folder pantauan untuk file baru dari laptop
+
+- Di sidebar tab **Media** ada **Folder pantauan**: klik **Pilih folder** (mis. Downloads) sekali. Selama SagiWorship terbuka, di tab mana pun, folder itu diperiksa setiap 5 detik dan setiap kali jendela difokuskan.
+- File media yang baru diunduh (JPG, PNG, WebP, MP4, WebM, PDF) langsung terdeteksi: muncul di atas grid Media dengan tanda **Baru** serta tombol **Impor** dan **Impor semua**, dan tab Media menampilkan "N baru".
+- **Impor otomatis file baru** (opsional) memasukkan unduhan yang sudah selesai tanpa klik. File yang masih diunduh (`.crdownload`, `.part`, atau ukurannya masih berubah) ditunggu dulu; tiap file dicoba sekali.
+- File lama di folder yang belum ada di Media bisa dilihat lewat **Lihat semua yang belum di Media**. File yang sudah ada (nama dan ukuran sama) tidak ditawarkan lagi.
+- Folder diingat setelah reload; browser bisa minta izin sekali lagi setelah dibuka ulang (**Izinkan akses folder**). Aplikasi hanya membaca folder itu, dan pilihan folder tidak ikut backup. Butuh Chrome atau Edge di laptop.
+- Diperbaiki: label "baru" di tab kini memakai warna oranye (sebelumnya tertimpa gaya tab).
+- Tes: 4 unit test (filter file, urutan, cek sudah di Media, izin) dan 2 E2E dengan folder sungguhan di penyimpanan browser (deteksi + impor sekali klik, impor otomatis saat tab lain terbuka, folder diingat setelah reload).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.
