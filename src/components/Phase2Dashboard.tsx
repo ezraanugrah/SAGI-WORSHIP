@@ -6,6 +6,7 @@ import type { useMedia } from "../hooks/useMedia";
 import { BibleLibrary } from "./BibleLibrary";
 import { applyOnline, loadSettings } from "../scriptures/online";
 import { useFolderWatch } from "../hooks/useFolderWatch";
+import { useSongSync } from "../hooks/useSongSync";
 import { fileKey, inLibrary } from "../media/folderWatch";
 import type { useScriptureServices } from "../hooks/useScriptures";
 import { useEffect, useCallback, useRef } from "react";
@@ -62,6 +63,8 @@ export function Phase2Dashboard({
     [message, setMessage] = useState(""),
     [mutationError, setMutationError] = useState("");
   const [previewDirty, setPreviewDirty] = useState(false);
+  // Musik library sync between laptops; runs whatever tab is shown.
+  const sync = useSongSync(repo, editable);
   // Watched laptop folder: checked while the app is open, whatever tab is shown.
   const watch = useFolderWatch({
     enabled: true,
@@ -437,6 +440,7 @@ export function Phase2Dashboard({
                 onNew={() => open(id(), true)}
                 freshId={fresh}
                 freshQuery={freshQuery.current}
+                sync={sync}
                 onEdit={(s) => open(s.id)}
                 onInspect={(s) => void prepare({ kind: "song", songId: s.id })}
                 onDuplicate={(s) =>

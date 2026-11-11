@@ -396,6 +396,34 @@ export class Repository {
         .put({ id: tombstone(songId), deletedAt: now() });
     });
   }
+  /**
+   * Sync: make the local song match the server's copy. Creates it when
+   * missing (also over a local deletion, because the server's edit is newer)
+   * or updates it in place; schedules that use it are left as they are.
+   */
+  async applyRemoteSong(songId: string, input: SongInput): Promise<Song> {
+    requireSong(input, songId);
+    return this.write(async (tx) => {
+      const previous = await this.song(tx, songId),
+        time = now(),
+        song: Song = {
+          ...input,
+          id: songId,
+          title: input.title.trim(),
+          revision: (previous?.revision ?? 0) + 1,
+          createdAt: previous?.createdAt ?? time,
+          updatedAt: time,
+        };
+      await this.putSong(tx, song);
+      await tx.objectStore("settings").delete(tombstone(songId));
+      return song;
+    });
+  }
+  /** Sync: the song was deleted on another device. */
+  async applyRemoteDelete(songId: string) {
+    const current = (await this.load()).songs.find((s) => s.id === songId);
+    if (current) await this.deleteSong(songId, current.revision);
+  }
   async saveDraft(draft: SongDraft) {
     if (!validDraft(draft))
       throw new Error("Draft tidak valid; data sebelumnya dipertahankan.");

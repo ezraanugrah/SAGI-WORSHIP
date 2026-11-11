@@ -111,6 +111,15 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Diperbaiki: label "baru" di tab kini memakai warna oranye (sebelumnya tertimpa gaya tab).
 - Tes: 4 unit test (filter file, urutan, cek sudah di Media, izin) dan 2 E2E dengan folder sungguhan di penyimpanan browser (deteksi + impor sekali klik, impor otomatis saat tab lain terbuka, folder diingat setelah reload).
 
+### Sinkron lagu Musik antar laptop (Supabase + login)
+
+- Tab **Songs** punya panel **Sinkron antar laptop**: masuk dengan email + password akun gereja. Lagu yang ditambah, diubah, atau dihapus di Musik pada satu laptop ikut berubah di laptop lain yang memakai web SagiWorship, dalam beberapa detik.
+- Tetap offline-first: setiap laptop menyimpan salinan sendiri; tanpa internet semua tetap jalan dan perubahan dikirim saat online lagi. Sinkron otomatis saat dibuka, tiap 15 detik, 2 detik setelah lagu berubah, saat jendela difokuskan, dan saat internet kembali; ada tombol **Sinkron sekarang** dan **Keluar**.
+- Tidak ada yang tertimpa diam-diam: setiap lagu punya nomor versi di server. Bila lagu yang sama diubah di dua laptop, versi server dipakai dan versi laptop ini disimpan sebagai "… (salinan laptop ini)". Penghapusan ikut tersinkron; perubahan di laptop lain yang belum tahu soal penghapusan akan mengembalikan lagu itu.
+- Server: Supabase milik gereja dengan tabel `songs` dan Row Level Security (hanya akun yang masuk); skrip `supabase/songs-sync.sql`, panduan admin di `docs/SYNC.md`. Aplikasi membaca `VITE_SYNC_URL` dan `VITE_SYNC_KEY` (kunci publik/anon) dari Vercel; tanpa itu panel menampilkan "Belum disiapkan".
+- Sesi login dan catatan sinkron disimpan di browser laptop itu, tidak ikut backup. Yang disinkronkan baru lagu; Week, ayat, media, dan tema belum.
+- Tes: 8 unit test dengan server Supabase tiruan (login, refresh token, offline, tambah/ubah/hapus antar dua laptop, bentrok, perubahan di tengah sinkron, edit menang atas hapus, gabung dua pustaka, data server rusak dilewati) dan 2 E2E dengan dua profil browser.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

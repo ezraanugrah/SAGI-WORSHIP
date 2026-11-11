@@ -3830,6 +3830,65 @@ footer > span:last-child {
 .sagi-ui .lib-import {
   width: 100%;
 }
+/* Songs sidebar: sync the Musik library between laptops. */
+.sync-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sg-line, #2c333d);
+}
+.sync-login {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sync-login input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #10161e;
+  color: var(--sg-text, #e6e9ef);
+  border: 1px solid #465265;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.sync-panel .button {
+  width: 100%;
+}
+.sync-account {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sg-text, #e6e9ef);
+}
+.sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sync-status {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--sg-muted, #9ba1a8);
+  overflow-wrap: anywhere;
+}
+.sync-status.sync-ok {
+  color: #7fc8a0;
+}
+.sync-status.sync-offline {
+  color: #ddbd8c;
+}
+.sync-status.sync-error,
+.sync-status.sync-signed-out {
+  color: #f08a7a;
+}
 /* Watched laptop folder (Media): controls in the sidebar, new files above the grid. */
 .folder-watch {
   display: flex;

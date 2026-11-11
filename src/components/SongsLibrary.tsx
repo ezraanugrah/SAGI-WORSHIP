@@ -1,3 +1,5 @@
+import { SyncPanel } from "./SyncPanel";
+import type { useSongSync } from "../hooks/useSongSync";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { endDrag, startDrag } from "./dragState";
 import { revealInPane } from "./revealInPane";
@@ -36,6 +38,7 @@ export function SongsLibrary({
   onWeek,
   freshId,
   freshQuery,
+  sync,
 }: {
   data: Workspace;
   query: string;
@@ -55,6 +58,8 @@ export function SongsLibrary({
   freshId?: string | null;
   /** The music search as it was when that song's editor closed. */
   freshQuery?: string;
+  /** Sync of the Musik library between laptops (Supabase). */
+  sync?: ReturnType<typeof useSongSync>;
 }) {
   const songs = searchSongs(data.songs, query);
   const weeks = weekSchedules(data.schedules);
@@ -67,10 +72,7 @@ export function SongsLibrary({
     if (!freshId || handledFresh.current === freshId) return;
     if (!data.songs.some((s) => s.id === freshId)) return;
     handledFresh.current = freshId;
-    if (
-      query === (freshQuery ?? query) &&
-      !songs.some((s) => s.id === freshId)
-    )
+    if (query === (freshQuery ?? query) && !songs.some((s) => s.id === freshId))
       onQuery("");
   }, [freshId, freshQuery, data.songs, songs, query, onQuery]);
   useLayoutEffect(() => {
@@ -123,6 +125,7 @@ export function SongsLibrary({
             </li>
           </ul>
         </section>
+        {sync && <SyncPanel sync={sync} editable={editable} />}
       </aside>
       <div className="songs-main">
         <div className="songs-toolbar">

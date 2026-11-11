@@ -1,6 +1,6 @@
 # SAGI WORSHIP
 
-Phase 7 Backup, Restore, Recovery & Security untuk aplikasi presentasi ibadah offline. Implementasi lokal sesuai [PRD](docs/PRD.md), tanpa backend, akun, atau analitik. Alkitab bawaan: AYT (Indonesia, CC BY-NC-SA) dan KJV (English, domain publik).
+Phase 7 Backup, Restore, Recovery & Security untuk aplikasi presentasi ibadah offline. Implementasi lokal sesuai [PRD](docs/PRD.md), tanpa analitik. Data tetap tersimpan offline di tiap perangkat; satu-satunya layanan online opsional adalah sinkron lagu Musik antar laptop lewat Supabase milik gereja ([docs/SYNC.md](docs/SYNC.md)). Alkitab bawaan: AYT (Indonesia, CC BY-NC-SA) dan KJV (English, domain publik).
 
 ## Menjalankan
 
@@ -56,6 +56,10 @@ npm audit --omit=dev
 Playwright menjalankan preview **production build** pada `127.0.0.1:4174` dan menggunakan browser context baru pada setiap tes. Jalankan build terlebih dahulu. Tes IndexedDB menggunakan nama database acak dan membersihkan hanya database tes tersebut. Tidak ada tes yang menggunakan profil browser pribadi atau menghapus data workspace pengguna.
 
 Suite mencakup CRUD, urutan lagu/jadwal, reload, draft/retry, transaksi gagal, data rusak, tab hanya baca, kehilangan lock, kompatibilitas Phase 1, dan offline. Screenshot responsif serta jejak kegagalan berada di `test-results/`; laporan HTML di `playwright-report/` (`npm run test:e2e:report`).
+
+## Sinkron lagu antar laptop
+
+Lagu di **Musik** bisa sama di semua laptop gereja. Admin menyiapkan project Supabase sekali (tabel dari `supabase/songs-sync.sql`, akun gereja, lalu `VITE_SYNC_URL` dan `VITE_SYNC_KEY` di Vercel). Di tiap laptop, tab **Songs › Sinkron antar laptop**, masuk dengan akun gereja. Tambah/ubah/hapus lagu ikut ke laptop lain dalam beberapa detik; tanpa internet tetap jalan. Bentrok tidak menimpa: versi laptop ini disimpan sebagai salinan. Langkah lengkap: [docs/SYNC.md](docs/SYNC.md).
 
 ## Phase 3 — Preview & Projector
 
