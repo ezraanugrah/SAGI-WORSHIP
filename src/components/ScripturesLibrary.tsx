@@ -17,6 +17,12 @@ import {
 import { resolveReference } from "../scriptures/references";
 import { SearchClient } from "../scriptures/searchClient";
 import type { Workspace } from "../domain/models";
+import {
+  BUILTIN_BIBLES,
+  downloadBuiltin,
+  installedBuiltin,
+  type BuiltinBible,
+} from "../scriptures/builtins";
 import { ScriptureImportDialog } from "./ScriptureImportDialog";
 export function ScripturesLibrary({
   repo,
@@ -51,7 +57,8 @@ export function ScripturesLibrary({
       total: 0,
       results: [],
     }),
-    [searching, setSearching] = useState(false);
+    [searching, setSearching] = useState(false),
+    [downloading, setDownloading] = useState("");
   const cache = useRef(new Map<string, Verse>()),
     search = useRef(new SearchClient()),
     request = useRef(0),
@@ -135,9 +142,17 @@ export function ScripturesLibrary({
       return;
     referenceRequest.current++;
     const t = translations.find((t) => t.id === id);
+    // Stay on the same book and chapter when the other Bible has them
+    // (bundled Bibles use OSIS book IDs such as "John").
+    const same = t?.books.find((b) => b.id === bookId),
+      next = same ?? t?.books[0];
     setDataset(id);
-    setBook(t?.books[0].id ?? "");
-    setChapter(t?.books[0].chapters[0].number ?? 1);
+    setBook(next?.id ?? "");
+    setChapter(
+      same?.chapters.some((c) => c.number === chapter)
+        ? chapter
+        : (next?.chapters[0].number ?? 1),
+    );
     setSelected([]);
     setTextQuery("");
     setQuery("");
@@ -195,6 +210,20 @@ export function ScripturesLibrary({
       setError((e as Error).message);
     }
   }
+  async function install(bible: BuiltinBible) {
+    setDownloading(bible.key);
+    setError("");
+    try {
+      await importer.choose(await downloadBuiltin(bible));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setDownloading("");
+    }
+  }
+  const importing = ["validating", "review", "writing"].includes(
+    importState.phase,
+  );
   async function add() {
     try {
       const s = data.schedules.find((s) => s.id === data.activeId);
@@ -240,6 +269,61 @@ export function ScripturesLibrary({
   );
   return (
     <div className="scriptures-content">
+      <section className="scripture-builtins" aria-label="Alkitab bawaan">
+        <div className="section-heading">
+          <div>
+            <h3>Alkitab bawaan</h3>
+            <p>Unduh sekali, lalu tersimpan offline di perangkat ini.</p>
+          </div>
+        </div>
+        <ul>
+          {BUILTIN_BIBLES.map((bible) => {
+            const installed = installedBuiltin(bible, translations);
+            return (
+              <li key={bible.key}>
+                <span className="builtin-code">{bible.short}</span>
+                <span className="builtin-name">
+                  <strong>{bible.label}</strong>
+                  <small>{bible.language}</small>
+                </span>
+                {installed ? (
+                  <button
+                    className="button secondary"
+                    disabled={installed.id === datasetId}
+                    onClick={() => changeTranslation(installed.id)}
+                  >
+                    {installed.id === datasetId
+                      ? "Sedang dibuka"
+                      : `Buka ${bible.short}`}
+                  </button>
+                ) : bible.file ? (
+                  <button
+                    className="button primary"
+                    disabled={!editable || importing || !!downloading}
+                    onClick={() => void install(bible)}
+                  >
+                    {downloading === bible.key
+                      ? "Mengunduh…"
+                      : `Pasang ${bible.short}`}
+                  </button>
+                ) : (
+                  <span className="builtin-pending">{bible.pending}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        {BUILTIN_BIBLES.some(
+          (bible) => !bible.file && !installedBuiltin(bible, translations),
+        ) && (
+          <p className="field-help">
+            TB2 adalah hak cipta Lembaga Alkitab Indonesia. Menyimpan Alkitab
+            lengkap memerlukan izin tertulis LAI (akses resmi: Bible API LAI,
+            bible-api.alkitab.or.id). Setelah ada file TB2 berizin, impor lewat
+            bagian di bawah; kartu ini akan menjadi “Buka TB2”.
+          </p>
+        )}
+      </section>
       <ScriptureImportDialog
         importer={importer}
         state={importState}
@@ -256,8 +340,8 @@ export function ScripturesLibrary({
           <div>
             <h3>Belum ada dataset Alkitab</h3>
             <p>
-              Impor file JSON yang Anda berhak gunakan. Tidak ada terjemahan
-              bawaan.
+              Pasang KJV di atas, atau impor file JSON yang Anda berhak
+              gunakan.
             </p>
           </div>
         </div>
@@ -329,7 +413,7 @@ export function ScripturesLibrary({
               Referensi ayat
               <input
                 aria-label="Referensi ayat"
-                placeholder="John 3:16-18,20"
+                placeholder="Yoh 3:16-18 atau John 3:16"
                 maxLength={250}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

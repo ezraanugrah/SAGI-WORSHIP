@@ -1,4 +1,4 @@
-/** Original synthetic text, imported only by tests. No Bible translation is bundled. */
+/** Original synthetic text, imported only by tests. It is not a Bible translation. */
 import { canonicalJSON, parseDataset, sha256, unsigned } from "./importFormat";
 import type { Dataset, PreparedDataset } from "./models";
 export function fixtureDataset(): Dataset {

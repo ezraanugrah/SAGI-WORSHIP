@@ -1923,6 +1923,78 @@ footer > span:last-child {
 .scripture-import .section-heading {
   margin-top: 0;
 }
+/* Bundled Bibles (TB / KJV) installed with one click. */
+.scripture-builtins {
+  border: 1px solid #3a424e;
+  background: #161c23;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.scripture-builtins .section-heading {
+  margin: 0 0 12px;
+}
+.scripture-builtins ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scripture-builtins li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #2c333d;
+  border-radius: 6px;
+  background: #10161e;
+}
+.builtin-code {
+  flex-shrink: 0;
+  min-width: 44px;
+  padding: 6px 0;
+  border-radius: 4px;
+  background: #2a2d32;
+  color: #edba70;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: center;
+}
+.builtin-name {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.builtin-name strong {
+  font-size: 12px;
+  color: #e6e9ef;
+  overflow-wrap: anywhere;
+}
+.builtin-name small {
+  font-size: 10px;
+  color: #8d9aaa;
+}
+.scripture-builtins li .button {
+  flex-shrink: 0;
+}
+.builtin-pending {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px dashed #4a4133;
+  border-radius: 4px;
+  color: #ddbd8c;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.scripture-builtins .field-help {
+  margin: 12px 0 0;
+}
 .import-review {
   margin-top: 17px;
 }
@@ -2111,6 +2183,12 @@ footer > span:last-child {
   }
   .scripture-import .section-heading {
     flex-wrap: wrap;
+  }
+  .scripture-builtins li {
+    flex-wrap: wrap;
+  }
+  .scripture-builtins li .button {
+    flex-basis: 100%;
   }
   .selection-bar .button {
     flex: 1;

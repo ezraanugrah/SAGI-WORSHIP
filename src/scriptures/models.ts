@@ -101,7 +101,12 @@ export const chapterRange = (
   const prefix = `v|${datasetId}|${String(order).padStart(3, "0")}|${String(chapter).padStart(3, "0")}|`;
   return IDBKeyRange.bound(prefix, `${prefix}\uffff`);
 };
-export const editionKey = (info: TranslationInfo) =>
+export const editionKey = (
+  info: Pick<
+    TranslationInfo,
+    "publisher" | "code" | "edition" | "language" | "versification"
+  >,
+) =>
   JSON.stringify([
     info.publisher,
     info.code,
