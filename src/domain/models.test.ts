@@ -4,6 +4,9 @@ import {
   searchSongs,
   validSongInput,
   validDraft,
+  withSectionLabels,
+  nextSectionChoice,
+  sectionChoices,
   sectionTypes,
   now,
   type Song,
@@ -21,6 +24,41 @@ describe("song validation and ordering", () => {
     }));
     input.order = ["s0", "s1", "s2", "s1", "s4"];
     expect(validSongInput(input, "song")).toBe(true);
+  });
+  it("offers six song parts that are all valid section types", () => {
+    expect(sectionChoices.map((c) => c.label)).toEqual([
+      "Intro",
+      "Verse 1",
+      "Verse 2",
+      "Pre Chorus",
+      "Chorus",
+      "Bridge",
+    ]);
+    expect(sectionChoices.every((c) => sectionTypes.includes(c.type))).toBe(
+      true,
+    );
+    expect(nextSectionChoice([{ label: "Verse 1" }]).label).toBe("Verse 2");
+    expect(
+      nextSectionChoice(sectionChoices.map((c) => ({ label: c.label }))).label,
+    ).toBe("Chorus");
+  });
+  it("lets a draft keep a blank label and fills labels from the type when saving", () => {
+    const input = songFixture("song");
+    input.sections = [
+      { id: "a", songId: "song", type: "Verse", label: "", text: "x" },
+      { id: "b", songId: "song", type: "Chorus", label: "Reff", text: "y" },
+      { id: "c", songId: "song", type: "Verse", label: "  ", text: "z" },
+    ];
+    input.order = ["a", "b", "c"];
+    expect(validSongInput(input, "song")).toBe(false);
+    expect(validSongInput(input, "song", true)).toBe(true);
+    const song = withSectionLabels(input);
+    expect(song.sections.map((x) => x.label)).toEqual([
+      "Verse",
+      "Reff",
+      "Verse 2",
+    ]);
+    expect(validSongInput(song, "song")).toBe(true);
   });
   it("rejects blank canonical lyrics, invalid types, duplicate IDs and dangling section references", () => {
     const input = songFixture("song");

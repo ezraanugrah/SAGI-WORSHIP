@@ -107,7 +107,9 @@ test("PDF rasterizes selected pages offline and mixed schedules duplicate/reorde
   await openWeek(page, 1);
   await image(page);
   await dragToWeek(mediaCard(page, "synthetic.png"));
-  await page.getByLabel("File media", { exact: true }).setInputFiles({
+  // PDFs are imported in Presentations; the Media tab takes images/videos.
+  await page.getByRole("tab", { name: "Presentations", exact: true }).click();
+  await page.getByLabel("File presentasi", { exact: true }).setInputFiles({
     name: "original.pdf",
     mimeType: "application/pdf",
     buffer: syntheticPDF(),

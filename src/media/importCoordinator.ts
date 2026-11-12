@@ -1,8 +1,41 @@
 import { openPdf, renderPdfPage } from "./pdfAdapter";
 import { identify, dimensions, waitEvent } from "./validation";
 import { payload, cancelled } from "./integrity";
-import { type AssetRef, type MediaAsset, type Payload } from "./models";
+import {
+  type AssetRef,
+  type MediaAsset,
+  type MediaKind,
+  type Payload,
+} from "./models";
 export type PreparedMedia = { asset: MediaAsset; payloads: Payload[] };
+/** The Media tab takes pictures and videos; PDF presentations have their own tab. */
+export const MEDIA_TAB_KINDS: readonly MediaKind[] = ["image", "video"];
+export const PRESENTATION_KINDS: readonly MediaKind[] = ["pdf"];
+const WRONG_TAB: Record<MediaKind, string> = {
+  image: "Gambar diimpor di tab Media.",
+  video: "Video diimpor di tab Media.",
+  pdf: "Tab Media hanya untuk gambar dan video. PDF diimpor di tab Presentations.",
+};
+/**
+ * Above this the video is likely to stutter on a church laptop: more than
+ * 1080p, or a bitrate far beyond what a 1080p projector needs.
+ */
+export const HEAVY_VIDEO = { pixels: 1920 * 1088, bitsPerSecond: 25_000_000 };
+export function heavyVideoHint(
+  width: number,
+  height: number,
+  size: number,
+  duration: number,
+) {
+  const reasons: string[] = [];
+  if (width * height > HEAVY_VIDEO.pixels) reasons.push(`${width}×${height}`);
+  const rate = (size * 8) / duration;
+  if (Number.isFinite(rate) && rate > HEAVY_VIDEO.bitsPerSecond)
+    reasons.push(`${Math.round(rate / 1_000_000)} Mbps`);
+  return reasons.length
+    ? `Video berat (${reasons.join(", ")}): bisa tersendat di laptop. Untuk proyektor cukup MP4 H.264 1080p (±8–12 Mbps).`
+    : "";
+}
 async function thumbnail(
   source: CanvasImageSource,
   width: number,
@@ -39,8 +72,11 @@ const ref = (
 export async function prepareFile(
   file: File,
   signal?: AbortSignal,
+  kinds?: readonly MediaKind[],
 ): Promise<PreparedMedia> {
   const { kind, mime } = await identify(file);
+  // Refuse a file meant for another tab before hashing or decoding it.
+  if (kinds && !kinds.includes(kind)) throw new Error(WRONG_TAB[kind]);
   cancelled(signal);
   const blob = file.slice(0, file.size, mime),
     original = await payload(blob, signal);
@@ -127,7 +163,8 @@ export async function prepareFile(
       createdAt: new Date().toISOString(),
       compatibility:
         kind === "video"
-          ? "Metadata dan frame awal didekode; playback penuh bergantung codec."
+          ? heavyVideoHint(width, height, file.size, duration ?? 0) ||
+            "Metadata dan frame awal didekode; playback penuh bergantung codec."
           : kind === "pdf"
             ? "PDF lokal; halaman terpilih diverifikasi saat Preview."
             : "Gambar didekode lokal.",

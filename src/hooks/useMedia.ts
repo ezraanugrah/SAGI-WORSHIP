@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { WriterGate } from "../data/writer";
 import { MediaRepository } from "../data/mediaRepository";
 import { prepareFile } from "../media/importCoordinator";
-import type { MediaAsset } from "../media/models";
+import type { MediaAsset, MediaKind } from "../media/models";
 export function useMedia(gate: WriterGate) {
   const [repo] = useState(() => new MediaRepository(gate)),
     [status, setStatus] = useState(""),
@@ -26,7 +26,8 @@ export function useMedia(gate: WriterGate) {
       job.current?.abort();
     };
   }, [gate]);
-  async function importFiles(files: File[]) {
+  /** Import files; `kinds` limits what this tab accepts (Media: image/video). */
+  async function importFiles(files: File[], kinds?: readonly MediaKind[]) {
     cancel();
     const token = ++generation.current,
       abort = new AbortController();
@@ -40,7 +41,7 @@ export function useMedia(gate: WriterGate) {
         gate.assert(ticket);
         setStatus(`Memvalidasi ${i + 1}/${files.length}: ${files[i].name}`);
         try {
-          const prepared = await prepareFile(files[i], abort.signal);
+          const prepared = await prepareFile(files[i], abort.signal, kinds);
           const estimate = await navigator.storage?.estimate();
           if (
             estimate?.quota &&
@@ -53,7 +54,13 @@ export function useMedia(gate: WriterGate) {
             );
           if (token !== generation.current) break;
           await repo.import(prepared, abort.signal, ticket);
-          reports.push(`${files[i].name}: tersimpan offline`);
+          reports.push(
+            `${files[i].name}: tersimpan offline${
+              prepared.asset.compatibility.startsWith("Video berat")
+                ? ` — ${prepared.asset.compatibility}`
+                : ""
+            }`,
+          );
         } catch (e) {
           if (abort.signal.aborted) break;
           reports.push(`${files[i].name}: ${(e as Error).message}`);

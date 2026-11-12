@@ -26,7 +26,7 @@ import {
   type Workspace,
 } from "../domain/models";
 import type { Deck } from "../presentation/models";
-import { readAsset } from "../media/assetReader";
+import { readAsset, readVerifiedAsset } from "../media/assetReader";
 export function changed() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event("sagi-library-changed"));
@@ -185,7 +185,9 @@ export class MediaRepository {
     }
     const frames: AssetRef[] = [];
     if (asset.kind !== "pdf") {
-      await readAsset(asset.original, [asset.original], this.name);
+      // Verified once per window: previewing a large video again must not
+      // re-hash the whole file while the projector may be playing.
+      await readVerifiedAsset(asset.original, [asset.original], this.name);
       frames.push(asset.original);
     } else {
       const ticket = this.gate.ticket();

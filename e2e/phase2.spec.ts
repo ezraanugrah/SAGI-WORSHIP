@@ -103,7 +103,7 @@ test("all section types, repeated order, keyboard and drag ordering survive relo
       .click();
     await editor
       .getByLabel(`Jenis bagian ${i}`, { exact: true })
-      .selectOption(["Intro", "Verse", "Chorus", "Bridge", "Ending"][i - 1]);
+      .selectOption(["Verse 2", "Pre Chorus", "Chorus", "Bridge"][i - 2]);
     await editor
       .getByLabel(`Lirik bagian ${i}`, { exact: true })
       .fill(`Original section ${i} for testing.`);

@@ -7,14 +7,31 @@ import { readAsset } from "../media/assetReader";
 import { endDrag, startDrag } from "./dragState";
 import type { useFolderWatch } from "../hooks/useFolderWatch";
 import { FolderWatchControls, FolderWatchList } from "./FolderWatch";
+import {
+  MEDIA_TAB_KINDS,
+  PRESENTATION_KINDS,
+} from "../media/importCoordinator";
 /** Drag payload type: a JSON MediaSelection dragged into the active Week. */
 export const MEDIA_DRAG_TYPE = "application/x-sagi-media";
+/** The Media tab holds pictures and videos; PDFs live in Presentations. */
 const KINDS = [
   { id: "all", label: "Semua media" },
   { id: "image", label: "Gambar" },
   { id: "video", label: "Video" },
-  { id: "pdf", label: "PDF" },
 ];
+const inTab = (a: MediaAsset, presentations: boolean) =>
+  presentations ? a.kind === "pdf" : a.kind !== "pdf";
+const clock = (seconds: number) => {
+  const s = Math.round(seconds);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
+function cardDetail(a: MediaAsset) {
+  const size = `${(a.original.size / 1048576).toFixed(1)} MiB`;
+  if (a.kind === "pdf") return `PDF · ${size} · ${a.pages} halaman`;
+  if (a.kind === "video")
+    return `Video · ${clock(a.original.duration ?? 0)} · ${size}`;
+  return `Gambar · ${a.original.width}×${a.original.height} · ${size}`;
+}
 export function AssetThumbnail({ refValue }: { refValue: AssetRef }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
@@ -84,8 +101,11 @@ export function MediaLibrary({
       active = false;
     };
   }, [data, services.repo]);
+  const tabAssets = (data.mediaAssets ?? []).filter((a) =>
+    inTab(a, presentations),
+  );
   const kind = presentations ? "pdf" : filter;
-  const assets = (data.mediaAssets ?? []).filter(
+  const assets = tabAssets.filter(
     (a) =>
       (kind === "all" || a.kind === kind) &&
       a.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
@@ -181,9 +201,8 @@ export function MediaLibrary({
                   <span className="side-name">{k.label}</span>
                   <span className="side-count">
                     {
-                      (data.mediaAssets ?? []).filter(
-                        (a) => k.id === "all" || a.kind === k.id,
-                      ).length
+                      tabAssets.filter((a) => k.id === "all" || a.kind === k.id)
+                        .length
                     }
                   </span>
                 </button>
@@ -205,14 +224,17 @@ export function MediaLibrary({
           multiple
           accept={
             presentations
-              ? ".pdf"
-              : ".jpg,.jpeg,.png,.webp,.mp4,.webm,.pdf,.pptx"
+              ? ".pdf,application/pdf"
+              : ".jpg,.jpeg,.png,.webp,.mp4,.webm,image/jpeg,image/png,image/webp,video/mp4,video/webm"
           }
           aria-label={presentations ? "File presentasi" : "File media"}
           disabled={!editable || services.working}
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
-            void services.importFiles(files);
+            void services.importFiles(
+              files,
+              presentations ? PRESENTATION_KINDS : MEDIA_TAB_KINDS,
+            );
             e.target.value = "";
           }}
         />
@@ -227,7 +249,7 @@ export function MediaLibrary({
         <p className="field-help">
           {presentations
             ? "PDF hasil ekspor PowerPoint, Keynote, atau Google Slides."
-            : "JPG · PNG · WebP · MP4 · WebM · PDF"}
+            : "Gambar: JPG · PNG · WebP. Video: MP4 · WebM (paling lancar: MP4 H.264 1080p)."}
         </p>
         {watch && (
           <FolderWatchControls
@@ -261,7 +283,7 @@ export function MediaLibrary({
           <p className="lib-empty">
             {presentations
               ? "Belum ada presentasi. Ekspor PowerPoint/Keynote ke PDF, lalu impor di sini."
-              : "Belum ada media yang sesuai. File tetap di perangkat ini. PPTX memerlukan persetujuan terpisah; ekspor lokal sebagai PDF/gambar."}
+              : "Belum ada gambar atau video. Klik Impor media (JPG, PNG, WebP, MP4, WebM). PDF presentasi diimpor di tab Presentations."}
           </p>
         )}
         <ul className="media-grid" aria-label="Daftar media">
@@ -293,10 +315,7 @@ export function MediaLibrary({
               >
                 <AssetThumbnail refValue={a.thumbnail} />
                 <strong>{a.title}</strong>
-                <small>
-                  {a.kind} · {(a.original.size / 1048576).toFixed(1)} MiB ·{" "}
-                  {a.pages} halaman
-                </small>
+                <small>{cardDetail(a)}</small>
               </button>
             </li>
           ))}
@@ -317,93 +336,95 @@ export function MediaLibrary({
             </button>
           </div>
         )}
-        {selected && data.mediaAssets?.some((a) => a.id === selected.id) && (
-          <section className="media-details" aria-label="Detail media">
-            <h3>{selected.title}</h3>
-            <p>
-              {selected.original.width} × {selected.original.height}
-              {selected.original.duration
-                ? ` · ${selected.original.duration.toFixed(1)} detik`
-                : ""}{" "}
-              · {selected.original.mime}
-            </p>
-            <p>{selected.compatibility}</p>
-            <p className="checksum">Integritas: {selected.original.digest}</p>
-            {selected.kind === "pdf" && !editable && (
-              <p className="field-help">
-                Tab hanya baca dapat menelusuri halaman; persiapan PDF
-                membutuhkan penulis untuk menyimpan raster offline.
+        {selected &&
+          inTab(selected, presentations) &&
+          data.mediaAssets?.some((a) => a.id === selected.id) && (
+            <section className="media-details" aria-label="Detail media">
+              <h3>{selected.title}</h3>
+              <p>
+                {selected.original.width} × {selected.original.height}
+                {selected.original.duration
+                  ? ` · ${selected.original.duration.toFixed(1)} detik`
+                  : ""}{" "}
+                · {selected.original.mime}
               </p>
-            )}
-            {selected.kind === "pdf" && (
-              <label>
-                Halaman PDF (contoh 1-3,5)
-                <input
-                  aria-label="Halaman PDF"
-                  value={pages}
-                  onChange={(e) => setPages(e.target.value)}
-                />
-              </label>
-            )}
-            {selected.kind === "pdf" && (
-              <DocumentPagePicker
-                asset={selected}
-                selected={(() => {
-                  try {
-                    return selection().pages;
-                  } catch {
-                    return [];
-                  }
-                })()}
-                onPage={(n) => {
-                  let chosen: number[] = [];
-                  try {
-                    chosen = selection().pages;
-                  } catch {}
-                  const next = chosen.includes(n)
-                    ? chosen.filter((p) => p !== n)
-                    : [...chosen, n].sort((a, b) => a - b);
-                  if (next.length > 100) {
-                    setError("Maksimum 100 halaman");
-                    return;
-                  }
-                  setPages(next.join(","));
-                }}
-              />
-            )}
-            <div className="media-filters">
-              <button
-                className="button secondary"
-                disabled={selected.kind === "pdf" && !editable}
-                onClick={() => action(() => onPreview(selection()))}
-              >
-                Preview media
-              </button>
-              <button
-                className="button secondary"
-                disabled={!editable}
-                onClick={() =>
-                  action(async () => {
-                    if (
-                      !window.confirm(
-                        `Hapus “${selected.title}” dan item jadwal terkait? LIVE/checkpoint tetap menyimpan aset yang dibutuhkan; ruang mungkin belum dibebaskan.`,
-                      )
-                    )
+              <p>{selected.compatibility}</p>
+              <p className="checksum">Integritas: {selected.original.digest}</p>
+              {selected.kind === "pdf" && !editable && (
+                <p className="field-help">
+                  Tab hanya baca dapat menelusuri halaman; persiapan PDF
+                  membutuhkan penulis untuk menyimpan raster offline.
+                </p>
+              )}
+              {selected.kind === "pdf" && (
+                <label>
+                  Halaman PDF (contoh 1-3,5)
+                  <input
+                    aria-label="Halaman PDF"
+                    value={pages}
+                    onChange={(e) => setPages(e.target.value)}
+                  />
+                </label>
+              )}
+              {selected.kind === "pdf" && (
+                <DocumentPagePicker
+                  asset={selected}
+                  selected={(() => {
+                    try {
+                      return selection().pages;
+                    } catch {
+                      return [];
+                    }
+                  })()}
+                  onPage={(n) => {
+                    let chosen: number[] = [];
+                    try {
+                      chosen = selection().pages;
+                    } catch {}
+                    const next = chosen.includes(n)
+                      ? chosen.filter((p) => p !== n)
+                      : [...chosen, n].sort((a, b) => a - b);
+                    if (next.length > 100) {
+                      setError("Maksimum 100 halaman");
                       return;
-                    await services.repo.delete(
-                      selected.id,
-                      selected.original.digest,
-                    );
-                    setSelected(null);
-                    onChanged();
-                  })
-                }
-              >
-                Hapus media
-              </button>
-            </div>
-          </section>
-        )}
+                    }
+                    setPages(next.join(","));
+                  }}
+                />
+              )}
+              <div className="media-filters">
+                <button
+                  className="button secondary"
+                  disabled={selected.kind === "pdf" && !editable}
+                  onClick={() => action(() => onPreview(selection()))}
+                >
+                  Preview media
+                </button>
+                <button
+                  className="button secondary"
+                  disabled={!editable}
+                  onClick={() =>
+                    action(async () => {
+                      if (
+                        !window.confirm(
+                          `Hapus “${selected.title}” dan item jadwal terkait? LIVE/checkpoint tetap menyimpan aset yang dibutuhkan; ruang mungkin belum dibebaskan.`,
+                        )
+                      )
+                        return;
+                      await services.repo.delete(
+                        selected.id,
+                        selected.original.digest,
+                      );
+                      setSelected(null);
+                      onChanged();
+                    })
+                  }
+                >
+                  Hapus media
+                </button>
+              </div>
+            </section>
+          )}
         <p className="field-help">
           {selected?.kind === "pdf"
             ? "Halaman yang dipilih ikut saat kartu ini ditarik ke Schedule. "

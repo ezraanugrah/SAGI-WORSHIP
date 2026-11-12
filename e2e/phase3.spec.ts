@@ -28,7 +28,6 @@ async function song(
     await editor
       .getByLabel("Jenis bagian 2", { exact: true })
       .selectOption("Chorus");
-    await editor.getByLabel("Label bagian 2", { exact: true }).fill("Chorus");
     await editor.getByLabel("Lirik bagian 2", { exact: true }).fill(chorus);
     await editor
       .getByLabel("Tambahkan ke urutan", { exact: true })

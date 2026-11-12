@@ -1,6 +1,8 @@
 import {
+  missingForSave,
   now,
   validSongInput,
+  withSectionLabels,
   type SongInput,
   type SongDraft,
 } from "../domain/models";
@@ -67,23 +69,28 @@ export class SongAutosave {
         };
         await this.repo.saveDraft(draft);
         if (this.stopped) return;
-        if (validSongInput(input, this.songId)) {
+        const song = withSectionLabels(input);
+        if (validSongInput(song, this.songId)) {
           const saved =
             this.revision === 0
-              ? await this.repo.createSong(this.songId, input, sequence)
+              ? await this.repo.createSong(this.songId, song, sequence)
               : await this.repo.updateSong(
                   this.songId,
-                  input,
+                  song,
                   this.revision,
                   sequence,
                 );
           this.revision = saved.revision;
           this.committed();
           if (sequence === this.sequence) this.status("Tersimpan lokal");
-        } else if (sequence === this.sequence)
+        } else if (sequence === this.sequence) {
+          const missing = missingForSave(input);
           this.status(
-            "Draft tersimpan. Isi judul dan lirik semua bagian untuk menyimpan lagu.",
+            missing
+              ? `Draft tersimpan. Isi ${missing} untuk menyimpan lagu.`
+              : "Draft tersimpan. Isi judul dan lirik semua bagian untuk menyimpan lagu.",
           );
+        }
         this.handled = sequence;
         if (sequence !== this.sequence)
           this.status("Belum tersimpan…", false, true);

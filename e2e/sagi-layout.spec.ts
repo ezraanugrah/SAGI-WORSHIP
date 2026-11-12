@@ -315,11 +315,17 @@ test("Presentations tab lists only PDF presentations and drags them into the Wee
       exact: true,
     }),
   ).toBeVisible();
+  // The Media tab holds pictures and videos only: no PDF category, no PDFs.
   await expect(
     page.getByRole("button", { name: "Pilih media khotbah.pdf", exact: true }),
-  ).toBeVisible();
-  // Category list replaces the old "Jenis media" select.
-  await page.getByRole("button", { name: /^PDF/ }).click();
+  ).toHaveCount(0);
+  const kinds = page.getByRole("list", { name: "Jenis media" });
+  await expect(kinds.getByRole("button")).toHaveText([
+    /^Semua media\s*1$/,
+    /^Gambar\s*1$/,
+    /^Video\s*0$/,
+  ]);
+  await page.getByRole("button", { name: /^Video/ }).click();
   await expect(
     page.getByRole("button", {
       name: "Pilih media synthetic.png",
@@ -569,4 +575,97 @@ test("Themes Library imports media (image or video) like the Media tab", async (
     await expect(
       page.getByRole("button", { name: `Pilih media ${name}`, exact: true }),
     ).toHaveCount(1);
+});
+
+test("Media tab imports only pictures and videos and sends PDFs to Presentations", async ({
+  page,
+}) => {
+  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  const input = page.getByLabel("File media", { exact: true });
+  await expect(input).toHaveAttribute("accept", /\.mp4/);
+  await expect(input).not.toHaveAttribute("accept", /pdf/);
+  await input.setInputFiles([
+    await imageFile(page, "foto.png"),
+    {
+      name: "khotbah.pdf",
+      mimeType: "application/pdf",
+      buffer: syntheticPDF(),
+    },
+  ]);
+  await expect(
+    page.getByRole("status").filter({ hasText: "khotbah.pdf:" }),
+  ).toContainText(
+    "foto.png: tersimpan offline · khotbah.pdf: Tab Media hanya untuk gambar dan video. PDF diimpor di tab Presentations.",
+  );
+  await expect(
+    page.getByRole("button", { name: "Pilih media foto.png", exact: true }),
+  ).toContainText(/Gambar · \d+×\d+ · /);
+  await page.getByRole("tab", { name: "Presentations", exact: true }).click();
+  await expect(page.getByText(/^Belum ada presentasi/)).toBeVisible();
+});
+
+test("song editor asks only title and author, and each part is picked from six choices", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
+  const editor = page.getByRole("region", { name: "Editor lagu" });
+  await expect(editor.locator(".song-fields input")).toHaveCount(2);
+  await expect(editor.getByLabel("Kategori")).toHaveCount(0);
+  await expect(editor.getByLabel("Bahasa")).toHaveCount(0);
+  // No free-text "Label bagian" box: the part is chosen from the list.
+  await expect(editor.getByLabel(/^Label bagian/)).toHaveCount(0);
+  const first = editor.getByLabel("Jenis bagian 1", { exact: true });
+  await expect(first).toHaveValue("Verse 1");
+  await expect(first.locator("option")).toHaveText([
+    "Intro",
+    "Verse 1",
+    "Verse 2",
+    "Pre Chorus",
+    "Chorus",
+    "Bridge",
+  ]);
+  await expect(editor.getByRole("status")).toHaveText(
+    "Lagu baru · isi judul dan lirik untuk autosave.",
+  );
+  await editor.getByLabel("Judul lagu", { exact: true }).fill("Delivered");
+  await editor
+    .getByLabel("Penyanyi / pencipta", { exact: true })
+    .fill("Arising Church");
+  await editor
+    .getByLabel("Lirik bagian 1", { exact: true })
+    .fill("Synthetic delivered verse.");
+  await editor
+    .getByRole("button", { name: "Tambah bagian", exact: true })
+    .click();
+  // A new part takes the next unused choice.
+  await expect(
+    editor.getByLabel("Jenis bagian 2", { exact: true }),
+  ).toHaveValue("Verse 2");
+  await editor
+    .getByLabel("Jenis bagian 2", { exact: true })
+    .selectOption("Pre Chorus");
+  await expect(editor.getByRole("status")).toHaveText(
+    "Draft tersimpan. Isi lirik bagian 2 untuk menyimpan lagu.",
+  );
+  await editor
+    .getByLabel("Lirik bagian 2", { exact: true })
+    .fill("Synthetic pre chorus.");
+  await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
+  await expect(editor.getByTestId("section-order-item")).toHaveText([
+    /Verse 1/,
+    /Pre Chorus/,
+  ]);
+  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  await songRow(page, "Delivered")
+    .getByRole("button", { name: /^Delivered/ })
+    .click();
+  await previewReady(page);
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Edit Delivered", exact: true })
+    .click();
+  await expect(page.getByLabel("Jenis bagian 2", { exact: true })).toHaveValue(
+    "Pre Chorus",
+  );
 });

@@ -6,11 +6,15 @@ import {
   emptySong,
   id,
   move,
-  sectionTypes,
+  nextSectionChoice,
+  sectionChoices,
   type Song,
   type SongDraft,
   type SongInput,
+  type SongSection,
 } from "../domain/models";
+/** Name shown for a part: its label, or its type when the label is blank. */
+const sectionName = (s: SongSection) => s.label.trim() || s.type;
 export function SongEditor({
   songId,
   song,
@@ -144,22 +148,8 @@ export function SongEditor({
                 onChange={(e) => update({ ...value, author: e.target.value })}
               />
             </label>
-            <label>
-              Kategori
-              <input
-                maxLength={100}
-                value={value.category}
-                onChange={(e) => update({ ...value, category: e.target.value })}
-              />
-            </label>
-            <label>
-              Bahasa
-              <input
-                maxLength={100}
-                value={value.language}
-                onChange={(e) => update({ ...value, language: e.target.value })}
-              />
-            </label>
+            {/* Only title and author are edited here. Category and language
+                stay in the data (backups, sync) unchanged. */}
           </div>
           <div className="section-heading">
             <h3>Bagian lagu</h3>
@@ -167,7 +157,8 @@ export function SongEditor({
               className="button secondary"
               disabled={value.sections.length >= 200}
               onClick={() => {
-                const sectionId = id();
+                const sectionId = id(),
+                  choice = nextSectionChoice(value.sections);
                 update({
                   ...value,
                   sections: [
@@ -175,8 +166,8 @@ export function SongEditor({
                     {
                       id: sectionId,
                       songId,
-                      type: "Verse",
-                      label: `Verse ${value.sections.length + 1}`,
+                      type: choice.type,
+                      label: choice.label,
                       text: "",
                     },
                   ],
@@ -195,39 +186,31 @@ export function SongEditor({
                   Jenis bagian {index + 1}
                   <select
                     aria-label={`Jenis bagian ${index + 1}`}
-                    value={section.type}
-                    onChange={(e) =>
+                    value={sectionName(section)}
+                    onChange={(e) => {
+                      const choice = sectionChoices.find(
+                        (c) => c.label === e.target.value,
+                      );
+                      if (!choice) return;
                       update({
                         ...value,
                         sections: value.sections.map((s) =>
                           s.id === section.id
-                            ? { ...s, type: e.target.value as typeof s.type }
+                            ? { ...s, type: choice.type, label: choice.label }
                             : s,
                         ),
-                      })
-                    }
+                      });
+                    }}
                   >
-                    {sectionTypes.map((type) => (
-                      <option key={type}>{type}</option>
+                    {/* A part saved earlier under another name (e.g.
+                        "Ending", "Verse 3") stays as it is until changed. */}
+                    {!sectionChoices.some(
+                      (c) => c.label === sectionName(section),
+                    ) && <option>{sectionName(section)}</option>}
+                    {sectionChoices.map((c) => (
+                      <option key={c.label}>{c.label}</option>
                     ))}
                   </select>
-                </label>
-                <label>
-                  Label bagian {index + 1}
-                  <input
-                    maxLength={100}
-                    value={section.label}
-                    onChange={(e) =>
-                      update({
-                        ...value,
-                        sections: value.sections.map((s) =>
-                          s.id === section.id
-                            ? { ...s, label: e.target.value }
-                            : s,
-                        ),
-                      })
-                    }
-                  />
                 </label>
                 <button
                   className="icon-button danger"
@@ -303,7 +286,10 @@ export function SongEditor({
                 <GripVertical size={15} />
                 <span>
                   {index + 1}.{" "}
-                  {value.sections.find((s) => s.id === sectionId)?.label}
+                  {(() => {
+                    const s = value.sections.find((x) => x.id === sectionId);
+                    return s ? sectionName(s) : "";
+                  })()}
                 </span>
                 <button
                   className="icon-button"
@@ -349,9 +335,14 @@ export function SongEditor({
               disabled={value.order.length >= 1000}
             >
               <option value="">Pilih bagian untuk diulang…</option>
-              {value.sections.map((s) => (
+              {value.sections.map((s, i) => (
                 <option key={s.id} value={s.id}>
-                  {s.label}
+                  {/* Two parts with the same name are told apart by number. */}
+                  {value.sections.some(
+                    (x) => x !== s && sectionName(x) === sectionName(s),
+                  )
+                    ? `${sectionName(s)} · bagian ${i + 1}`
+                    : sectionName(s)}
                 </option>
               ))}
             </select>

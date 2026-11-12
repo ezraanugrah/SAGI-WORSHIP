@@ -18,6 +18,26 @@ export const sectionTypes = [
   "Ending",
 ] as const;
 export type SectionType = (typeof sectionTypes)[number];
+/**
+ * The parts the song editor offers. The label is what the order list and the
+ * slides show; the type is a coarse group kept so songs stay readable by
+ * older backups and laptops that sync with this one (no new data format).
+ */
+export const sectionChoices: readonly { label: string; type: SectionType }[] = [
+  { label: "Intro", type: "Intro" },
+  { label: "Verse 1", type: "Verse" },
+  { label: "Verse 2", type: "Verse" },
+  { label: "Pre Chorus", type: "Chorus" },
+  { label: "Chorus", type: "Chorus" },
+  { label: "Bridge", type: "Bridge" },
+];
+/** Default for "Tambah bagian": the first part not used yet (after Intro). */
+export function nextSectionChoice(sections: { label: string }[]) {
+  const used = new Set(sections.map((s) => s.label.trim()));
+  return (
+    sectionChoices.slice(1).find((c) => !used.has(c.label)) ?? sectionChoices[4]
+  );
+}
 export type SongSection = {
   id: string;
   songId: string;
@@ -172,7 +192,9 @@ export function validSongInput(
         validId(x.id) &&
         x.songId === songId &&
         sectionTypes.includes(x.type) &&
-        text(x.label, 100, true) &&
+        // A draft may hold a blank label while the operator retypes it;
+        // saving the song fills it in (see withSectionLabels).
+        text(x.label, 100, !draft) &&
         text(x.text, 30000, !draft),
     ) &&
     new Set(s.sections.map((x) => x.id)).size === s.sections.length &&
@@ -184,6 +206,39 @@ export function validSongInput(
         typeof x === "string" && s.sections.some((section) => section.id === x),
     )
   );
+}
+/**
+ * Blank section labels get a default from the section type ("Chorus",
+ * "Verse 2"), so a cleared label never blocks saving the song.
+ */
+export function withSectionLabels(input: SongInput): SongInput {
+  const counts = new Map<string, number>();
+  return {
+    ...input,
+    sections: input.sections.map((section) => {
+      const n = (counts.get(section.type) ?? 0) + 1;
+      counts.set(section.type, n);
+      return section.label.trim()
+        ? section
+        : {
+            ...section,
+            label: n > 1 ? `${section.type} ${n}` : section.type,
+          };
+    }),
+  };
+}
+/** What still keeps a draft from being saved as a song, in plain words. */
+export function missingForSave(input: SongInput): string {
+  const missing: string[] = [];
+  if (!input.title.trim()) missing.push("judul lagu");
+  const empty = input.sections
+    .map((s, i) => (s.text.trim() ? 0 : i + 1))
+    .filter(Boolean);
+  if (empty.length)
+    missing.push(
+      `lirik bagian ${empty.length > 3 ? `${empty.slice(0, 3).join(", ")}, …` : empty.join(", ")}`,
+    );
+  return missing.join(" dan ");
 }
 export function requireSong(
   value: unknown,

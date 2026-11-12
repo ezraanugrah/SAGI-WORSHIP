@@ -135,6 +135,21 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Tautan **sabda.org ↗** membuka pasal yang dipilih di sabda.org (format `https://sabda.org/alkitab/tb/?kitab=4&pasal=4`).
 - Tes: unit test pengepakan ayat (kedua kolom sama, footer rentang, semua ayat tercakup, ukuran huruf per slide di backup) dan SABDA (alamat, XML, penolakan kitab/pasal salah, kolom kiri TB); E2E Bilangan 4:4–7 dalam satu slide, Mazmur 119:1–40 bersambung, dan TB SABDA dengan server tiruan.
 
+### Tab Media hanya gambar dan video; video LIVE lebih lancar
+
+- **Tab Media hanya untuk gambar (JPG, PNG, WebP) dan video (MP4, WebM).** Kategori PDF dihapus (tinggal Semua media · Gambar · Video), dialog impor hanya menawarkan gambar/video, dan PDF yang tetap dipilih ditolak dengan pesan "PDF diimpor di tab Presentations" sebelum file dibaca. PDF presentasi tetap di tab **Presentations** (data PDF lama tidak dihapus, hanya pindah tampil di sana). Folder pantauan Media juga hanya mendeteksi gambar/video.
+- Kartu media menampilkan jenis dan durasi/ukuran ("Video · 0:40 · 58.4 MiB", "Gambar · 1920×1080 · …"), bukan "1 halaman".
+- **Video tidak tersendat saat operator bekerja.** Sebelumnya setiap Preview/Go Live membaca ulang dan meng-hash seluruh file video, bersamaan dengan proyektor yang sedang memutar (jendela proyektor berbagi proses browser dengan jendela operator). Kini tiap file diverifikasi sekali per jendela, probe decode tidak diulang, dan hash diproses 4 potongan sekaligus. Diukur dengan Chrome pada video 1080p60 228 MB: Preview 1,8 → ±0,85 detik, Go Live 1,7 → ±1,0 detik, Preview ulang saat video LIVE berjalan 2,0 → 0,13 detik, frame drop di proyektor 5 → 0. Jendela proyektor tetap memverifikasi sendiri sebelum menampilkan (media rusak tetap ditolak).
+- Video yang berat (di atas 1080p atau di atas 25 Mbps) diberi peringatan saat impor dan di detail media, dengan saran memakai MP4 H.264 1080p.
+- Tes: unit test filter tab dan folder pantauan; E2E impor PDF lewat Presentations dan penolakan PDF di tab Media.
+
+### Editor lagu: simpan tidak gagal lagi, kolom lebih sedikit
+
+- **Diperbaiki: "Gagal menyimpan: Draft tidak valid".** Muncul bila kotak label bagian dikosongkan (mis. saat mengganti "Verse 1"), dan lagu tidak bisa disimpan atau ditutup. Draft kini boleh berisi label kosong, dan saat disimpan label kosong diisi dari jenis bagian. Pesan draft menyebut yang masih kurang, mis. "Isi judul lagu dan lirik bagian 2 untuk menyimpan lagu."
+- Editor lagu kini hanya meminta **Judul lagu** dan **Penyanyi / pencipta**; kolom Kategori dan Bahasa dihapus (nilai lama tetap tersimpan di data, backup, dan sinkron).
+- Kotak **Label bagian** dihapus. **Jenis bagian** dipilih dari: Intro, Verse 1, Verse 2, Pre Chorus, Chorus, Bridge; nama itu yang tampil di urutan dan slide. **Tambah bagian** memilih bagian berikutnya yang belum dipakai. Lagu lama dengan nama lain (mis. "Ending", "Reff") tetap tampil dengan namanya sampai diganti. Format data tidak berubah (Pre Chorus disimpan dengan jenis Chorus), jadi backup dan sinkron dengan laptop versi lama tetap jalan.
+- Tes: unit test label kosong, pesan draft, dan pilihan bagian; E2E editor dua kolom dan pilihan bagian.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

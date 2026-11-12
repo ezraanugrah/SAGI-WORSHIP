@@ -26,7 +26,6 @@ async function song(page: Page) {
   await editor
     .getByLabel("Jenis bagian 2", { exact: true })
     .selectOption("Chorus");
-  await editor.getByLabel("Label bagian 2", { exact: true }).fill("Chorus");
   await editor.getByLabel("Lirik bagian 2", { exact: true }).fill(chorus);
   await editor
     .getByRole("button", { name: "Tambah bagian", exact: true })
@@ -34,7 +33,6 @@ async function song(page: Page) {
   await editor
     .getByLabel("Jenis bagian 3", { exact: true })
     .selectOption("Bridge");
-  await editor.getByLabel("Label bagian 3", { exact: true }).fill("Bridge");
   await editor.getByLabel("Lirik bagian 3", { exact: true }).fill(bridge);
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
   await editor.getByRole("button", { name: "Selesai", exact: true }).click();

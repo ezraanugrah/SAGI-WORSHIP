@@ -11,16 +11,33 @@ export async function sha(bytes: Uint8Array) {
     (n) => n.toString(16).padStart(2, "0"),
   ).join("");
 }
+/**
+ * Chunks read and hashed at the same time. WebCrypto hashes off the main
+ * thread, so a few chunks in flight make a large video verify several times
+ * faster (import, first Preview, first Go Live) with at most ~16 MiB in memory.
+ */
+const PARALLEL = 4;
 export async function fingerprint(blob: Blob, signal?: AbortSignal) {
-  const chunks: string[] = [];
-  for (let offset = 0; offset < blob.size; offset += CHUNK) {
-    cancelled(signal);
-    chunks.push(
-      await sha(
-        new Uint8Array(await blob.slice(offset, offset + CHUNK).arrayBuffer()),
-      ),
-    );
-  }
+  const count = Math.ceil(blob.size / CHUNK),
+    chunks: string[] = new Array(count);
+  let next = 0,
+    failed = false;
+  const lane = async () => {
+    while (!failed && next < count) {
+      const i = next++;
+      try {
+        cancelled(signal);
+        const part = blob.slice(i * CHUNK, (i + 1) * CHUNK);
+        chunks[i] = await sha(new Uint8Array(await part.arrayBuffer()));
+      } catch (e) {
+        failed = true;
+        throw e;
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(PARALLEL, count) }, () => lane()),
+  );
   cancelled(signal);
   return {
     chunks,

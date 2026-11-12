@@ -1499,7 +1499,8 @@ footer > span:last-child {
 }
 .section-fields {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr) 32px;
+  grid-template-columns: minmax(0, 240px) 32px;
+  justify-content: space-between;
   gap: 12px;
   align-items: end;
   margin-bottom: 12px;
@@ -1611,7 +1612,7 @@ footer > span:last-child {
     padding: 15px;
   }
   .section-fields {
-    grid-template-columns: 110px minmax(0, 1fr) 30px;
+    grid-template-columns: minmax(0, 200px) 30px;
     gap: 8px;
   }
   .editor-body {
@@ -1627,9 +1628,6 @@ footer > span:last-child {
   }
   .section-fields {
     grid-template-columns: minmax(0, 1fr) 30px;
-  }
-  .section-fields > label:first-child {
-    grid-column: 1/-1;
   }
   .section-heading {
     align-items: flex-start;

@@ -11,6 +11,7 @@
 import { openDB } from "idb";
 import type { MediaAsset } from "./models";
 
+/** Pictures and videos only, like the Media tab (PDFs go to Presentations). */
 export const WATCH_EXTENSIONS = [
   ".jpg",
   ".jpeg",
@@ -18,7 +19,6 @@ export const WATCH_EXTENSIONS = [
   ".webp",
   ".mp4",
   ".webm",
-  ".pdf",
 ];
 /** Unfinished downloads and temporary files. */
 const PARTIAL = /\.(crdownload|part|partial|download|tmp)$/i;

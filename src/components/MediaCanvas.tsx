@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { boosted, setVolume } from "../media/volumeBoost";
-import { readAsset, readVerifiedAsset } from "../media/assetReader";
+import { readVerifiedAsset } from "../media/assetReader";
 import { waitEvent } from "../media/validation";
 import {
   type AssetRef,
@@ -55,15 +55,16 @@ export function MediaCanvas({
       adopted = false;
     void (async () => {
       try {
-        // The audience output reuses the payload its preflight just verified;
-        // operator Preview/monitor keep verifying on every load as before.
-        const blob =
-          role === "audience"
-            ? (await readVerifiedAsset(asset, allowed)).blob
-            : await readAsset(asset, allowed);
+        // Every output verifies a payload once per window (payloads are
+        // immutable and digest-addressed). Re-hashing a large video on each
+        // Preview or Go Live competed with the projector, which shares the
+        // operator's browser process, and made LIVE video skip frames.
+        const verified = await readVerifiedAsset(asset, allowed);
         if (generation !== token.current) return;
-        url = URL.createObjectURL(blob);
+        url = URL.createObjectURL(verified.blob);
         if (asset.kind === "image") {
+          // Decode every time: each blob URL is decoded anew, and decoding
+          // before mounting keeps the previous slide up until it is ready.
           const image = new Image();
           image.src = url;
           await image.decode();
@@ -72,7 +73,9 @@ export function MediaCanvas({
             image.naturalHeight !== asset.height
           )
             throw new Error("Dimensi aset tidak sesuai");
-        } else {
+        } else if (!verified.decoded) {
+          // A video already probed in this window (projector preflight or an
+          // earlier load) mounts at once instead of being decoded twice.
           const probe = document.createElement("video");
           probe.muted = true;
           probe.preload = "auto";
@@ -90,6 +93,7 @@ export function MediaCanvas({
             probe.load();
           }
         }
+        verified.decoded = true;
         if (generation !== token.current) return;
         adopted = true;
         setLoaded({ asset, url });

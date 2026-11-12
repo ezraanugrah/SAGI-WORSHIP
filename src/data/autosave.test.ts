@@ -36,6 +36,54 @@ describe("validated autosave lifecycle", () => {
     expect(saver.unsaved).toBe(false);
     saver.stop();
   });
+  it("saves a song whose section label was cleared, using the section type as label", async () => {
+    const input = songFixture("song");
+    const saver = new SongAutosave(
+      repo,
+      "song",
+      input,
+      0,
+      0,
+      () => {},
+      () => {},
+    );
+    // Clearing "Verse 1" to retype it used to fail with "Draft tidak valid".
+    saver.edit({
+      ...input,
+      sections: input.sections.map((x) => ({ ...x, label: "" })),
+    });
+    await saver.flush();
+    expect(saver.state.error).toBe(false);
+    expect(saver.state.message).toBe("Tersimpan lokal");
+    const saved = (await repo.load()).songs[0];
+    expect(saved.sections[0].label).toBe(input.sections[0].type);
+    expect(saver.unsaved).toBe(false);
+    saver.stop();
+  });
+  it("says exactly what is missing while a new song is only a draft", async () => {
+    const input = songFixture("song");
+    const saver = new SongAutosave(
+      repo,
+      "song",
+      input,
+      0,
+      0,
+      () => {},
+      () => {},
+    );
+    saver.edit({
+      ...input,
+      title: "",
+      sections: input.sections.map((x) => ({ ...x, label: " ", text: "" })),
+    });
+    await saver.flush();
+    expect(saver.state.error).toBe(false);
+    expect(saver.state.message).toBe(
+      "Draft tersimpan. Isi judul lagu dan lirik bagian 1 untuk menyimpan lagu.",
+    );
+    expect((await repo.load()).drafts).toHaveLength(1);
+    saver.stop();
+  });
   it("keeps incomplete edits in a recoverable draft while preserving the last valid song", async () => {
     const input = songFixture("song");
     await repo.createSong("song", input);

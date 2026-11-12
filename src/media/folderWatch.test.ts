@@ -49,14 +49,12 @@ describe("watched folder", () => {
         "kosong.jpg": [0, 6000],
       }),
     );
-    expect(files.map((f) => f.name)).toEqual([
-      "Ibadah.MP4",
-      "slide.pdf",
-      "lama.png",
-    ]);
+    // PDFs belong to the Presentations tab, not the Media folder.
+    expect(files.map((f) => f.name)).toEqual(["Ibadah.MP4", "lama.png"]);
     expect((await files[0].read()).size).toBe(20);
     expect(isWatchable("foto.JPEG")).toBe(true);
     expect(isWatchable("video.webm.crdownload")).toBe(false);
+    expect(isWatchable("khotbah.pdf")).toBe(false);
   });
   it("knows which files are already in the library by name and size", () => {
     const asset = {
@@ -76,8 +74,8 @@ describe("watched folder", () => {
   });
   it("reports when a folder cannot be remembered across restarts", async () => {
     // A plain object with functions cannot be stored; a real browser handle can.
-    expect(
-      await saveWatch({ handle: folder({}), since: 0, auto: false }),
-    ).toBe(false);
+    expect(await saveWatch({ handle: folder({}), since: 0, auto: false })).toBe(
+      false,
+    );
   });
 });

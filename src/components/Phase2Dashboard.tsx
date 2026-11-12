@@ -8,6 +8,7 @@ import { applyOnline, loadSettings } from "../scriptures/online";
 import { useFolderWatch } from "../hooks/useFolderWatch";
 import { useSongSync } from "../hooks/useSongSync";
 import { fileKey, inLibrary } from "../media/folderWatch";
+import { MEDIA_TAB_KINDS } from "../media/importCoordinator";
 import type { useScriptureServices } from "../hooks/useScriptures";
 import { useEffect, useCallback, useRef } from "react";
 import { PreviewWorkspace, slideSummary } from "./PreviewWorkspace";
@@ -71,7 +72,8 @@ export function Phase2Dashboard({
     assets: data.mediaAssets ?? [],
     editable,
     working: mediaServices.working,
-    importFiles: mediaServices.importFiles,
+    // The watched folder feeds the Media tab: pictures and videos only.
+    importFiles: (files) => mediaServices.importFiles(files, MEDIA_TAB_KINDS),
   });
   const newMedia =
     watch.state.status === "watching"

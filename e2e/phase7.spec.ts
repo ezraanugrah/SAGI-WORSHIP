@@ -143,7 +143,8 @@ test("offline portable backup restores mixed image, theme, song and settings int
     .getByRole("button", { name: "Pilih media backup.png", exact: true })
     .click();
   await dragToWeek(mediaCard(page, "backup.png"));
-  await page.getByLabel("File media", { exact: true }).setInputFiles({
+  await page.getByRole("tab", { name: "Presentations", exact: true }).click();
+  await page.getByLabel("File presentasi", { exact: true }).setInputFiles({
     name: "portable.pdf",
     mimeType: "application/pdf",
     buffer: syntheticPDF(),
@@ -210,6 +211,7 @@ test("offline portable backup restores mixed image, theme, song and settings int
   await expect(
     target.getByRole("button", { name: "Pilih media backup.png", exact: true }),
   ).toBeVisible();
+  await target.getByRole("tab", { name: "Presentations", exact: true }).click();
   await target
     .getByRole("button", { name: "Pilih media portable.pdf", exact: true })
     .click();
