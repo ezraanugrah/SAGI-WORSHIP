@@ -8,6 +8,7 @@ import {
 import { createFakeSupabase } from "../src/sync/fakeSupabase";
 import { imageFile, videoFile } from "./mediaFixtures";
 import { createTheme } from "./themeHelpers";
+import { activeSchedule, dragToWeek, openWeek } from "./dragHelpers";
 // Two laptops (two separate browser profiles) share one mocked Supabase
 // server. A song added on one shows up in Musik on the other, and so on.
 const SERVER = "https://sync.test";
@@ -167,12 +168,10 @@ test("media and themes follow the same account to the other laptop", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await a.page
-    .getByLabel("File media", { exact: true })
-    .setInputFiles({
-      ...(await videoFile(a.page)),
-      name: "pujian-sinkron.webm",
-    });
+  await a.page.getByLabel("File media", { exact: true }).setInputFiles({
+    ...(await videoFile(a.page)),
+    name: "pujian-sinkron.webm",
+  });
   await expect(
     a.page.getByRole("button", {
       name: "Pilih media pujian-sinkron.webm",
@@ -240,6 +239,61 @@ test("media and themes follow the same account to the other laptop", async ({
         .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth),
     )
     .toBeGreaterThan(0);
+  await a.context.close();
+  await b.context.close();
+});
+
+test("Jadwal Ibadah: songs put in Week 1 on one laptop show in Week 1 on the other, removals too", async ({
+  browser,
+}) => {
+  test.setTimeout(180000);
+  const fake = createFakeSupabase({ "tim@gereja.id": "rahasia" });
+  const a = await laptop(browser, fake),
+    b = await laptop(browser, fake);
+  await signIn(a.page);
+  await signIn(b.page);
+  await expect(panel(b.page)).toContainText("Tersinkron");
+  await addSong(a.page, "Kasih Setia Jadwal");
+  await addSong(a.page, "Bapa Engkau Jadwal");
+  await openWeek(a.page, 1);
+  await dragToWeek(row(a.page, "Kasih Setia Jadwal"));
+  await dragToWeek(row(a.page, "Bapa Engkau Jadwal"));
+  await expect
+    .poll(
+      () =>
+        (
+          fake.tables.schedules.get("week-1")?.data as
+            { items: unknown[] } | undefined
+        )?.items.length,
+      { timeout: 20000 },
+    )
+    .toBe(2);
+  // Laptop B: Week 1 fills by itself; its own active Week is not changed.
+  await openWeek(b.page, 2);
+  const weeks = b.page.getByRole("list", { name: "Playlist Jadwal" });
+  await expect(weeks.getByRole("button", { name: /^Week 1 2$/ })).toBeVisible({
+    timeout: 30000,
+  });
+  await expect(activeSchedule(b.page)).toHaveText("Jadwal Ibadah - Week 2");
+  await openWeek(b.page, 1);
+  await expect(b.page.getByTestId("schedule-item")).toHaveText([
+    /Kasih Setia Jadwal/,
+    /Bapa Engkau Jadwal/,
+  ]);
+  await expect(panel(b.page)).toContainText(/1 jadwal/);
+  await b.page.screenshot({ path: test.info().outputPath("week-sync.png") });
+
+  // B removes one: gone on A as well.
+  await b.page
+    .getByTestId("schedule-item")
+    .first()
+    .getByRole("button", { name: /^Hapus item/ })
+    .click();
+  await expect(b.page.getByTestId("schedule-item")).toHaveCount(1);
+  await expect(a.page.getByTestId("schedule-item")).toHaveText(
+    [/Bapa Engkau Jadwal/],
+    { timeout: 30000 },
+  );
   await a.context.close();
   await b.context.close();
 });

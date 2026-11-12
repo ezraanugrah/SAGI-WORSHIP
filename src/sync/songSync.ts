@@ -34,6 +34,7 @@ import {
   type SyncApi,
   type Transfer,
 } from "./librarySync";
+import { SchedulesNotReady, syncSchedules } from "./scheduleSync";
 
 export type SyncConfig = { url: string; key: string };
 /** Supabase project address and public (anon) key, baked in at build time. */
@@ -69,6 +70,8 @@ export type SyncResult = {
   /** Media library and custom themes, when this laptop syncs them. */
   media?: LibraryResult;
   themes?: LibraryResult;
+  /** Jadwal Ibadah (Week 1–4); count: Weeks with items. */
+  schedules?: LibraryResult;
   /** Things the operator or admin should know (e.g. server not ready). */
   notes: string[];
 };
@@ -83,6 +86,7 @@ const SESSION = "sagi-sync-session",
   STATE = "sagi-sync-state",
   MEDIA_STATE = "sagi-sync-media",
   THEME_STATE = "sagi-sync-themes",
+  SCHEDULE_STATE = "sagi-sync-schedules",
   DELETED = "deleted",
   OVERLAP_MS = 60000,
   PAGE = 1000;
@@ -552,6 +556,27 @@ export class SongSync {
             : `Media/Tema: ${(e as Error).message}`,
         );
       }
+    // Week 1–4, after the songs, media and themes their items point at.
+    if (this.library.schedules) {
+      const state = this.libraryState(SCHEDULE_STATE, session.email),
+        r: LibraryResult = { pulled: 0, pushed: 0, skipped: 0, count: 0 };
+      try {
+        const api = this.tables();
+        if (await syncSchedules(api, this.library.schedules, state, r))
+          await syncSchedules(api, this.library.schedules, state, r);
+        result.schedules = r;
+        if (r.problem) result.notes.push(`Jadwal: ${r.problem}`);
+      } catch (e) {
+        if (e instanceof OfflineError || e instanceof SignedOutError) throw e;
+        result.notes.push(
+          e instanceof SchedulesNotReady
+            ? e.message
+            : `Jadwal: ${(e as Error).message}`,
+        );
+      } finally {
+        this.write(SCHEDULE_STATE, state);
+      }
+    }
     return result;
   }
 }

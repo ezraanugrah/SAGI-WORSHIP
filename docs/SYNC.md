@@ -8,14 +8,16 @@ Yang disinkronkan:
 - **Media**: file asli dan thumbnail, judul, jenis. File dikirim dalam potongan 4 MiB yang dicek SHA-256 di laptop penerima; file rusak atau belum lengkap tidak dipasang dan dicoba lagi nanti.
 - **Tema** buatan sendiri: nama, latar (warna, gradasi, gambar, atau video dari Media), dan tampilan teks. Tema bawaan (Default Black, Sunset, …) sudah ada di semua laptop.
 
-Belum ikut: Week 1–4, ayat Alkitab, dan pengaturan.
+- **Jadwal Ibadah** Week 1–4: isi dan urutan item (lagu, ayat, media). Week yang sedang aktif tetap pilihan masing-masing laptop.
+
+Belum ikut: pengaturan, dan Alkitab itu sendiri (pasang sekali di tab Scriptures pada tiap laptop; ayat di jadwal lalu memakai Alkitab laptop itu).
 
 ## Sekali saja: siapkan server (admin)
 
 1. **Buat project Supabase** di https://supabase.com (paket gratis cukup). Pilih region **Southeast Asia (Singapore)**. Simpan password database di tempat aman.
-2. **Buat tabel**: di project, buka **SQL Editor › New query**, salin seluruh isi [`supabase/songs-sync.sql`](../supabase/songs-sync.sql), lalu **Run**. Lalu **New query** lagi, salin seluruh isi [`supabase/library-sync.sql`](../supabase/library-sync.sql) (tabel media & tema dan tempat file `sagi-media`), lalu **Run**. Keduanya aman dijalankan ulang.
+2. **Buat tabel**: di project, buka **SQL Editor › New query**, salin seluruh isi [`supabase/songs-sync.sql`](../supabase/songs-sync.sql), lalu **Run**. Lalu **New query** lagi, salin seluruh isi [`supabase/library-sync.sql`](../supabase/library-sync.sql) (tabel media & tema dan tempat file `sagi-media`), lalu **Run**. Lalu sekali lagi untuk [`supabase/schedule-sync.sql`](../supabase/schedule-sync.sql) (tabel jadwal Week 1–4). Semuanya aman dijalankan ulang.
 
-   Sudah memakai sinkron lagu sebelumnya? Cukup jalankan `supabase/library-sync.sql` sekali. Sebelum itu, panel menulis "Media & Tema belum aktif di server sinkron"; lagu tetap tersinkron seperti biasa.
+   Sudah memakai sinkron lagu sebelumnya? Cukup jalankan file yang belum pernah dijalankan: `supabase/library-sync.sql` (media & tema) dan/atau `supabase/schedule-sync.sql` (jadwal). Sebelum jadwal aktif, panel menulis "Jadwal belum aktif di server sinkron". Sebelum itu, panel menulis "Media & Tema belum aktif di server sinkron"; lagu tetap tersinkron seperti biasa.
 3. **Matikan pendaftaran umum**: **Authentication › Sign In / Providers**, matikan **Allow new users to sign up**. Hanya akun yang dibuat admin yang bisa masuk.
 4. **Buat akun gereja**: **Authentication › Users › Add user › Create new user** (email + password kuat, centang *Auto Confirm User*). Bisa satu akun bersama untuk tim multimedia, atau satu akun per operator.
 5. **Ambil alamat dan kunci publik**: **Project Settings › API** (atau **Connect**): salin **Project URL** (`https://xxxx.supabase.co`) dan **anon / publishable key**. Jangan pernah memakai *service_role / secret key* di aplikasi.
@@ -66,6 +68,7 @@ Pesan di bawah tombol **Masuk** menyebut alasannya:
 - **Tidak ada yang tertimpa diam-diam**: setiap lagu punya nomor versi di server. Kalau lagu yang sama diubah di dua laptop sebelum sempat sinkron, versi di server tetap dipakai dan versi laptop ini disimpan sebagai lagu baru "… (salinan laptop ini)". Pilih yang benar lalu hapus yang lain.
 - **Hapus ikut tersinkron**: lagu yang dihapus ditandai di server sehingga laptop lain ikut menghapusnya (beserta item jadwal di laptop itu yang memakai lagu tersebut). Kalau di laptop lain lagu itu justru diubah sebelum penghapusan sampai, perubahan itu yang menang dan lagunya kembali.
 - **Media dan tema**: file yang sama persis yang diimpor terpisah di dua laptop dikenali (sidik SHA-256) dan tidak diunduh atau ditampilkan dua kali. Media yang dihapus di satu laptop ikut terhapus di laptop lain. Tema yang memakai gambar/video menunggu file latarnya sampai dulu, lalu muncul. Bila tema yang sama diubah di dua laptop, perubahan terakhir yang sampai ke server yang dipakai.
+- **Jadwal Week 1–4**: satu Week dikirim utuh (isi dan urutan). Bila Week yang sama diubah di dua laptop sebelum sempat sinkron, versi yang lebih dulu sampai ke server yang dipakai. Saat laptop pertama kali masuk, item Week miliknya ditambahkan di belakang item dari server (lagu yang sama tidak dobel). Week yang memuat media, tema, atau ayat yang belum ada di laptop itu menunggu dulu ("Week 2 menunggu media sampai di laptop ini" / "menunggu Alkitab: pasang di tab Scriptures").
 - **Gabung saat pertama masuk**: lagu yang sudah ada di masing-masing laptop digabung. Lagu yang sama yang diketik terpisah di dua laptop akan muncul dua kali; hapus salah satunya.
 - Sesi login dan catatan sinkron disimpan di browser laptop itu (localStorage), tidak ikut backup.
 
@@ -74,4 +77,4 @@ Pesan di bawah tombol **Masuk** menyebut alasannya:
 - Project Supabase gratis bisa **dijeda** bila lama tidak dipakai (sekitar seminggu tanpa aktivitas). Statusnya akan menampilkan error; admin cukup klik **Restore project** di dashboard Supabase.
 - **Kapasitas file**: paket gratis Supabase memberi sekitar **1 GB** penyimpanan file. Video besar cepat menghabiskannya; untuk proyektor cukup MP4 H.264 1080p. Bila penuh, panel menulis "Penyimpanan Supabase penuh" dan media baru tetap ada di laptop itu saja (lagu dan tema tetap tersinkron). Potongan file tidak dihapus dari server saat media dihapus di aplikasi; admin bisa mengosongkan bucket `sagi-media` di **Storage** bila perlu (laptop yang masih punya file akan mengirimnya lagi hanya untuk media baru).
 - Lirik lagu disimpan di server Supabase milik gereja. Pastikan gereja berhak menyimpan lirik tersebut (lisensi lagu, mis. CCLI).
-- Kode: `src/sync/songSync.ts` (mesin sinkron dan login), `src/sync/librarySync.ts` (media dan tema), `src/sync/libraryAdapters.ts`, `src/hooks/useSongSync.ts` (jadwal sinkron), `src/components/SyncPanel.tsx` (panel), `supabase/songs-sync.sql` dan `supabase/library-sync.sql` (server). Test memakai server tiruan `src/sync/fakeSupabase.ts`.
+- Kode: `src/sync/songSync.ts` (mesin sinkron dan login), `src/sync/librarySync.ts` (media dan tema), `src/sync/scheduleSync.ts` (jadwal), `src/sync/libraryAdapters.ts`, `src/hooks/useSongSync.ts` (jadwal sinkron), `src/components/SyncPanel.tsx` (panel), `supabase/songs-sync.sql`, `supabase/library-sync.sql`, dan `supabase/schedule-sync.sql` (server). Test memakai server tiruan `src/sync/fakeSupabase.ts`.

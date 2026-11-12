@@ -21,7 +21,9 @@ export function syncLine(sync: Sync) {
     .map((part) =>
       part.startsWith("Media/Tema: ")
         ? t("Media/Tema: {msg}", { msg: t(part.slice(12)) })
-        : t(part),
+        : part.startsWith("Jadwal: ")
+          ? t("Jadwal: {msg}", { msg: t(part.slice(8)) })
+          : t(part),
     )
     .join(" · ");
 }

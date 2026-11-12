@@ -71,13 +71,14 @@ export function useSongSync(
       do {
         again.current = false;
         const r = await engine.run();
-        const pulled =
-            r.pulled + (r.media?.pulled ?? 0) + (r.themes?.pulled ?? 0),
-          pushed = r.pushed + (r.media?.pushed ?? 0) + (r.themes?.pushed ?? 0);
+        const parts = [r.media, r.themes, r.schedules],
+          pulled = parts.reduce((n, x) => n + (x?.pulled ?? 0), r.pulled),
+          pushed = parts.reduce((n, x) => n + (x?.pushed ?? 0), r.pushed);
         const notes = [
           `Tersinkron ${clock()} · ${r.songs} lagu`,
           r.media ? `${r.media.count} media` : "",
           r.themes ? `${r.themes.count} tema` : "",
+          r.schedules ? `${r.schedules.count} jadwal` : "",
           pulled ? `${pulled} dari laptop lain` : "",
           pushed ? `${pushed} terkirim` : "",
           r.copies.length

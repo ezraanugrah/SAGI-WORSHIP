@@ -12,15 +12,19 @@ import {
   validName,
   validSchedule,
   validSong,
+  type MediaScheduleItem,
   type Schedule,
   type ScheduleItem,
+  type ScriptureScheduleItem,
   type Song,
+  type SongScheduleItem,
   type SongDraft,
   type SongInput,
   type SongSection,
   type Workspace,
 } from "../domain/models";
 import { WriterGate } from "./writer";
+import { weekName, weekSchedules } from "../domain/weeks";
 type Tx = IDBPTransaction<unknown, string[], "readwrite">;
 const writeStores = [
   "songs",
@@ -617,6 +621,65 @@ export class Repository {
         revision: revision + 1,
         updatedAt: now(),
       });
+    });
+  }
+  /**
+   * Sync: Week n (1–4) gets exactly these items, in this order, as another
+   * laptop has it. Creates that Week when this laptop has not used it yet;
+   * the active Week does not change. Items keep their ids (one in use by
+   * another Week here gets a new one).
+   */
+  async applyRemoteWeek(
+    n: number,
+    items: (
+      | Omit<SongScheduleItem, "scheduleId" | "createdAt" | "updatedAt">
+      | Omit<ScriptureScheduleItem, "scheduleId" | "createdAt" | "updatedAt">
+      | Omit<MediaScheduleItem, "scheduleId" | "createdAt" | "updatedAt">
+    )[],
+  ) {
+    return this.write(async (tx) => {
+      const schedules = (await tx.objectStore("schedules").getAll()).filter(
+          validSchedule,
+        ),
+        time = now();
+      const week: Schedule = weekSchedules(schedules)[n - 1] ?? {
+        id: id(),
+        name: weekName(n),
+        itemIds: [],
+        revision: 0,
+        createdAt: time,
+        updatedAt: time,
+      };
+      const store = tx.objectStore("schedule_items");
+      const old = new Map<string, ScheduleItem>();
+      for (const itemId of week.itemIds) {
+        const item = await store.get(itemId);
+        if (item) old.set(itemId, item);
+        await store.delete(itemId);
+      }
+      const itemIds: string[] = [];
+      for (const item of items) {
+        const taken = await store.get(item.id);
+        const row = {
+          ...item,
+          id: taken ? id() : item.id,
+          scheduleId: week.id,
+          createdAt: old.get(item.id)?.createdAt ?? time,
+          updatedAt: time,
+        } as ScheduleItem;
+        if (!validItem(row))
+          throw new Error("Item jadwal dari server tidak valid.");
+        await store.put(row);
+        itemIds.push(row.id);
+      }
+      const next: Schedule = {
+        ...week,
+        itemIds,
+        revision: week.revision + 1,
+        updatedAt: time,
+      };
+      await tx.objectStore("schedules").put(next);
+      return next;
     });
   }
   async savePreferences(value: Preferences) {

@@ -11,7 +11,7 @@ type Row = {
   updated_at: string;
 };
 export type FakeReply = { status: number; body: unknown; bytes?: Uint8Array };
-const TABLES = ["songs", "media", "themes"] as const;
+const TABLES = ["songs", "media", "themes", "schedules"] as const;
 export function createFakeSupabase(users: Record<string, string>) {
   const tables = Object.fromEntries(
       TABLES.map((name) => [name, new Map<string, Row>()]),
@@ -128,7 +128,8 @@ export function createFakeSupabase(users: Record<string, string>) {
     if (
       !table ||
       !TABLES.includes(table) ||
-      (table !== "songs" && !fake.libraryReady)
+      (table !== "songs" && !fake.libraryReady) ||
+      (table === "schedules" && !fake.schedulesReady)
     )
       return reply(404, { code: "PGRST205" });
     const rows = tables[table];
@@ -179,6 +180,8 @@ export function createFakeSupabase(users: Record<string, string>) {
     objects,
     /** false: media/themes tables and the bucket are not created yet. */
     libraryReady: true,
+    /** false: the schedules table is not created yet (schedule-sync.sql). */
+    schedulesReady: true,
     /** Storage refuses new uploads (project storage full). */
     storageFull: false,
     refreshes: 0,

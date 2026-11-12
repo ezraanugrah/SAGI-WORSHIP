@@ -67,7 +67,7 @@ Di tab **Songs**, tombol **✨ Susun Otomatis** di samping **Tambah lagu**: isi 
 
 ## Sinkron lagu antar laptop
 
-Lagu di **Musik** bisa sama di semua laptop gereja. Admin menyiapkan project Supabase sekali (tabel dari `supabase/songs-sync.sql`, akun gereja, lalu `VITE_SYNC_URL` dan `VITE_SYNC_KEY` di Vercel). Di tiap laptop, tab **Songs › Sinkron antar laptop**, masuk dengan akun gereja. Tambah/ubah/hapus lagu ikut ke laptop lain dalam beberapa detik; tanpa internet tetap jalan. Bentrok tidak menimpa: versi laptop ini disimpan sebagai salinan. Langkah lengkap: [docs/SYNC.md](docs/SYNC.md).
+Lagu di **Musik**, media, tema, dan **Jadwal Ibadah Week 1–4** bisa sama di semua laptop gereja (jalankan `supabase/songs-sync.sql`, `supabase/library-sync.sql`, dan `supabase/schedule-sync.sql` sekali). Admin menyiapkan project Supabase sekali (tabel dari `supabase/songs-sync.sql`, akun gereja, lalu `VITE_SYNC_URL` dan `VITE_SYNC_KEY` di Vercel). Di tiap laptop, tab **Songs › Sinkron antar laptop**, masuk dengan akun gereja. Tambah/ubah/hapus lagu ikut ke laptop lain dalam beberapa detik; tanpa internet tetap jalan. Bentrok tidak menimpa: versi laptop ini disimpan sebagai salinan. Langkah lengkap: [docs/SYNC.md](docs/SYNC.md).
 
 ## Phase 3 — Preview & Projector
 

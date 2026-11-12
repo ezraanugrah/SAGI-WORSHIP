@@ -81,8 +81,8 @@ export function Phase2Dashboard({
   // Musik library sync between laptops; runs whatever tab is shown.
   // Songs, Media and Themes sync with one Supabase account.
   const library = useMemo(
-    () => libraryRepos(mediaServices.repo, themeServices.repo),
-    [mediaServices.repo, themeServices.repo],
+    () => libraryRepos(mediaServices.repo, themeServices.repo, repo),
+    [mediaServices.repo, themeServices.repo, repo],
   );
   const sync = useSongSync(repo, editable, library);
   // Watched laptop folder: checked while the app is open, whatever tab is shown.

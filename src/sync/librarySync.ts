@@ -18,6 +18,7 @@
  */
 import { canonicalJSON, sha256 } from "../scriptures/importFormat";
 import { CHUNK, sha } from "../media/integrity";
+import type { ScheduleSyncRepo } from "./scheduleSync";
 import {
   validAsset,
   type AssetRef,
@@ -45,7 +46,11 @@ export type ThemeSyncRepo = {
   /** Create or replace a theme with this content. */
   apply(id: string, name: string, spec: ThemeSpec): Promise<void>;
 };
-export type LibraryRepos = { media?: MediaSyncRepo; themes?: ThemeSyncRepo };
+export type LibraryRepos = {
+  media?: MediaSyncRepo;
+  themes?: ThemeSyncRepo;
+  schedules?: ScheduleSyncRepo;
+};
 export type Row = {
   id: string;
   data: unknown;
@@ -156,13 +161,18 @@ function validMediaData(d: unknown, id: string): d is MediaData {
   );
 }
 
-async function* changed(api: SyncApi, table: string, state: LibraryState) {
+export async function* changed(
+  api: SyncApi,
+  table: string,
+  state: LibraryState,
+  notReady: () => Error = () => new LibraryNotReady(),
+) {
   const since = state.cursor
     ? new Date(Date.parse(state.cursor) - OVERLAP_MS).toISOString()
     : "";
   for (let offset = 0; ; offset += PAGE) {
     const rows = await api.select(table, since, offset, PAGE);
-    if (rows === null) throw new LibraryNotReady();
+    if (rows === null) throw notReady();
     for (const row of rows) yield row;
     if (rows.length < PAGE) return;
   }
@@ -172,7 +182,7 @@ async function* changed(api: SyncApi, table: string, state: LibraryState) {
  * row that has to be read again (a file not complete on the server yet, a
  * theme waiting for its background).
  */
-class Cursor {
+export class Cursor {
   private newest: string;
   private hold = "";
   constructor(private state: LibraryState) {
@@ -189,7 +199,7 @@ class Cursor {
       this.hold && this.hold < this.newest ? this.hold : this.newest;
   }
 }
-const goodRow = (row: Row) =>
+export const goodRow = (row: Row) =>
   typeof row?.id === "string" &&
   Number.isInteger(row.version) &&
   typeof row.updated_at === "string";

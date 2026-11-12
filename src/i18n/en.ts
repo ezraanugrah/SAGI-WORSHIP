@@ -262,10 +262,15 @@ export const EN: Record<string, string> = {
   "Item dilepas; lagu sumber tetap tersedia.":
     "Item removed; the source song is still available.",
   "Item dipindahkan ke posisi {n}.": "Item moved to position {n}.",
+  "Item jadwal dari server tidak valid.":
+    "A schedule item from the server is not valid.",
   "Izinkan akses folder": "Allow folder access",
   "Jadikan jendela proyektor layar penuh":
     "Make the projector window fullscreen",
+  "Jadwal belum aktif di server sinkron. Admin: jalankan supabase/schedule-sync.sql di Supabase (sekali).":
+    "Schedules are not enabled on the sync server yet. Admin: run supabase/schedule-sync.sql in Supabase (once).",
   "Jadwal Ibadah": "Service Schedule",
+  "Jadwal: {msg}": "Schedule: {msg}",
   "Jarak baris": "Line spacing",
   "Jawaban login tidak dikenali.": "Unrecognised sign-in answer.",
   "Jenis background": "Background type",
@@ -872,5 +877,15 @@ export const EN_PATTERNS: [RegExp, (...m: string[]) => string][] = [
   [
     /^Label "(.+)" dipakai lagi dengan lirik berbeda\.$/,
     (l) => `Label "${l}" is used again with different lyrics.`,
+  ],
+  [/^(\d+) jadwal$/, (n) => `${n} ${n === "1" ? "schedule" : "schedules"}`],
+  [
+    /^Week (\d) menunggu Alkitab: pasang di tab Scriptures\.$/,
+    (n) => `Week ${n} waits for the Bible: install it in the Scriptures tab.`,
+  ],
+  [
+    /^Week (\d) menunggu (.+) sampai di laptop ini\.$/,
+    (n, what) =>
+      `Week ${n} waits for ${what.replace("lagu", "songs").replace("tema", "themes")} to reach this laptop.`,
   ],
 ];

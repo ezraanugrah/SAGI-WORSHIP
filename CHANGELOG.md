@@ -256,6 +256,15 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Versi baru SAGI terpasang sendiri di setiap laptop**: diperiksa tiap 5 menit dan saat jendela difokuskan; dipasang otomatis setelah pemberitahuan 15 detik bila tidak ada yang LIVE, tidak ada pemulihan yang menunggu, dan jendela proyektor tertutup ("Nanti" untuk menunda). Sebelumnya perlu klik "Muat versi baru" dan pemeriksaan hanya tiap jam, sehingga laptop lain bisa tertinggal versi lama tanpa sinkron media.
 - Tes: unit test (terbaru dulu, progres, lanjut setelah putus) dan E2E (gambar + video ke laptop kedua, baris sinkron di Media, pemasangan versi baru otomatis/Nanti/menunggu proyektor). Diuji juga dengan video MP4 1080p 31 MB.
 
+### Jadwal Ibadah (Week 1–4) ikut tersinkron
+
+- Isi dan urutan Week 1–4 (lagu, ayat, media) kini sama di semua laptop yang masuk dengan akun gereja: menambah, menghapus, mengurutkan, atau mengosongkan Week di satu laptop ikut berubah di laptop lain dalam beberapa detik. Week yang sedang aktif tetap pilihan tiap laptop.
+- Lagu dikenali dari id-nya, media dari sidik file-nya, ayat dari edisi Alkitab dan nomor ayat, sehingga tiap laptop memakai salinannya sendiri. Week yang memuat media/tema yang belum sampai atau ayat dari Alkitab yang belum dipasang di laptop itu menunggu dan diberi tahu di panel sinkron.
+- Saat laptop pertama kali masuk, item Week miliknya digabung di belakang item dari server tanpa dobel. Bila Week yang sama diubah di dua laptop sebelum sinkron, versi yang lebih dulu sampai ke server yang dipakai.
+- **Admin perlu sekali menjalankan `supabase/schedule-sync.sql`** di Supabase › SQL Editor. Sebelum itu panel menulis "Jadwal belum aktif di server sinkron"; lagu, media, dan tema tetap tersinkron.
+- Status sinkron: "… · 3 tema · 2 jadwal".
+- Tes: 5 unit test (Week berisi lagu + ayat + gambar ke laptop lain dengan id Alkitab/media masing-masing, urut/hapus/kosongkan dua arah, gabung saat pertama masuk, menunggu Alkitab, server belum siap) dan E2E dua laptop (tarik lagu ke Week 1 lalu muncul di laptop lain; hapus ikut).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.
