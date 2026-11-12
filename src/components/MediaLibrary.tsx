@@ -27,7 +27,7 @@ const clock = (seconds: number) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 function cardDetail(a: MediaAsset) {
-  const size = `${(a.original.size / 1048576).toFixed(1)} MiB`;
+  const size = `${(a.original.size / 1048576).toFixed(1)} MB`;
   if (a.kind === "pdf") return `PDF · ${size} · ${a.pages} halaman`;
   if (a.kind === "video")
     return `Video · ${clock(a.original.duration ?? 0)} · ${size}`;
@@ -100,21 +100,40 @@ export function MediaLibrary({
     void services.repo
       .usage()
       .then((value) => {
+        const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
         if (active)
           setUsage(
-            t("Library {lib} MiB · snapshot/tema tertahan {kept} MiB", {
-              lib: (value.libraryBytes / 1048576).toFixed(1),
-              kept: (value.retainedBytes / 1048576).toFixed(1),
-            }),
+            [
+              t("Media di laptop ini: {lib} MB", {
+                lib: mb(value.libraryBytes),
+              }),
+              value.retainedBytes > 0
+                ? t("{kept} MB lagi masih dipakai tema/LIVE", {
+                    kept: mb(value.retainedBytes),
+                  })
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" · "),
           );
       })
-      .catch((e) => {
-        if (active) setUsage(e.message);
+      .catch(() => {
+        if (active) setUsage("");
       });
     return () => {
       active = false;
     };
   }, [data, services.repo]);
+  // Leftover file data of media deleted earlier is freed by itself (never
+  // library media, nor what LIVE, a checkpoint or a theme still uses).
+  useEffect(() => {
+    if (!editable) return;
+    const timer = setTimeout(
+      () => void services.repo.collect().catch(() => 0),
+      2000,
+    );
+    return () => clearTimeout(timer);
+  }, [editable, services.repo]);
   const tabAssets = (data.mediaAssets ?? []).filter((a) =>
     inTab(a, presentations),
   );
@@ -433,7 +452,7 @@ export function MediaLibrary({
                       if (
                         !window.confirm(
                           t(
-                            "Hapus “{title}” dan item jadwal terkait? LIVE/checkpoint tetap menyimpan aset yang dibutuhkan; ruang mungkin belum dibebaskan.",
+                            "Hapus “{title}” dan item jadwal terkait? Yang sedang tampil di LIVE tetap aman sampai diganti.",
                             { title: selected.title },
                           ),
                         )
@@ -443,6 +462,8 @@ export function MediaLibrary({
                         selected.id,
                         selected.original.digest,
                       );
+                      // Free its space now (kept while LIVE still uses it).
+                      await services.repo.collect().catch(() => 0);
                       setSelected(null);
                       onChanged();
                     })
@@ -453,39 +474,21 @@ export function MediaLibrary({
               </div>
             </section>
           )}
-        <p className="field-help">
-          {selected?.kind === "pdf"
-            ? `${t("Halaman yang dipilih ikut saat kartu ini ditarik ke Schedule.")} `
-            : ""}
-          {t(usage)} · {t("belum termasuk payload yatim dan overhead browser.")}
-        </p>
+        {selected?.kind === "pdf" && (
+          <p className="field-help">
+            {t("Halaman yang dipilih ikut saat kartu ini ditarik ke Schedule.")}
+          </p>
+        )}
+        {usage && (
+          <p className="field-help" data-testid="media-usage">
+            {usage}
+          </p>
+        )}
         <p className="field-help">
           {t(
-            "Simpan file sumber. Aset yang masih dibutuhkan Preview, LIVE, atau checkpoint tidak dihapus oleh cleanup. Tidak ada backup media otomatis.",
+            "Media ikut tersinkron ke laptop lain setelah masuk di Songs › Sinkron antar laptop.",
           )}
         </p>
-        <button
-          className="button secondary"
-          disabled={!editable || services.working}
-          onClick={() =>
-            action(async () => {
-              if (
-                !window.confirm(
-                  t(
-                    "Bersihkan hanya payload tanpa referensi? Pin sesi lama tetap dipertahankan.",
-                  ),
-                )
-              )
-                return;
-              const count = await services.repo.collect();
-              setError(
-                t("{n} payload tanpa referensi dibersihkan.", { n: count }),
-              );
-            })
-          }
-        >
-          {t("Bersihkan media tanpa referensi")}
-        </button>
       </div>
     </div>
   );

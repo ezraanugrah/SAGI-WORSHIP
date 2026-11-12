@@ -75,13 +75,10 @@ test("image import/search/filter, immutable two-window output, source deletion, 
       exact: true,
     }),
   ).toHaveCount(0);
-  page.once("dialog", (d) => d.accept());
-  await page
-    .getByRole("button", {
-      name: "Bersihkan media tanpa referensi",
-      exact: true,
-    })
-    .click();
+  // Deleting frees the file's space at once, except what LIVE still uses.
+  await expect(page.getByTestId("media-usage")).toContainText(
+    /Media di laptop ini: [\d.]+ MB · [\d.]+ MB lagi masih dipakai tema\/LIVE/,
+  );
   await p.reload();
   await expect(p.locator(".media-canvas img")).toBeVisible();
   await expect(page.getByText(/Checkpoint tersimpan · LIVE/)).toBeVisible();

@@ -82,14 +82,9 @@ export const EN: Record<string, string> = {
   "Belum tayang · klik Go Live": "Not live yet · click Go Live",
   "Belum tayang: tampil di proyektor setelah Go Live. Hanya slide ini; lagu di Musik tidak berubah.":
     "Not live yet: shown on the projector after Go Live. This slide only; the song in Music is not changed.",
-  "belum termasuk payload yatim dan overhead browser.":
-    "not counting orphaned payloads and browser overhead.",
   "Belum tersimpan…": "Not saved yet…",
   'beri nama (mis. SagiWorship) dan keterangan "proyeksi ayat untuk ibadah gereja, non-komersial".':
     'give it a name (e.g. SagiWorship) and the description "verse projection for church worship, non-commercial".',
-  "Bersihkan hanya payload tanpa referensi? Pin sesi lama tetap dipertahankan.":
-    "Clean up only unreferenced payloads? Old session pins are kept.",
-  "Bersihkan media tanpa referensi": "Clean up unreferenced media",
   "Berulang, selalu tepat sebelum Chorus.":
     "Repeats, always right before the Chorus.",
   "Berulang, selalu tepat sesudah Chorus.":
@@ -242,8 +237,8 @@ export const EN: Record<string, string> = {
     "Delete the song “{title}” permanently? {count} schedule items using it are removed too. This cannot be undone.",
   "Hapus media": "Delete media",
   "Hapus staging": "Delete staging",
-  "Hapus “{title}” dan item jadwal terkait? LIVE/checkpoint tetap menyimpan aset yang dibutuhkan; ruang mungkin belum dibebaskan.":
-    "Delete “{title}” and its schedule items? LIVE/checkpoints keep the files they need; space may not be freed yet.",
+  "Hapus “{title}” dan item jadwal terkait? Yang sedang tampil di LIVE tetap aman sampai diganti.":
+    "Delete “{title}” and the schedule items that use it? What is on LIVE stays safe until it is replaced.",
   "hash diperiksa": "hashes checked",
   "Hentikan alert": "Stop alert",
   "Hitam polos": "Plain black",
@@ -355,8 +350,6 @@ export const EN: Record<string, string> = {
     "Black screen (click again to go back)",
   "Lepas di sini": "Drop here",
   "Lepas folder": "Forget folder",
-  "Library {lib} MiB · snapshot/tema tertahan {kept} MiB":
-    "Library {lib} MiB · kept for snapshots/themes {kept} MiB",
   "Lihat semua yang belum di Media": "Show all not in Media",
   "Lirik bagian {n}": "Lyrics part {n}",
   "Lirik lengkap": "Full lyrics",
@@ -390,10 +383,13 @@ export const EN: Record<string, string> = {
     "Media is read-only; prepare it again to change it.",
   "Media background": "Background media",
   "Media berikutnya": "Next media",
+  "Media di laptop ini: {lib} MB": "Media on this laptop: {lib} MB",
   "Media dipertahankan oleh tema": "Media kept by the theme",
   "Media ditambahkan ke jadwal.": "Media added to the schedule.",
   "Media ditambahkan ke Week 1.": "Media added to Week 1.",
   "Media ditambahkan ke Week.": "Media added to the Week.",
+  "Media ikut tersinkron ke laptop lain setelah masuk di Songs › Sinkron antar laptop.":
+    "Media syncs to the other laptops once you sign in under Songs › Sync between laptops.",
   "Media sebelumnya": "Previous media",
   "Media · {n} halaman/frame":
     "Media · {n} page/frame|Media · {n} pages/frames",
@@ -570,8 +566,6 @@ export const EN: Record<string, string> = {
   "Siapkan restore": "Prepare restore",
   silent: "silent",
   "Simpan ESV": "Save ESV",
-  "Simpan file sumber. Aset yang masih dibutuhkan Preview, LIVE, atau checkpoint tidak dihapus oleh cleanup. Tidak ada backup media otomatis.":
-    "Keep your source files. Files still needed by the prepared item, LIVE or a checkpoint are not removed by cleanup. Media is not backed up automatically.",
   "Simpan ke Song Library": "Save to Song Library",
   "Simpan pengaturan lanjutan": "Save advanced settings",
   "Simpan sekarang": "Save now",
@@ -735,6 +729,8 @@ export const EN: Record<string, string> = {
   "Workspace kosong": "Empty workspace",
   "Workspace sedang diedit pada tab lain. Tab ini hanya baca. Tutup tab lain, lalu muat ulang untuk mengedit.":
     "The workspace is being edited in another tab. This tab is read-only. Close the other tab, then reload to edit.",
+  "{kept} MB lagi masih dipakai tema/LIVE":
+    "{kept} MB more still used by themes/LIVE",
   "{label} ditambahkan ke {name}.": "{label} added to {name}.",
   "{n} bagian": "{n} part|{n} parts",
   "{n} bagian dari label di lirik.":
@@ -753,8 +749,6 @@ export const EN: Record<string, string> = {
     "{n} item · drag to the schedule|{n} items · drag to the schedule",
   "{n} lagu": "{n} song|{n} songs",
   "{n} lagu ditemukan": "{n} song found|{n} songs found",
-  "{n} payload tanpa referensi dibersihkan.":
-    "{n} unreferenced payload cleaned up.|{n} unreferenced payloads cleaned up.",
   "{n} tema dibuat dari media yang diimpor.":
     "{n} theme made from the imported media.|{n} themes made from the imported media.",
   "© 2011–2024 YLSA · Creative Commons BY-NC-SA (non-komersial, sebutkan sumber)":

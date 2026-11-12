@@ -243,6 +243,12 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Preview sebelum simpan: ubah label, edit lirik, hapus bagian, atur/ulang urutan, lalu **Simpan ke Song Library**. Tidak ada yang tersimpan sebelum tombol itu. Tidak memakai AI atau internet; tidak ada perubahan format data, backup, atau sinkron. Tambah lagu manual tetap seperti biasa.
 - Tes: 8 unit test (label lengkap, lirik polos, Chorus berulang, tanpa Bridge/Intro, variasi label, lirik panjang, input kosong/CRLF, simpan–buka–presentasi) dan 2 E2E (alur lengkap sampai slide dan muat ulang; lirik tanpa label dan editor manual tetap jalan).
 
+### Media: info penyimpanan yang jelas dan ruang dibebaskan otomatis
+
+- Tulisan teknis di bawah daftar Media/Presentations ("Library … MiB · snapshot/tema tertahan … · payload yatim …", "Simpan file sumber …", "Tidak ada backup media otomatis") diganti satu baris jelas: "Media di laptop ini: 255.0 MB" (plus "… MB lagi masih dipakai tema/LIVE" bila ada), dan keterangan bahwa media ikut tersinkron lewat Songs › Sinkron antar laptop.
+- Sisa data file dari media yang sudah dihapus kini dibersihkan otomatis (saat media dihapus dan saat tab Media dibuka), jadi tombol "Bersihkan media tanpa referensi" tidak diperlukan lagi. Media di library, serta yang masih dipakai LIVE, checkpoint, atau tema, tidak pernah ikut terhapus.
+- Ukuran di kartu media memakai MB.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.
