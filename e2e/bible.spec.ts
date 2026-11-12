@@ -57,6 +57,10 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   );
   await expect(rows(page).last().getByRole("cell").first()).toHaveText("1:10");
   await expect(bible(page)).toContainText("Kejadian 1:3–10 · Genesis 1:3–10");
+  // No licence line under the verses for the bundled AYT/KJV (it stays on
+  // every slide).
+  await expect(bible(page)).not.toContainText("KJV Public Domain");
+  await expect(bible(page)).not.toContainText("AYT © YLSA");
   await page.screenshot({
     path: test.info().outputPath("bible-tab.png"),
     fullPage: true,

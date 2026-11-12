@@ -558,25 +558,29 @@ function Picker({
           </div>
         ))}
       </div>
-      <p className="field-help">
-        {settings.left === "tb"
-          ? `${ONLINE_ATTRIBUTION.tb} (Alkitab SABDA)`
-          : settings.left === "tb2"
-            ? ONLINE_ATTRIBUTION.tb2
-            : "AYT © YLSA · CC BY-NC-SA"}{" "}
-        ·{" "}
-        {settings.right === "esv" ? (
-          <>
-            ESV® © Crossway ·{" "}
-            <a href="https://www.esv.org" target="_blank" rel="noreferrer">
-              www.esv.org
-            </a>
-          </>
-        ) : (
-          "KJV Public Domain"
-        )}
-        . {t("Atribusi ikut tampil di setiap slide.")}
-      </p>
+      {/* The bundled AYT/KJV need no line here (their attribution is on
+          every slide); TB, TB2 and ESV from the APIs keep their notice. */}
+      {(settings.left !== "ayt" || settings.right === "esv") && (
+        <p className="field-help">
+          {settings.left === "tb"
+            ? `${ONLINE_ATTRIBUTION.tb} (Alkitab SABDA)`
+            : settings.left === "tb2"
+              ? ONLINE_ATTRIBUTION.tb2
+              : "AYT © YLSA · CC BY-NC-SA"}{" "}
+          ·{" "}
+          {settings.right === "esv" ? (
+            <>
+              ESV® © Crossway ·{" "}
+              <a href="https://www.esv.org" target="_blank" rel="noreferrer">
+                www.esv.org
+              </a>
+            </>
+          ) : (
+            "KJV Public Domain"
+          )}
+          . {t("Atribusi ikut tampil di setiap slide.")}
+        </p>
+      )}
       <OnlineSources
         settings={settings}
         cache={cache}
