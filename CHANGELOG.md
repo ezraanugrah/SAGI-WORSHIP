@@ -236,6 +236,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Baris "AYT © YLSA · CC BY-NC-SA · Public Domain" (juga TB/TB2/ESV) tidak lagi tampil di bawah ayat di Live Output dan proyektor. Yang tampil hanya baris referensi, mis. "Ulangan 4:4–8 · AYT · 2024" dan "Deuteronomy 4:4–8 · KJV · 1769". Data lisensi tetap tersimpan di materi dan backup.
 - Ruang bawah untuk referensi diperkecil (170 → 110 px pada 1080p), jadi ayat mendapat tempat lebih besar.
 
+### Musik: ✨ Susun Otomatis (tanpa AI)
+
+- Tombol **Susun Otomatis** di samping **Tambah lagu**: isi judul, penyanyi/pencipta, dan lirik lengkap; bagian lagu (Verse 1, 2 …, Pre Chorus, Chorus, Post Chorus, Bridge, Intro, Instrumental, Outro) dibuat dari label di lirik, termasuk variasi seperti `[Verse 1]`, `V1`, `Bait 2`, `Reff:`, `Refrain`, `Pre-Reff`, `Chorus 2x`. Chorus yang diulang disimpan sekali dan muncul lagi di urutan.
+- Lirik tanpa label dipisah per bait (baris kosong); bait yang berulang dianggap Chorus, sisanya Verse; semua tebakan bertanda "Perlu dicek". Tidak ada bagian yang dikarang, dan kata-kata lirik tidak diubah.
+- Preview sebelum simpan: ubah label, edit lirik, hapus bagian, atur/ulang urutan, lalu **Simpan ke Song Library**. Tidak ada yang tersimpan sebelum tombol itu. Tidak memakai AI atau internet; tidak ada perubahan format data, backup, atau sinkron. Tambah lagu manual tetap seperti biasa.
+- Tes: 8 unit test (label lengkap, lirik polos, Chorus berulang, tanpa Bridge/Intro, variasi label, lirik panjang, input kosong/CRLF, simpan–buka–presentasi) dan 2 E2E (alur lengkap sampai slide dan muat ulang; lirik tanpa label dan editor manual tetap jalan).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

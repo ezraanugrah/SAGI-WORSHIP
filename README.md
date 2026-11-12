@@ -57,6 +57,14 @@ Playwright menjalankan preview **production build** pada `127.0.0.1:4174` dan me
 
 Suite mencakup CRUD, urutan lagu/jadwal, reload, draft/retry, transaksi gagal, data rusak, tab hanya baca, kehilangan lock, kompatibilitas Phase 1, dan offline. Screenshot responsif serta jejak kegagalan berada di `test-results/`; laporan HTML di `playwright-report/` (`npm run test:e2e:report`).
 
+## Susun Otomatis (Musik)
+
+Di tab **Songs**, tombol **✨ Susun Otomatis** di samping **Tambah lagu**: isi judul, penyanyi/pencipta, dan tempel lirik lengkap, lalu klik **Susun Otomatis**. Tanpa AI dan tanpa internet; lirik tidak dikirim ke mana pun dan kata-katanya tidak diubah.
+
+- Label di lirik dikenali: `Verse 1`, `[Verse 1]`, `V1`, `Bait 2`, `Pre-Chorus`, `Pre-Reff`, `Chorus`, `Reff`/`Reff:`, `Refrain`, `Post-Chorus`, `Bridge`, `Intro`, `Instrumental`/`Interlude`, `Outro`/`Ending`/`Coda`, juga `Chorus 2x`. Label yang diulang tanpa lirik (atau dengan lirik sama) mengulang bagian itu di urutan; bagiannya disimpan sekali.
+- Tanpa label: bait dipisah baris kosong; bait yang muncul lagi dianggap Chorus, sisanya Verse 1, 2, …; semua tebakan bertanda **Perlu dicek**. Intro, Bridge, atau Instrumental tidak pernah dikarang.
+- Hasil bisa dikoreksi (label, lirik, hapus bagian, urutan naik/turun/hapus/tambah) dan baru tersimpan setelah **Simpan ke Song Library**. Lagu tersimpan seperti lagu biasa (editor, slide, tema, jadwal, sinkron, backup); tidak ada format data baru. Kode: `src/songs/autoArrange.ts`, `src/components/AutoArrange.tsx`.
+
 ## Sinkron lagu antar laptop
 
 Lagu di **Musik** bisa sama di semua laptop gereja. Admin menyiapkan project Supabase sekali (tabel dari `supabase/songs-sync.sql`, akun gereja, lalu `VITE_SYNC_URL` dan `VITE_SYNC_KEY` di Vercel). Di tiap laptop, tab **Songs › Sinkron antar laptop**, masuk dengan akun gereja. Tambah/ubah/hapus lagu ikut ke laptop lain dalam beberapa detik; tanpa internet tetap jalan. Bentrok tidak menimpa: versi laptop ini disimpan sebagai salinan. Langkah lengkap: [docs/SYNC.md](docs/SYNC.md).

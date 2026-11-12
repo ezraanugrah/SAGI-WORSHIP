@@ -6,6 +6,7 @@ import { endDrag, startDrag } from "./dragState";
 import { revealInPane } from "./revealInPane";
 import {
   Copy,
+  Sparkles,
   FolderOpen,
   GripVertical,
   ListMusic,
@@ -30,6 +31,7 @@ export function SongsLibrary({
   editable,
   busy,
   onNew,
+  onArrange,
   onEdit,
   onInspect,
   onDuplicate,
@@ -47,6 +49,8 @@ export function SongsLibrary({
   editable: boolean;
   busy: boolean;
   onNew: () => void;
+  /** Musik › Susun Otomatis (whole lyrics in, parts out; no AI). */
+  onArrange?: () => void;
   onEdit: (song: Song) => void;
   onInspect: (song: Song) => void;
   onDuplicate: (song: Song) => void;
@@ -140,6 +144,19 @@ export function SongsLibrary({
                 ? t("{n} lagu ditemukan", { n: songs.length })
                 : t("{n} lagu", { n: songs.length })}
             </span>
+            {onArrange && (
+              <button
+                className="button secondary"
+                disabled={!editable || busy}
+                onClick={onArrange}
+                title={t(
+                  "Tempel judul, pencipta, dan lirik lengkap; bagian lagu disusun otomatis",
+                )}
+              >
+                <Sparkles size={15} aria-hidden="true" />
+                {t("Susun Otomatis")}
+              </button>
+            )}
             <button
               className="button primary"
               disabled={!editable || busy}

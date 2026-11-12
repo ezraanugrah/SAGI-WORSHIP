@@ -36,6 +36,7 @@ import { id, type Schedule, type Song } from "../domain/models";
 import type { Preferences } from "../db";
 import { SongsLibrary } from "./SongsLibrary";
 import { SongEditor } from "./SongEditor";
+import { AutoArrange } from "./AutoArrange";
 import { SchedulePanel, type ScheduleSlide } from "./SchedulePanel";
 import { weekName, weekSchedules } from "../domain/weeks";
 
@@ -351,7 +352,8 @@ export function Phase2Dashboard({
   const act = (operation: () => Promise<unknown>, message?: string) => {
     void run(operation, message).catch(() => {});
   };
-  const locked = busy || editor !== null || loading;
+  const [arranging, setArranging] = useState(false);
+  const locked = busy || editor !== null || arranging || loading;
   const creating = useRef(false);
   useEffect(() => {
     if (!fresh) return;
@@ -609,6 +611,7 @@ export function Phase2Dashboard({
                 editable={editable}
                 busy={locked}
                 onNew={() => open(id(), true)}
+                onArrange={() => setArranging(true)}
                 freshId={fresh}
                 freshQuery={freshQuery.current}
                 sync={sync}
@@ -746,6 +749,21 @@ export function Phase2Dashboard({
           </div>
         </section>
       </div>
+      {arranging && (
+        <AutoArrange
+          repo={repo}
+          editable={editable}
+          onClose={() => setArranging(false)}
+          onSaved={(songId, title) => {
+            setArranging(false);
+            freshQuery.current = query;
+            setMessage(
+              t("Lagu “{title}” tersimpan di Song Library.", { title }),
+            );
+            void reload().then(() => setFresh(songId));
+          }}
+        />
+      )}
       {editor && (
         <SongEditor
           key={editor}

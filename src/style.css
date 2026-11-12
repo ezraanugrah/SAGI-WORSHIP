@@ -1497,6 +1497,33 @@ footer > span:last-child {
   padding: 15px;
   margin-bottom: 14px;
 }
+/* Musik › Susun Otomatis: guessed parts are marked for checking. */
+.song-section.arrange-check {
+  border-color: #b9873f;
+}
+.arrange-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #d9b77e;
+}
+.arrange-note strong {
+  color: #edba70;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+.arrange-summary {
+  margin: 16px 0 4px;
+  font-size: 12px;
+  color: #c7ced8;
+}
+.arrange-add {
+  max-width: 280px;
+  margin-top: 10px;
+}
+.auto-arrange .editor-actions .field-help {
+  align-self: center;
+}
 .section-fields {
   display: grid;
   grid-template-columns: minmax(0, 240px) 32px;

@@ -44,7 +44,11 @@ export const EN: Record<string, string> = {
     "PARTIAL BACKUP — the following content is not available in this restore:",
   "Bagian dipindahkan ke posisi {n}.": "Part moved to position {n}.",
   "Bagian lagu": "Song parts",
+  "Bagian yang sama (mis. Chorus) disimpan sekali dan boleh muncul berkali-kali.":
+    "The same part (e.g. the Chorus) is stored once and may appear many times.",
   "Bahasa: Indonesia / English": "Language: Indonesian / English",
+  "Bait ini juga berulang: pilih labelnya.":
+    "This stanza repeats too: choose its label.",
   "Bangun ulang hanya pin {id}? Tidak ada bytes dihapus.":
     "Rebuild only pin {id}? No bytes are deleted.",
   Baru: "New",
@@ -56,6 +60,7 @@ export const EN: Record<string, string> = {
   Bawah: "Bottom",
   "Beberapa data memerlukan pemeriksaan. Data asli tidak dihapus.":
     "Some data needs checking. The original data is not deleted.",
+  "Belum ada bagian berisi lirik.": "No part has lyrics yet.",
   "Belum ada checkpoint": "No checkpoint yet",
   "Belum ada gambar atau video. Klik Impor media (JPG, PNG, WebP, MP4, WebM). PDF presentasi diimpor di tab Presentations.":
     "No pictures or videos yet. Click Import media (JPG, PNG, WebP, MP4, WebM). PDF presentations go in the Presentations tab.",
@@ -85,6 +90,10 @@ export const EN: Record<string, string> = {
   "Bersihkan hanya payload tanpa referensi? Pin sesi lama tetap dipertahankan.":
     "Clean up only unreferenced payloads? Old session pins are kept.",
   "Bersihkan media tanpa referensi": "Clean up unreferenced media",
+  "Berulang, selalu tepat sebelum Chorus.":
+    "Repeats, always right before the Chorus.",
+  "Berulang, selalu tepat sesudah Chorus.":
+    "Repeats, always right after the Chorus.",
   "Black bukan End Session. Restore tidak mengaktifkan LIVE. Tutup juga jendela output lama yang tidak dimiliki sesi ini.":
     "Black is not End Session. A restore does not start LIVE. Also close old output windows this session does not own.",
   "Browser belum memberikan penyimpanan persisten. Hindari menghapus data situs SAGI.":
@@ -253,6 +262,7 @@ export const EN: Record<string, string> = {
   Integritas: "Integrity",
   "Integritas media gagal; data dipertahankan.":
     "Media integrity check failed; data kept.",
+  "Isi judul lagu dulu.": "Enter the song title first.",
   "Item dilepas; lagu sumber tetap tersedia.":
     "Item removed; the source song is still available.",
   "Item dipindahkan ke posisi {n}.": "Item moved to position {n}.",
@@ -306,12 +316,18 @@ export const EN: Record<string, string> = {
   Kontras: "Contrast",
   "Kontras gradient/media bersifat advisory; periksa semua area dan frame.":
     "Gradient/media contrast is advisory; check every area and frame.",
+  "Kosong: menjadi slide kosong.": "Empty: becomes a blank slide.",
   "Kosongkan jadwal (lagu di Musik tidak dihapus)":
     "Clear the schedule (songs in Music are kept)",
   "Kosongkan “{name}”? Semua item dilepas dari jadwal ini; lagu di Musik dan media tidak dihapus.":
     "Clear “{name}”? Every item is removed from this schedule; songs in Music and media are not deleted.",
   "kutipan untuk ibadah non-komersial (bukan satu kitab utuh) boleh tanpa izin tertulis.":
     "quotations for non-commercial worship (not a whole book) need no written permission.",
+  "Label bagian {n}": "Part label {n}",
+  "Label seperti Verse 1, [Chorus], Reff:, Pre-Chorus, Bridge, Intro, Outro dikenali otomatis; label yang diulang tanpa lirik mengulang bagian itu. Tanpa label, bait dipisah baris kosong dan bait yang muncul lagi dianggap Chorus. Kata-kata lirik tidak diubah.":
+    "Labels such as Verse 1, [Chorus], Reff:, Pre-Chorus, Bridge, Intro, Outro are recognised; a label repeated without lyrics repeats that part. Without labels, stanzas are split at blank lines and a stanza that comes back is taken as the Chorus. The words of the lyrics are never changed.",
+  "Label tanpa lirik: menjadi slide kosong.":
+    "Label without lyrics: becomes a blank slide.",
   "Lagu baru": "New song",
   "Lagu baru · isi judul dan lirik untuk autosave.":
     "New song · fill in a title and lyrics to autosave.",
@@ -324,6 +340,8 @@ export const EN: Record<string, string> = {
   "Lagu tanpa judul": "Untitled song",
   "Lagu · {n} bagian": "Song · {n} part|Song · {n} parts",
   "Lagu · {n} slide": "Song · {n} slide|Song · {n} slides",
+  "Lagu “{title}” tersimpan di Song Library.":
+    "“{title}” saved to the Song Library.",
   "Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik tidak berubah.":
     "Shown on the congregation screen at once. This slide only; the song in Music is not changed.",
   "Latar ayat": "Verse background",
@@ -341,10 +359,14 @@ export const EN: Record<string, string> = {
     "Library {lib} MiB · kept for snapshots/themes {kept} MiB",
   "Lihat semua yang belum di Media": "Show all not in Media",
   "Lirik bagian {n}": "Lyrics part {n}",
+  "Lirik lengkap": "Full lyrics",
+  "Lirik masih kosong.": "The lyrics are empty.",
   "Lirik selalu Extra Bold, putih, dengan outline hitam. Font, ukuran, dan outline berlaku untuk semua slide, dengan atau tanpa tema; tema hanya mengatur latar. Ukuran dan outline juga bisa diubah langsung di bawah Live Output.":
     "Lyrics are always Extra Bold, white, with a black outline. Font, size and outline apply to every slide, with or without a theme; a theme only sets the background. Size and outline can also be changed right under Live Output.",
   "Lirik selalu Extra Bold, putih, dengan outline hitam. Font, ukuran, dan tebal outline diatur di Pengaturan › Tipografi lirik atau di bawah Live Output, untuk semua tema. Di sini hanya posisi dan bayangan teks.":
     "Lyrics are always Extra Bold, white, with a black outline. Font, size and outline thickness are set in Settings › Lyric typography or under Live Output, for every theme. Here you only set the text position and shadow.",
+  "Lirik terlalu panjang (maksimal 100.000 karakter).":
+    "The lyrics are too long (at most 100,000 characters).",
   "LIVE bukan video": "LIVE is not a video",
   "LIVE sedang berjalan. Halaman ini akan dimuat ulang; layar proyektor tetap menampilkan slide terakhir dan Anda perlu Resume. Lanjutkan?":
     "LIVE is running. This page will reload; the projector keeps the last slide and you will need to Resume. Continue?",
@@ -405,6 +427,8 @@ export const EN: Record<string, string> = {
   "Minta akses ke LAI (info@alkitab.or.id, bible-api.alkitab.or.id). Isi alamat dan kode versi sesuai dokumentasi yang diberikan LAI.":
     "Ask LAI for access (info@alkitab.or.id, bible-api.alkitab.or.id). Fill in the address and version code from LAI's documentation.",
   "Minta penyimpanan persisten": "Request persistent storage",
+  "Mirip Chorus, tetapi kata-katanya sedikit berbeda.":
+    "Like the Chorus, but some words differ.",
   "Mode restore": "Restore mode",
   "Muat ulang": "Reload",
   "Muat ulang data": "Reload data",
@@ -449,11 +473,13 @@ export const EN: Record<string, string> = {
   "Peringatan kontras": "Contrast warnings",
   "Perintah lebih baru membatalkan End Session.":
     "A newer command cancelled End Session.",
+  "Perlu dicek": "Check",
   "Permintaan penyimpanan tidak tersedia pada browser ini.":
     "Storage requests are not available in this browser.",
   "Persiapkan hati untuk menyembah.": "Prepare your heart to worship.",
   "Pesan alert": "Alert message",
   Pilih: "Pick",
+  "Pilih bagian…": "Choose a part…",
   "Pilih checkpoint ini untuk tawaran Resume? Checkpoint sebelumnya dipertahankan sebagai kandidat lain; tidak ada Go Live otomatis.":
     "Offer this checkpoint for Resume? The previous checkpoint is kept as another candidate; nothing goes live automatically.",
   "Pilih dari Media…": "Choose from Media…",
@@ -546,6 +572,7 @@ export const EN: Record<string, string> = {
   "Simpan ESV": "Save ESV",
   "Simpan file sumber. Aset yang masih dibutuhkan Preview, LIVE, atau checkpoint tidak dihapus oleh cleanup. Tidak ada backup media otomatis.":
     "Keep your source files. Files still needed by the prepared item, LIVE or a checkpoint are not removed by cleanup. Media is not backed up automatically.",
+  "Simpan ke Song Library": "Save to Song Library",
   "Simpan pengaturan lanjutan": "Save advanced settings",
   "Simpan sekarang": "Save now",
   "Simpan TB2": "Save TB2",
@@ -572,6 +599,11 @@ export const EN: Record<string, string> = {
   "Sumber online: TB (SABDA), ESV (esv.org), TB2 (LAI)":
     "Online sources: TB (SABDA), ESV (esv.org), TB2 (LAI)",
   "Sumber tidak tersedia": "Source not available",
+  "Susun Otomatis": "Auto Arrange",
+  "SUSUN OTOMATIS · TANPA AI · TIDAK DIKIRIM KE MANA PUN":
+    "AUTO ARRANGE · NO AI · NOTHING SENT ANYWHERE",
+  "Susun ulang dari lirik? Koreksi pada hasil di bawah akan diganti.":
+    "Arrange again from the lyrics? Your corrections below will be replaced.",
   "Susunan layar berubah. Periksa jendela/proyektor; LIVE dipertahankan.":
     "The screen layout changed. Check the window/projector; LIVE is kept.",
   "Tab hanya baca dapat menelusuri halaman; persiapan PDF membutuhkan penulis untuk menyimpan raster offline.":
@@ -582,6 +614,7 @@ export const EN: Record<string, string> = {
   "Tab Media hanya untuk gambar dan video. PDF diimpor di tab Presentations.":
     "The Media tab is for pictures and videos only. Import PDFs in the Presentations tab.",
   "Tambah bagian": "Add part",
+  "Tambah ke urutan": "Add to order",
   "Tambah lagu": "Add song",
   "Tambahkan ke jadwal": "Add to schedule",
   "Tambahkan lirik milik Anda atau materi yang Anda berhak gunakan.":
@@ -591,6 +624,8 @@ export const EN: Record<string, string> = {
     "Show the prepared slide to the congregation",
   "Tanpa API key. Sesuai": "No API key. Under the",
   "Tanpa internet": "Offline",
+  "Tanpa label di lirik: diperkirakan dari baris kosong.":
+    "No label in the lyrics: guessed from blank lines.",
   "tanpa suara, berulang": "no sound, loops",
   "Tanpa tema (latar hitam)": "No theme (black background)",
   "Tarik ke Jadwal Ibadah": "Drag into the Service Schedule",
@@ -607,6 +642,8 @@ export const EN: Record<string, string> = {
   "Teks kosong": "Empty text",
   "Teks Scripture baca-saja": "Scripture text is read-only",
   "Teks Scripture baca-saja.": "Scripture text is read-only.",
+  "Teks sebelum label pertama: pilih labelnya atau hapus.":
+    "Text before the first label: choose its label or remove it.",
   "Teks terlalu panjang.": "The text is too long.",
   "Teks tidak muat di slide. Perpendek teks atau kecilkan ukuran font.":
     "The text does not fit on the slide. Shorten it or make the font smaller.",
@@ -623,6 +660,8 @@ export const EN: Record<string, string> = {
     "The theme shows on Live Output right away and stays on for any song, verse or schedule item shown next, until another theme is chosen. Black / Clear Text stay as they are.",
   "Tema tampilan": "Display theme",
   "Tema tidak valid": "Invalid theme",
+  "Tempel judul, pencipta, dan lirik lengkap; bagian lagu disusun otomatis":
+    "Paste the title, author and full lyrics; the song parts are arranged for you",
   Tengah: "Centre",
   Terapkan: "Apply",
   "Terapkan ke item Live Output": "Apply to the Live Output item",
@@ -659,6 +698,8 @@ export const EN: Record<string, string> = {
   "Tutup editor tema": "Close theme editor",
   "Tutup projector window sebelum melanjutkan.":
     "Close the projector window before continuing.",
+  "Tutup Susun Otomatis? Hasil yang belum disimpan hilang.":
+    "Close Auto Arrange? Unsaved results will be lost.",
   "Tutup tanpa menyimpan": "Close without saving",
   "Tutup tanpa menyimpan perubahan terakhir? Draft yang sudah tersimpan tetap dipertahankan.":
     "Close without saving the last changes? The saved draft is kept.",
@@ -671,6 +712,7 @@ export const EN: Record<string, string> = {
   "Ukuran teks": "Text size",
   "Urutan jadwal disimpan.": "Schedule order saved.",
   "Urutan presentasi": "Presentation order",
+  "Urutan presentasi masih kosong.": "The presentation order is empty.",
   "Validasi gagal.": "Validation failed.",
   "Verifikasi file": "Verify file",
   "Versi baru SAGI tersedia.": "A new SAGI version is available.",
@@ -695,6 +737,10 @@ export const EN: Record<string, string> = {
     "The workspace is being edited in another tab. This tab is read-only. Close the other tab, then reload to edit.",
   "{label} ditambahkan ke {name}.": "{label} added to {name}.",
   "{n} bagian": "{n} part|{n} parts",
+  "{n} bagian dari label di lirik.":
+    "{n} part from the labels in the lyrics.|{n} parts from the labels in the lyrics.",
+  "{n} bagian. Sebagian diperkirakan (tanpa label): periksa yang bertanda Perlu dicek.":
+    "{n} part. Some were guessed (no labels): check the ones marked Check.|{n} parts. Some were guessed (no labels): check the ones marked Check.",
   "{n} baru": "{n} new|{n} new",
   "{n} detik": "{n} second|{n} seconds",
   "{n} file baru di “{name}”":
@@ -817,5 +863,10 @@ export const EN_PATTERNS: [RegExp, (...m: string[]) => string][] = [
     /^(.+): file di laptop ini rusak, tidak dikirim\. Impor ulang file aslinya\.$/,
     (n) =>
       `${n}: this laptop's copy is damaged and was not sent. Import the original file again.`,
+  ],
+  [/^Bait ini muncul (\d+) kali\.$/, (n) => `This stanza appears ${n} times.`],
+  [
+    /^Label "(.+)" dipakai lagi dengan lirik berbeda\.$/,
+    (l) => `Label "${l}" is used again with different lyrics.`,
   ],
 ];
