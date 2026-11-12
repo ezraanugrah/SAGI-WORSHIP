@@ -67,6 +67,29 @@ const SESSION = "sagi-sync-session",
   DELETED = "deleted",
   OVERLAP_MS = 60000,
   PAGE = 1000;
+/** Plain-language reason for a refused sign-in (Supabase Auth answer). */
+export async function loginRefusal(response: Response) {
+  let code = "",
+    text = "";
+  try {
+    const j = await response.json();
+    code = String(j?.error_code ?? j?.error ?? "");
+    text = String(j?.msg ?? j?.message ?? j?.error_description ?? "");
+  } catch {
+    /* no JSON body */
+  }
+  if (response.status === 429 || code.includes("rate_limit"))
+    return "Terlalu banyak percobaan masuk. Tunggu 1–2 menit, lalu coba lagi.";
+  if (code === "email_not_confirmed" || /not confirmed/i.test(text))
+    return "Akun ini belum dikonfirmasi. Admin: buka Supabase › Authentication › Users, pilih akun ini, lalu Confirm email (atau buat ulang dengan Auto Confirm User).";
+  if (code === "user_banned")
+    return "Akun ini diblokir di Supabase. Admin bisa membukanya di Authentication › Users.";
+  if (response.status === 400 || response.status === 401)
+    return "Email atau password salah. Password membedakan huruf besar/kecil. Bila lupa, admin bisa mengganti password akun ini di Supabase › Authentication › Users.";
+  if (response.status >= 500)
+    return `Server sinkron tidak menjawab (HTTP ${response.status}). Bila project Supabase sedang dijeda, admin klik Restore project di dashboard Supabase.`;
+  return `Server login menolak (HTTP ${response.status}${text ? `: ${text}` : ""}).`;
+}
 export class OfflineError extends Error {
   constructor() {
     super("Offline: perubahan dikirim saat internet tersambung lagi.");
@@ -156,6 +179,10 @@ export class SongSync {
         body: JSON.stringify(body),
       },
     );
+    // Signing in: say why Supabase refused, so the operator (or admin)
+    // knows what to fix. Refreshing: a refused token just means signed out.
+    if (grant === "password" && !response.ok)
+      throw new Error(await loginRefusal(response));
     if (response.status === 400 || response.status === 401) return null;
     if (!response.ok)
       throw new Error(`Server login menolak (HTTP ${response.status}).`);

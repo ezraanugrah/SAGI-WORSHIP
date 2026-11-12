@@ -48,10 +48,28 @@ export function createFakeSupabase(users: Record<string, string>) {
       body = bodyText ? JSON.parse(bodyText) : null;
     if (u.pathname === "/auth/v1/token") {
       const grant = u.searchParams.get("grant_type");
-      if (grant === "password")
-        return users[body?.email] === body?.password
-          ? issue(body.email, fake.expiresIn)
-          : reply(400, { error: "invalid_grant" });
+      if (grant === "password") {
+        // Same answers as Supabase Auth.
+        if (fake.rateLimited)
+          return reply(429, {
+            code: 429,
+            error_code: "over_request_rate_limit",
+            msg: "Request rate limit reached",
+          });
+        if (users[body?.email] !== body?.password)
+          return reply(400, {
+            code: 400,
+            error_code: "invalid_credentials",
+            msg: "Invalid login credentials",
+          });
+        if (fake.unconfirmed.has(body.email))
+          return reply(400, {
+            code: 400,
+            error_code: "email_not_confirmed",
+            msg: "Email not confirmed",
+          });
+        return issue(body.email, fake.expiresIn);
+      }
       if (grant === "refresh_token" && refresh.has(body?.refresh_token)) {
         const email = refresh.get(body.refresh_token)!;
         refresh.delete(body.refresh_token);
@@ -109,6 +127,10 @@ export function createFakeSupabase(users: Record<string, string>) {
     refreshes: 0,
     /** Lifetime of tokens issued at sign-in, in seconds. */
     expiresIn: 3600,
+    /** Accounts created without "Auto Confirm User". */
+    unconfirmed: new Set<string>(),
+    /** Answer sign-ins with HTTP 429 (too many attempts). */
+    rateLimited: false,
     handle,
     /** A fetch() bound to this fake server. */
     fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {

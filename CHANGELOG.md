@@ -168,6 +168,12 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Slider Ukuran teks dan Safe margin di Pengaturan kini punya label untuk pembaca layar.
 - Tes: unit test gaya lirik global pada tema (ukuran, font, margin, tanda tangan tema) dan daftar font; E2E Poppins 100 px tetap dipakai di Preview dan Live Output bertema, latar `object-fit: cover`, dan editor tema tanpa kolom font/ukuran/fit.
 
+### Masuk Sinkron antar laptop: alasan penolakan jelas
+
+- Sebelumnya setiap penolakan login ditampilkan sebagai "Email atau password salah", termasuk akun yang belum dikonfirmasi di Supabase atau terlalu banyak percobaan. Kini panel **Sinkron antar laptop** menyebut alasan sebenarnya dan cara memperbaikinya: akun belum dikonfirmasi (admin: Authentication › Users › Confirm email), email/password salah, terlalu banyak percobaan (tunggu 1–2 menit), atau server Supabase dijeda (Restore project).
+- `docs/SYNC.md` punya bagian **Tidak bisa masuk?**. Semua akun yang masuk berbagi pustaka lagu yang sama; lagu dari satu laptop muncul di laptop lain setelah laptop pertama juga masuk dan tersinkron.
+- Tes: unit test untuk akun belum dikonfirmasi, terlalu banyak percobaan, dan server dijeda (server tiruan menjawab seperti Supabase Auth). Dua tes E2E kini memakai `baseURL` dari konfigurasi, bukan port yang ditulis langsung.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

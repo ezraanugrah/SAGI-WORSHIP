@@ -26,6 +26,18 @@ Sinkron berjalan sendiri: saat dibuka, setiap 15 detik, 2 detik setelah lagu diu
 
 Sinkron hanya berjalan di tab yang sedang mengedit (bukan tab "hanya baca").
 
+## Tidak bisa masuk?
+
+Setiap akun yang sudah masuk melihat **pustaka lagu yang sama** (boleh satu akun bersama atau satu akun per operator). Lagu dari laptop A baru muncul di laptop B setelah laptop A juga masuk dan statusnya "Tersinkron".
+
+Pesan di bawah tombol **Masuk** menyebut alasannya:
+
+- **"Akun ini belum dikonfirmasi"**: akun dibuat tanpa *Auto Confirm User*. Admin: Supabase › **Authentication › Users** › pilih akun › **Confirm email** (atau hapus lalu buat ulang dengan *Auto Confirm User* dicentang).
+- **"Email atau password salah"**: periksa ejaan email dan huruf besar/kecil password. Akun baru hanya bisa dibuat admin di Supabase (pendaftaran umum dimatikan); admin juga bisa mengganti password di **Authentication › Users** › akun › ⋯.
+- **"Terlalu banyak percobaan masuk"**: tunggu 1–2 menit lalu coba lagi.
+- **"Server sinkron tidak menjawab"**: project Supabase mungkin dijeda; admin klik **Restore project**.
+- Panel bertuliskan **"Belum disiapkan"**: laptop itu membuka versi lama atau alamat lain. Buka https://sagi-worship.vercel.app dan klik **Muat versi baru** bila muncul.
+
 ## Aturan yang dipakai
 
 - **Offline dulu**: tanpa internet semua tetap berjalan; perubahan dikirim saat online lagi.

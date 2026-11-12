@@ -178,7 +178,12 @@ test("offline portable backup restores mixed image, theme, song and settings int
   const fresh = await browser.newContext({ serviceWorkers: "allow" });
   await configure(fresh);
   const target = await fresh.newPage();
-  await target.goto("http://localhost:4174/");
+  await target.goto(
+    (test.info().project.use.baseURL ?? "http://127.0.0.1:4174").replace(
+      "127.0.0.1",
+      "localhost",
+    ),
+  );
   await settings(target);
   await offline(fresh, target);
   await stage(target, file);

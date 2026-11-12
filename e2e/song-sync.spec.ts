@@ -44,7 +44,8 @@ async function laptop(browser: Browser, fake: Fake) {
     });
   });
   const page = await context.newPage();
-  await page.goto("http://127.0.0.1:4174/");
+  // Same server as the configured baseURL (contexts made here do not get it).
+  await page.goto(test.info().project.use.baseURL ?? "http://127.0.0.1:4174/");
   await expect(
     page.getByRole("button", { name: "Tambah lagu", exact: true }),
   ).toBeEnabled();

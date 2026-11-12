@@ -52,10 +52,34 @@ describe("signing in", () => {
   it("refuses a wrong password and keeps the session after a right one", async () => {
     const a = laptop();
     await expect(a.sync.signIn("tim@gereja.id", "salah")).rejects.toThrow(
-      "Email atau password salah.",
+      /^Email atau password salah\. Password membedakan huruf besar\/kecil/,
     );
     await expect(a.sync.run()).rejects.toBeInstanceOf(SignedOutError);
     await a.sync.signIn(" tim@gereja.id ", "rahasia");
+    expect(a.sync.session()?.email).toBe("tim@gereja.id");
+  });
+  it("says why a sign-in was refused: unconfirmed account, too many tries, paused server", async () => {
+    const a = laptop();
+    server.unconfirmed.add("tim@gereja.id");
+    await expect(a.sync.signIn("tim@gereja.id", "rahasia")).rejects.toThrow(
+      "Akun ini belum dikonfirmasi",
+    );
+    server.unconfirmed.clear();
+    server.rateLimited = true;
+    await expect(a.sync.signIn("tim@gereja.id", "rahasia")).rejects.toThrow(
+      "Terlalu banyak percobaan masuk",
+    );
+    server.rateLimited = false;
+    const paused = new SongSync(
+      config,
+      a.repo,
+      memory(),
+      (async () => new Response("", { status: 503 })) as typeof fetch,
+    );
+    await expect(paused.signIn("tim@gereja.id", "rahasia")).rejects.toThrow(
+      "Restore project",
+    );
+    await a.sync.signIn("tim@gereja.id", "rahasia");
     expect(a.sync.session()?.email).toBe("tim@gereja.id");
   });
   it("refreshes an expiring token and reports offline", async () => {
