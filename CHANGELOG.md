@@ -277,6 +277,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Diperbaiki:** setelah dimuat ulang, Go Live sebelumnya mati diam-diam selama banner "Checkpoint presentasi tersedia" belum dijawab. Kini Go Live tetap bisa diklik: SAGI bertanya "Buang presentasi itu dan tampilkan slide Preview ini?" lalu menampilkannya. Resume/Discard di banner tetap tersedia.
 - Tes: E2E baru (Go Live → muat ulang SAGI → lagu lain → Go Live sampai ke jendela proyektor yang sama tanpa jendela baru dan tanpa reload); helper tes proyektor memakai ulang jendela yang sama.
 
+### Proyektor otomatis di layar kedua (Extend desktop)
+
+- Dengan laptop + proyektor/TV dalam mode **Extend desktop**, SAGI kini memilih **layar proyektor** (layar eksternal, bukan layar laptop) secara otomatis begitu Chrome diizinkan melihat layar. Cukup klik **Layar** sekali dan izinkan; setelah itu **Go Live** dan **Reconnect** selalu membuka jendela proyektor di layar itu, juga setelah SAGI dimuat ulang.
+- Layar yang dipilih operator di "Layar tujuan" diingat (berdasarkan nama layar) di browser ini.
+- Bila ada dua layar tetapi izin belum diberikan, setelah Go Live muncul pesan: jendela proyektor terbuka di layar laptop; klik **Layar** sekali, atau geser jendela ke layar proyektor lalu klik Fullscreen di sana. Bila hanya satu layar terdeteksi saat klik Layar, SAGI menyarankan menyambungkan HDMI dan memilih Extend desktop.
+- Tes: unit test pemilihan layar (eksternal, diingat, kembali bila layar hilang) dan E2E dua layar (layar proyektor dipilih otomatis, Go Live membuka di koordinat layar proyektor, pilihan diingat; tanpa izin muncul petunjuk).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

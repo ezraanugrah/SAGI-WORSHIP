@@ -556,6 +556,13 @@ export const EN: Record<string, string> = {
     "The previous presentation was not resumed: Go Live will discard it",
   "Presentasi sebelumnya belum dilanjutkan. Buang presentasi itu dan tampilkan slide Preview ini?":
     "The previous presentation was not resumed. Discard it and show this Preview slide?",
+  "Hanya satu layar terdeteksi. Sambungkan proyektor (HDMI), pilih Extend desktop, lalu klik Layar lagi.":
+    "Only one screen found. Connect the projector (HDMI), choose Extend desktop, then click Screen again.",
+  "Pemilihan layar tidak tersedia/ditolak":
+    "Screen choice is unavailable/refused",
+  "Pindahkan jendela secara manual.": "Move the window by hand.",
+  "Jendela proyektor terbuka di layar laptop. Klik “Layar” sekali agar SAGI selalu membukanya di layar proyektor, atau geser jendela itu ke layar proyektor lalu klik Fullscreen di sana.":
+    "The projector window opened on the laptop screen. Click “Screen” once so SAGI always opens it on the projector screen, or drag that window to the projector screen and click Fullscreen there.",
   "Buka atau sambungkan ulang jendela proyektor":
     "Open or reconnect the projector window",
   "Tampilkan slide Preview ke jemaat (membuka jendela proyektor)":

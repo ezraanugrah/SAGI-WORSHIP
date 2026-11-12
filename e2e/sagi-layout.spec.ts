@@ -1060,3 +1060,97 @@ test("after SAGI reloads, Go Live still reaches the projector window that is ope
     ),
   ).toBe(true);
 });
+
+/** Pretend a laptop plus an HDMI projector in "Extend desktop" mode. */
+async function twoScreens(page: Page, permission: "granted" | "prompt") {
+  await page.addInitScript((permission) => {
+    const screens = [
+      {
+        label: "Built-in Retina Display",
+        availLeft: 0,
+        availTop: 0,
+        availWidth: 1440,
+        availHeight: 900,
+        isPrimary: true,
+        isInternal: true,
+      },
+      {
+        label: "HDMI Proyektor",
+        availLeft: 1440,
+        availTop: 0,
+        availWidth: 1920,
+        availHeight: 1080,
+        isPrimary: false,
+        isInternal: false,
+      },
+    ];
+    const w = window as unknown as {
+      getScreenDetails: () => Promise<unknown>;
+      opened: string[];
+    };
+    w.getScreenDetails = async () =>
+      Object.assign(new EventTarget(), { screens });
+    const query = navigator.permissions.query.bind(navigator.permissions);
+    navigator.permissions.query = ((d: PermissionDescriptor) =>
+      (d.name as string) === "window-management"
+        ? Promise.resolve({ state: permission })
+        : query(d)) as typeof navigator.permissions.query;
+    Object.defineProperty(screen, "isExtended", { get: () => true });
+    w.opened = [];
+    const open = window.open.bind(window);
+    window.open = (url, name, features) => {
+      w.opened.push(String(features));
+      return open(url, name, features);
+    };
+  }, permission);
+}
+
+test("with Extend desktop, Go Live opens the projector window on the projector screen", async ({
+  page,
+}) => {
+  await twoScreens(page, "granted");
+  await page.reload();
+  // Allowed before: the projector screen is picked without clicking Layar.
+  const target = page.getByLabel("Layar tujuan", { exact: true });
+  await expect(target.locator("option:checked")).toHaveText("HDMI Proyektor");
+  await song(page, "Layar lagu", ["Baris di proyektor."]);
+  await preview(page, "Layar lagu");
+  const popup = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const projector = await popup;
+  await expect(projector.locator(".slide-lines")).toHaveText(
+    "Baris di proyektor.",
+  );
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { opened: string[] }).opened,
+    ),
+  ).toEqual(["popup,width=1920,height=1080,left=1440,top=0"]);
+  // The operator's own choice is remembered across reloads.
+  await target.selectOption({ label: "Built-in Retina Display" });
+  await page.reload();
+  await expect(
+    page.getByLabel("Layar tujuan", { exact: true }).locator("option:checked"),
+  ).toHaveText("Built-in Retina Display");
+});
+
+test("with two screens but no screen permission yet, Go Live explains how to reach the projector", async ({
+  page,
+}) => {
+  await twoScreens(page, "prompt");
+  await page.reload();
+  await expect(page.getByLabel("Layar tujuan", { exact: true })).toHaveCount(0);
+  await song(page, "Laptop lagu", ["Baris di laptop."]);
+  await preview(page, "Laptop lagu");
+  const popup = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await popup;
+  await expect(page.getByRole("alert")).toContainText(
+    "Jendela proyektor terbuka di layar laptop",
+  );
+  // Clicking Layar (granting the permission) picks the projector screen.
+  await page.getByRole("button", { name: "Pilih layar", exact: true }).click();
+  await expect(
+    page.getByLabel("Layar tujuan", { exact: true }).locator("option:checked"),
+  ).toHaveText("HDMI Proyektor");
+});

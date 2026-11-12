@@ -22,6 +22,10 @@ export type ScreenChoice = {
   top: number;
   width: number;
   height: number;
+  /** The main screen (usually the laptop). */
+  isPrimary?: boolean;
+  /** Built into the laptop. */
+  isInternal?: boolean;
 };
 /** Name of the audience window, shared across reloads of the operator page. */
 export const PROJECTOR_WINDOW = "SAGI_Projector";
@@ -260,6 +264,8 @@ export async function listScreens(
           availTop: number;
           availWidth: number;
           availHeight: number;
+          isPrimary?: boolean;
+          isInternal?: boolean;
         }[];
       }
     >;
@@ -276,6 +282,8 @@ export async function listScreens(
       top: s.availTop,
       width: s.availWidth,
       height: s.availHeight,
+      isPrimary: s.isPrimary,
+      isInternal: s.isInternal,
     }));
   if (onChange && !signal?.aborted)
     details.addEventListener("screenschange", () => onChange(choices()), {

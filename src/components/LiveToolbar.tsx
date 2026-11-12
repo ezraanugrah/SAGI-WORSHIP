@@ -12,6 +12,7 @@ import {
   type PresentationState,
 } from "../presentation/controller";
 import { ALERT_MAX } from "../presentation/models";
+import { openProjector } from "./openProjector";
 import type { ScreenChoice } from "../presentation/windowManager";
 
 /**
@@ -112,7 +113,7 @@ export function LiveToolbar({
           run(() => {
             // Opened inside this click so the browser allows the popup.
             if (!controller.windows.hasOpenOutput())
-              controller.windows.open(screen);
+              openProjector(controller, screen);
             return replace
               ? controller.discard().then(() => controller.goLive())
               : controller.goLive();

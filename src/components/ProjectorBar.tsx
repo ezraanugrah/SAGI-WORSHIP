@@ -3,6 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { Expand, MonitorCog, RefreshCw } from "lucide-react";
 import { PresentationController } from "../presentation/controller";
 import { listScreens, type ScreenChoice } from "../presentation/windowManager";
+import {
+  preferredScreen,
+  rememberScreen,
+  screensAllowed,
+} from "../presentation/screens";
+import { openProjector } from "./openProjector";
 
 /**
  * Projector window tools on the left of the top bar (every page). Go Live (or
@@ -20,10 +26,11 @@ export function ProjectorBar({
   const [screens, setScreens] = useState<ScreenChoice[]>([]),
     [screen, setScreen] = useState("");
   const screensRequest = useRef<AbortController | null>(null);
-  useEffect(() => () => screensRequest.current?.abort(), []);
-  const choose = (value: string, choices = screens) => {
+  const choose = (value: string, choices = screens, remember = false) => {
     setScreen(value);
-    onScreen(value === "" ? undefined : choices[Number(value)]);
+    const choice = value === "" ? undefined : choices[Number(value)];
+    onScreen(choice);
+    if (remember) rememberScreen(choice);
   };
   const run = (action: () => unknown) => {
     try {
@@ -34,29 +41,59 @@ export function ProjectorBar({
       controller.report(e);
     }
   };
-  function pickScreens() {
+  /** List the screens and pick the projector screen (remembered or the
+   * external one). `asked`: the operator clicked Layar. */
+  async function load(asked: boolean) {
     screensRequest.current?.abort();
     const request = new AbortController();
     screensRequest.current = request;
-    void listScreens((choices) => {
+    const apply = (choices: ScreenChoice[]) => {
       setScreens(choices);
-      choose("", choices);
+      const i = preferredScreen(choices);
+      choose(i < 0 ? "" : String(i), choices);
+      return i;
+    };
+    const choices = await listScreens((changed) => {
+      apply(changed);
       controller.report(
         new Error(
-          "Susunan layar berubah. Periksa jendela/proyektor; LIVE dipertahankan.",
-        ),
-      );
-    }, request.signal)
-      .then((choices) => {
-        if (!request.signal.aborted) setScreens(choices);
-      })
-      .catch((e) =>
-        controller.report(
-          new Error(
-            `Pemilihan layar tidak tersedia/ditolak: ${e.message}. Pindahkan jendela secara manual.`,
+          t(
+            "Susunan layar berubah. Periksa jendela/proyektor; LIVE dipertahankan.",
           ),
         ),
       );
+    }, request.signal);
+    if (request.signal.aborted) return;
+    if (apply(choices) < 0 && asked)
+      controller.report(
+        new Error(
+          t(
+            "Hanya satu layar terdeteksi. Sambungkan proyektor (HDMI), pilih Extend desktop, lalu klik Layar lagi.",
+          ),
+        ),
+      );
+  }
+  useEffect(() => {
+    // Chrome already allows listing screens (granted before): pick the
+    // projector screen right away, so Go Live opens there after a reload too.
+    let active = true;
+    void screensAllowed().then((allowed) => {
+      if (allowed && active) void load(false).catch(() => {});
+    });
+    return () => {
+      active = false;
+      screensRequest.current?.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  function pickScreens() {
+    void load(true).catch((e) =>
+      controller.report(
+        new Error(
+          `${t("Pemilihan layar tidak tersedia/ditolak")}: ${(e as Error).message}. ${t("Pindahkan jendela secara manual.")}`,
+        ),
+      ),
+    );
   }
   return (
     <div className="projector-bar" role="group" aria-label="Jendela proyektor">
@@ -79,7 +116,7 @@ export function ProjectorBar({
           <select
             aria-label="Layar tujuan"
             value={screen}
-            onChange={(e) => choose(e.target.value)}
+            onChange={(e) => choose(e.target.value, screens, true)}
           >
             <option value="">{t("Manual / layar default")}</option>
             {screens.map((s, index) => (
@@ -110,11 +147,12 @@ export function ProjectorBar({
         title={t("Buka atau sambungkan ulang jendela proyektor")}
         disabled={!editable}
         onClick={() =>
-          run(() =>
-            controller.windows.reconnect(
-              screen === "" ? undefined : screens[Number(screen)],
-            ),
-          )
+          run(() => {
+            const target = screen === "" ? undefined : screens[Number(screen)];
+            if (!controller.windows.hasOpenOutput())
+              openProjector(controller, target);
+            else controller.windows.reconnect(target);
+          })
         }
       >
         <span className="tool-icon" aria-hidden="true">
