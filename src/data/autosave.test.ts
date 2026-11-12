@@ -79,7 +79,7 @@ describe("validated autosave lifecycle", () => {
     await saver.flush();
     expect(saver.state.error).toBe(false);
     expect(saver.state.message).toBe(
-      "Draft tersimpan. Isi judul lagu dan lirik bagian 1 untuk menyimpan lagu.",
+      "Draft tersimpan. Isi judul lagu dan lirik minimal satu bagian untuk menyimpan lagu.",
     );
     expect((await repo.load()).drafts).toHaveLength(1);
     saver.stop();

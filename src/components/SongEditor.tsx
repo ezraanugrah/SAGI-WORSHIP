@@ -37,7 +37,7 @@ export function SongEditor({
   );
   const [status, setStatus] = useState<SaveState>({
     message: draft
-      ? "Draft dipulihkan. Ubah isi atau pilih Simpan sekarang."
+      ? "Draft dipulihkan. Lengkapi lalu pilih Simpan sekarang."
       : song
         ? "Tersimpan lokal"
         : "Lagu baru · isi judul dan lirik untuk autosave.",
@@ -105,9 +105,17 @@ export function SongEditor({
     saver.stop();
     onClose();
   }
+  /** "Simpan sekarang": save at once; a complete song closes the editor. */
   async function saveNow() {
-    if (!saver.unsaved) saver.edit(value);
+    // Nothing new to save: an already saved song just closes (no empty
+    // revision); a restored draft or failed save is tried again.
+    if (!saver.unsaved && (!saver.savedSong || saver.state.error))
+      saver.edit(value);
     await saver.flush();
+    if (!saver.unsaved && saver.savedSong && !saver.state.error) {
+      saver.stop();
+      onClose();
+    }
   }
   return (
     <section
@@ -323,30 +331,6 @@ export function SongEditor({
               </li>
             ))}
           </ol>
-          <label>
-            Tambahkan ke urutan
-            <select
-              aria-label="Tambahkan ke urutan"
-              value=""
-              onChange={(e) => {
-                if (e.target.value)
-                  update({ ...value, order: [...value.order, e.target.value] });
-              }}
-              disabled={value.order.length >= 1000}
-            >
-              <option value="">Pilih bagian untuk diulang…</option>
-              {value.sections.map((s, i) => (
-                <option key={s.id} value={s.id}>
-                  {/* Two parts with the same name are told apart by number. */}
-                  {value.sections.some(
-                    (x) => x !== s && sectionName(x) === sectionName(s),
-                  )
-                    ? `${sectionName(s)} · bagian ${i + 1}`
-                    : sectionName(s)}
-                </option>
-              ))}
-            </select>
-          </label>
         </fieldset>
         <p
           className={status.error ? "save-message error-text" : "save-message"}
@@ -364,13 +348,6 @@ export function SongEditor({
             onClick={() => void saveNow()}
           >
             {status.error ? "Coba simpan lagi" : "Simpan sekarang"}
-          </button>
-          <button
-            className="button secondary"
-            disabled={status.pending}
-            onClick={() => void close()}
-          >
-            Selesai
           </button>
           {status.error && (
             <button

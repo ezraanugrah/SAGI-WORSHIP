@@ -30,12 +30,16 @@ async function song(
       .getByLabel("Jenis bagian 2", { exact: true })
       .selectOption("Chorus");
     await editor.getByLabel("Lirik bagian 2", { exact: true }).fill(chorus);
+    // A third part with the first verse again (Verse 1 · Chorus · Verse).
     await editor
-      .getByLabel("Tambahkan ke urutan", { exact: true })
-      .selectOption({ label: "Verse 1" });
+      .getByRole("button", { name: "Tambah bagian", exact: true })
+      .click();
+    await editor.getByLabel("Lirik bagian 3", { exact: true }).fill(first);
   }
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
 }
 async function prepare(page: Page, title = "Projection composition") {
@@ -165,7 +169,9 @@ test("source autosave/deletion, preference changes and Settings navigation never
     .getByLabel("Lirik bagian 1", { exact: true })
     .fill("New source text saved during presentation.");
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(output.locator(".slide-lines")).toHaveText(first);
   await page.getByRole("link", { name: "Pengaturan", exact: true }).click();
   await page.getByRole("button", { name: "Ocean", exact: true }).click();

@@ -35,7 +35,9 @@ async function song(page: Page) {
     .selectOption("Bridge");
   await editor.getByLabel("Lirik bagian 3", { exact: true }).fill(bridge);
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
 }
 async function prepare(page: Page) {
@@ -267,7 +269,9 @@ test("H4: shortcuts stay off while typing or inside an editor", async ({
   await page.keyboard.press("b");
   await expect(lines(output)).toHaveText(first);
   await expect(mode(output)).toHaveAttribute("data-mode", "normal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
 });
 

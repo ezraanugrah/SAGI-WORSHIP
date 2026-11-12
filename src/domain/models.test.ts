@@ -60,6 +60,17 @@ describe("song validation and ordering", () => {
     ]);
     expect(validSongInput(song, "song")).toBe(true);
   });
+  it("accepts an empty part (blank slide) when another part has lyrics", () => {
+    const input = songFixture("song");
+    input.sections = [
+      { id: "a", songId: "song", type: "Intro", label: "Intro", text: "" },
+      { id: "b", songId: "song", type: "Verse", label: "Verse 1", text: "x" },
+    ];
+    input.order = ["a", "b"];
+    expect(validSongInput(input, "song")).toBe(true);
+    input.sections[1].text = " ";
+    expect(validSongInput(input, "song")).toBe(false);
+  });
   it("rejects blank canonical lyrics, invalid types, duplicate IDs and dangling section references", () => {
     const input = songFixture("song");
     expect(validSongInput({ ...input, title: " " }, "song")).toBe(false);

@@ -23,7 +23,7 @@ async function song(page: Page, title = "Backup composition") {
     .getByLabel("Lirik bagian 1", { exact: true })
     .fill("Original backup verification lyric.\nExact second line.");
   await expect(e.getByRole("status")).toHaveText("Tersimpan lokal");
-  await e.getByRole("button", { name: "Selesai", exact: true }).click();
+  await e.getByRole("button", { name: "Simpan sekarang", exact: true }).click();
 }
 async function exportFile(page: Page) {
   const download = page.waitForEvent("download");
@@ -311,7 +311,7 @@ test("safe keep-both merge preserves both linked song aggregates", async ({
     .getByLabel("Judul lagu", { exact: true })
     .fill("Newer destination composition");
   await expect(e.getByRole("status")).toHaveText("Tersimpan lokal");
-  await e.getByRole("button", { name: "Selesai", exact: true }).click();
+  await e.getByRole("button", { name: "Simpan sekarang", exact: true }).click();
   await settings(page);
   await stage(page, file, "both");
   await end(page);
@@ -514,7 +514,9 @@ test("destination receipt quota failure rolls back all records and permits an ex
     .getByLabel("Judul lagu", { exact: true })
     .fill("Preserved destination");
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await settings(page);
   await stage(page, file, "both");
   await end(page);

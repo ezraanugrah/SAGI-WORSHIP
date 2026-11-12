@@ -291,6 +291,12 @@ export function appendScripture(
 /** Each non-empty side of a slide fits in one page (a column for two-language slides). */
 export function fitsFrame(deck: Deck, index: number, measure: Measure) {
   if (deck.frames[index]?.kind === "media") return true;
+  // A blank song slide (empty part) always fits.
+  if (
+    !frameText(deck, index).trim() &&
+    deck.pages[deck.frames[index].page]?.blank
+  )
+    return true;
   if (deck.render?.frames[deck.frames[index]?.id])
     return fitsAppearance(deck, index, measure);
   const text = frameText(deck, index),

@@ -17,6 +17,8 @@ export class SongAutosave {
   private stopped = false;
   private value: SongInput;
   revision: number;
+  /** The last save stored a full song (not only a draft). */
+  savedSong = false;
   state: SaveState = {
     message: "Tersimpan lokal",
     error: false,
@@ -35,6 +37,8 @@ export class SongAutosave {
     this.revision = revision;
     this.sequence = sequence;
     this.handled = sequence;
+    // An existing song opened without a pending draft is already saved.
+    this.savedSong = revision > 0 && sequence === 0;
   }
   private status(message: string, error = false, pending = false) {
     this.state = { message, error, pending };
@@ -81,9 +85,11 @@ export class SongAutosave {
                   sequence,
                 );
           this.revision = saved.revision;
+          this.savedSong = true;
           this.committed();
           if (sequence === this.sequence) this.status("Tersimpan lokal");
         } else if (sequence === this.sequence) {
+          this.savedSong = false;
           const missing = missingForSave(input);
           this.status(
             missing

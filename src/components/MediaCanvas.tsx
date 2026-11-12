@@ -189,10 +189,13 @@ export function MediaCanvas({
         // The operator's Live Output monitor plays along (always muted) so
         // it shows what the projector shows; only the targeted projector
         // window plays the real output.
+        // A silent theme background plays in any window that shows it
+        // (also after a projector refresh); a video with sound only plays
+        // in the projector window the command was meant for.
         const play =
           mode !== "black" &&
           p?.paused === false &&
-          (role === "monitor" || p.target === nonce);
+          (role === "monitor" || silent || p.target === nonce);
         if (!play) {
           v.pause();
           report();

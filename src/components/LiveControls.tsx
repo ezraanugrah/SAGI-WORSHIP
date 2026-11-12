@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
 import { frameText } from "../presentation/models";
+import { themeFor } from "../presentation/appearance";
+import { backgroundIdentity } from "../themes/models";
 import {
   LYRIC_MAX_PX,
   OUTLINE_MAX_PX,
@@ -51,6 +53,23 @@ export function LiveControls({
   // Live sends it to the projector; after that it mirrors the projector.
   const staged = state.staged && state.preview ? state.preview : null;
   const shown = staged ?? live;
+  // A theme's video background loops silently on the panel too.
+  const stagedBackground = staged
+    ? themeFor(staged.deck, staged.index)?.spec.background
+    : undefined;
+  const stagedBackgroundPlayback =
+    stagedBackground?.kind === "video"
+      ? {
+          frameId: backgroundIdentity(stagedBackground),
+          revision: 1,
+          paused: false,
+          position: 0,
+          loop: true,
+          muted: true,
+          volume: 0,
+          target: "preview",
+        }
+      : undefined;
   const frame = shown?.deck.frames[shown.index];
   // Size and outline sliders (1–100 %): shown at once, saved after a pause
   // so dragging does not rebuild the LIVE slide on every step.
@@ -169,6 +188,7 @@ export function LiveControls({
                 index={staged.index}
                 mode="normal"
                 nonce="preview"
+                backgroundPlayback={stagedBackgroundPlayback}
               />
             ) : (
               <SlideCanvas

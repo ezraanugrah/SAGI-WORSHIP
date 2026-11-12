@@ -3,7 +3,7 @@ import type {
   ThemeSnapshot,
   AdvancedSettings,
 } from "../themes/models";
-import type { Deck, Style } from "./models";
+import { frameText, type Deck, type Style } from "./models";
 import { columnMeasure, type Measure } from "./layout";
 import type { Workspace } from "../domain/models";
 import type { Selection } from "./generateSlides";
@@ -155,6 +155,11 @@ export function fitsAppearance(deck: Deck, index: number, measure: Measure) {
   const theme = themeFor(deck, index),
     type = effectiveType(deck, index);
   if (!theme || !type) return true;
+  if (
+    deck.pages[deck.frames[index].page]?.blank &&
+    !frameText(deck, index).trim()
+  )
+    return true;
   const frame = deck.frames[index],
     text =
       deck.overrides.find((o) => o.frameId === frame.id)?.text ??
@@ -166,12 +171,11 @@ export function fitsAppearance(deck: Deck, index: number, measure: Measure) {
     return [text, parallel].every(
       (side) =>
         !side ||
-        layoutText(side, spec, columnMeasure(measure), true).pages.length ===
-          1,
+        layoutText(side, spec, columnMeasure(measure), true).pages.length === 1,
     );
   return (
-    layoutText(text, spec, measure, frame.kind === "scripture").pages
-      .length === 1
+    layoutText(text, spec, measure, frame.kind === "scripture").pages.length ===
+    1
   );
 }
 export async function resolveAppearance(

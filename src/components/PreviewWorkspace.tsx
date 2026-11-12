@@ -60,5 +60,5 @@ export function slideSummary(deck: Deck, index: number) {
     return frame.media.kind === "video"
       ? "Video"
       : `Halaman ${frame.pageNumber}`;
-  return frameText(deck, index);
+  return frameText(deck, index) || "(slide kosong)";
 }

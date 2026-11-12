@@ -9,7 +9,9 @@ async function song(page: Page, text = "Synthetic phase eight lyrics") {
     .fill("Phase eight synthetic");
   await editor.getByLabel("Lirik bagian 1", { exact: true }).fill(text);
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
 }
 async function settings(page: Page) {
   await page.getByRole("link", { name: "Pengaturan", exact: true }).click();

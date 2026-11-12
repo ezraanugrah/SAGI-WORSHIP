@@ -13,7 +13,9 @@ async function song(page: Page) {
   await expect(
     page.getByRole("region", { name: "Editor lagu" }).getByRole("status"),
   ).toHaveText("Tersimpan lokal");
-  await page.getByRole("button", { name: "Selesai", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await page
     .getByTestId("song-row")
     .getByRole("button", { name: /^Theme rehearsal/ })
@@ -118,54 +120,55 @@ test("image theme retains frozen LIVE/checkpoint through source deletion, refres
   });
   await recovered.screenshot({ path: "docs/evidence/phase6-projector.png" });
 });
-test("video backgrounds are silent, independently controlled and paused after Black, refresh and recovery", async ({
+test("video backgrounds play silently by themselves, pause for Black and resume, also after refresh and recovery", async ({
   page,
   context,
 }) => {
   await song(page);
   await create(page, "Silent background", "video");
   await apply(page);
+  // The panel already loops the background while it waits for Go Live.
+  const panelVideo = page
+    .getByRole("region", { name: "LIVE projector control" })
+    .locator(".theme-background video");
+  await expect
+    .poll(() => panelVideo.evaluate((v: HTMLVideoElement) => v.paused))
+    .toBe(false);
   const p = await output(page);
   await live(page, p);
   const video = p.locator(".theme-background video");
   await expect(video).toBeVisible();
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
-    .toBe(true);
-  await page
-    .getByRole("button", { name: "Play background LIVE", exact: true })
-    .click();
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
-    .toBe(false);
+  const playing = () => video.evaluate((v: HTMLVideoElement) => !v.paused);
+  await expect.poll(playing).toBe(true);
   expect(
     await video.evaluate((v: HTMLVideoElement) => ({
       muted: v.muted,
       volume: v.volume,
       controls: v.controls,
+      loop: v.loop,
     })),
-  ).toEqual({ muted: true, volume: 0, controls: false });
+  ).toEqual({ muted: true, volume: 0, controls: false, loop: true });
+  // The operator can still pause and play it.
+  await page
+    .getByRole("button", { name: "Pause background LIVE", exact: true })
+    .click();
+  await expect.poll(playing).toBe(false);
+  await page
+    .getByRole("button", { name: "Play background LIVE", exact: true })
+    .click();
+  await expect.poll(playing).toBe(true);
   await page.getByRole("button", { name: "Clear Text", exact: true }).click();
   await expect(p.locator(".themed-lines")).toBeHidden();
   await expect(video).toBeVisible();
+  await expect.poll(playing).toBe(true);
   await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect(p.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",
     "black",
   );
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
-    .toBe(true);
+  await expect.poll(playing).toBe(false);
   await page.getByRole("button", { name: "Black", exact: true }).click();
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
-    .toBe(true);
-  await page
-    .getByRole("button", { name: "Play background LIVE", exact: true })
-    .click();
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
-    .toBe(false);
+  await expect.poll(playing).toBe(true);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });
@@ -176,7 +179,7 @@ test("video backgrounds are silent, independently controlled and paused after Bl
     .poll(() =>
       p
         .locator(".theme-background video")
-        .evaluate((v: HTMLVideoElement) => v.paused),
+        .evaluate((v: HTMLVideoElement) => !v.paused),
     )
     .toBe(true);
   await page.reload();
@@ -189,7 +192,7 @@ test("video backgrounds are silent, independently controlled and paused after Bl
     .poll(() =>
       recovered
         .locator(".theme-background video")
-        .evaluate((v: HTMLVideoElement) => v.paused),
+        .evaluate((v: HTMLVideoElement) => !v.paused),
     )
     .toBe(true);
 });

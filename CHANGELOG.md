@@ -191,6 +191,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Mengubah Ukuran/Outline juga memperbarui slide yang menunggu di panel.
 - Tes: unit test status "belum tayang"; E2E klik slide sebelum/sesudah Go Live, proyektor menunggu Go Live, tema tetap dipakai untuk lagu berikutnya, dan tema saat Black.
 
+### Tambah lagu langsung tersimpan; latar video tema berputar sendiri
+
+- **Lagu langsung tersimpan, tidak jadi draft.** Bagian lirik boleh dibiarkan kosong: bagian kosong menjadi **slide kosong** (mis. slide awal yang memang kosong). Lagu cukup punya judul dan lirik minimal di satu bagian. Draft lama ("Draft yang dapat dipulihkan") tersimpan sebagai lagu begitu dibuka lalu diklik **Simpan sekarang**. Di Jadwal Ibadah slide kosong ditulis "(slide kosong)".
+- Editor lagu: **Tambahkan ke urutan** dihapus, dan tombol **Selesai** dihapus. **Simpan sekarang** menyimpan lalu menutup editor (tanpa membuat revisi baru bila tidak ada perubahan); bila judul/lirik belum ada, editor tetap terbuka dengan pesan yang kurang. Editor masih bisa ditutup dengan ✕.
+- **Latar video tema berputar sendiri**, berulang dan **tanpa suara**, di panel Live Output (juga saat "Belum tayang") dan di proyektor; berhenti saat Black dan berputar lagi setelah Black dimatikan, juga setelah proyektor di-refresh atau presentasi dipulihkan. **Pause background LIVE** tetap bisa menghentikannya. Video dari tab **Media** tidak berubah: bersuara dan diputar dengan **Play LIVE**.
+- Tes: unit test bagian kosong (lagu valid, slide kosong polos/bertema) dan latar video otomatis/Black/jeda operator; E2E editor satu tombol dengan slide kosong, dan latar video yang berputar sendiri.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

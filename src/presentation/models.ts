@@ -37,6 +37,8 @@ export type Page = {
   parallel?: string;
   /** Scripture slide holding several verses: its own font size (plain style). */
   fontSize?: number;
+  /** An empty song part: a blank slide (text ""). */
+  blank?: true;
 };
 export type FrameBase = {
   id: string;
@@ -182,6 +184,7 @@ export function validDeck(v: unknown): v is Deck {
         object(p) &&
         typeof p.text === "string" &&
         (p.text.trim().length > 0 ||
+          (p.blank === true && p.text === "") ||
           p.scripture === true ||
           p.media === true ||
           (p.themed === true && v.render !== undefined)) &&

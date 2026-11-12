@@ -8,7 +8,9 @@ async function createSong(page: Page, title: string) {
   await editor.getByLabel("Judul lagu", { exact: true }).fill(title);
   await editor.getByLabel("Lirik bagian 1", { exact: true }).fill(lyric);
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
   return row(page, title);
 }
@@ -70,7 +72,9 @@ test("songs create/edit/search/duplicate/delete and reload persistence", async (
     .getByLabel("Judul lagu", { exact: true })
     .fill("Evening rehearsal");
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Duplikasi Evening rehearsal", exact: true })
     .click();
@@ -89,7 +93,7 @@ test("songs create/edit/search/duplicate/delete and reload persistence", async (
   await expect(row(page, "Evening rehearsal (salinan)")).toHaveCount(1);
   expect(errors).toEqual([]);
 });
-test("all section types, repeated order, keyboard and drag ordering survive reload", async ({
+test("all section types, keyboard and drag ordering survive reload", async ({
   page,
 }) => {
   await createSong(page, "Sections rehearsal");
@@ -111,10 +115,9 @@ test("all section types, repeated order, keyboard and drag ordering survive relo
   await editor
     .getByLabel("Jenis bagian 1", { exact: true })
     .selectOption("Intro");
-  await editor
-    .getByLabel("Tambahkan ke urutan", { exact: true })
-    .selectOption({ label: "Verse 2" });
-  await expect(editor.getByTestId("section-order-item")).toHaveCount(6);
+  // No "Tambahkan ke urutan": the order lists each part once.
+  await expect(editor.getByLabel("Tambahkan ke urutan")).toHaveCount(0);
+  await expect(editor.getByTestId("section-order-item")).toHaveCount(5);
   await editor
     .getByRole("button", { name: "Turunkan bagian urutan 1", exact: true })
     .click();
@@ -129,12 +132,14 @@ test("all section types, repeated order, keyboard and drag ordering survive relo
     "Verse 2",
   );
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await page.reload();
   await page
     .getByRole("button", { name: "Edit Sections rehearsal", exact: true })
     .click();
-  await expect(page.getByTestId("section-order-item")).toHaveCount(6);
+  await expect(page.getByTestId("section-order-item")).toHaveCount(5);
   expect((await readStore(page, "song_sections")).length).toBe(5);
 });
 test("Week 1–4 playlists switch, persist, clear and remove items without touching songs", async ({
@@ -254,7 +259,9 @@ test("invalid edits preserve canonical songs and drafts recover after reload", a
     .getByLabel("Judul lagu", { exact: true })
     .fill("Recovered composition");
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(row(page, "Recovered composition")).toHaveCount(1);
   expect(await readStore(page, "settings")).not.toEqual(
     expect.arrayContaining([expect.objectContaining({ kind: "song-draft" })]),
@@ -378,7 +385,7 @@ test("production shell, song edits, schedules and ordering persist fully offline
     .fill("Original lyric edited while offline.");
   await expect(offlineEditor.getByRole("status")).toHaveText("Tersimpan lokal");
   await offlineEditor
-    .getByRole("button", { name: "Selesai", exact: true })
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
     .click();
   await createSong(page, "Offline new composition");
   await openWeek(page, 1);
@@ -436,7 +443,7 @@ for (const width of [320, 768, 1440])
     if (width === 1440) {
       await page
         .getByRole("region", { name: "Editor lagu" })
-        .getByRole("button", { name: "Selesai", exact: true })
+        .getByRole("button", { name: "Simpan sekarang", exact: true })
         .click();
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({
@@ -479,11 +486,11 @@ test("failed canonical autosave preserves a durable draft and retries safely", a
   await page.evaluate(() =>
     (window as unknown as { restoreWrites: () => void }).restoreWrites(),
   );
+  // "Coba simpan lagi" saves the song and closes the editor.
   await editor
     .getByRole("button", { name: "Coba simpan lagi", exact: true })
     .click();
-  await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await expect(editor).toHaveCount(0);
   await expect(row(page, "Retry composition")).toHaveCount(1);
 });
 

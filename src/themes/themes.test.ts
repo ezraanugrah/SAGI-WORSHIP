@@ -28,6 +28,7 @@ import { ScriptureRepository } from "../data/scriptureRepository";
 import { preparedFixture } from "../scriptures/testFixtures";
 import { resolveReference } from "../scriptures/references";
 import { LYRIC_FONTS, fontStack, lyricFont } from "../presentation/fonts";
+import { fitsFrame } from "../presentation/scriptureAdapter";
 let name: string,
   writer: ReturnType<typeof writerFixture>,
   repo: ThemeRepository,
@@ -560,4 +561,133 @@ it("offers five lyric fonts and draws fonts of older versions as Montserrat", ()
       type: { ...defaultType, font: "Comic Sans" as never },
     }),
   ).toBe(false);
+});
+
+it("an empty song part is saved and shown as a blank slide, plain or themed", async () => {
+  const input = songFixture("song", "Second part lyric");
+  input.sections = [
+    { id: "quiet", songId: "song", type: "Intro", label: "Intro", text: "" },
+    {
+      id: "sung",
+      songId: "song",
+      type: "Verse",
+      label: "Verse 1",
+      text: "Second part lyric",
+    },
+  ];
+  input.order = ["quiet", "sung"];
+  // Saved as a song straight away (no draft).
+  await songs.createSong("song", input);
+  const data = await songs.load();
+  expect(data.songs).toHaveLength(1);
+  for (const themed of [false, true]) {
+    const t = themed ? await create("Blank theme") : undefined,
+      ctx = t
+        ? await resolveAppearance(
+            repo,
+            data,
+            { kind: "song", songId: "song" },
+            { id: t.id, scope: "item" },
+          )
+        : undefined,
+      { deck } = await generateSlides(
+        data,
+        { kind: "song", songId: "song" },
+        style,
+        measure,
+        () => false,
+        ctx,
+      );
+    expect(validDeck(deck)).toBe(true);
+    expect(deck.frames).toHaveLength(2);
+    expect(deck.pages[deck.frames[0].page]).toMatchObject({
+      text: "",
+      blank: true,
+    });
+    expect(deck.pages[deck.frames[1].page].text).toBe("Second part lyric");
+    expect(fitsFrame(deck, 0, measure)).toBe(true);
+  }
+});
+it("a theme's video background plays by itself (silent), pauses in Black and resumes after, unless the operator paused it", async () => {
+  const m = new MediaRepository(writer.gate, name),
+    p = await payload(new Blob(["synthetic video"], { type: "video/webm" })),
+    poster = await payload(
+      new Blob(["synthetic poster"], { type: "image/png" }),
+    );
+  const asset = await m.import({
+    asset: {
+      id: `meta:${crypto.randomUUID()}`,
+      format: 1,
+      revision: 1,
+      title: "Motion background",
+      filename: "motion.webm",
+      kind: "video",
+      original: {
+        id: p.id,
+        digest: p.digest,
+        mime: p.mime,
+        size: p.size,
+        width: 1,
+        height: 1,
+        kind: "video",
+        duration: 10,
+      },
+      thumbnail: {
+        id: poster.id,
+        digest: poster.digest,
+        mime: poster.mime,
+        size: poster.size,
+        width: 1,
+        height: 1,
+        kind: "image",
+      },
+      pages: 1,
+      createdAt: new Date().toISOString(),
+      compatibility: "synthetic test",
+    },
+    payloads: [p, poster],
+  });
+  const themed = spec();
+  themed.background = {
+    kind: "video",
+    asset: asset.original,
+    poster: asset.thumbnail,
+    libraryId: asset.id,
+    fit: "cover",
+    x: 50,
+    y: 50,
+    dim: 0.3,
+    fallback: "#000000",
+  };
+  const t = await create("Motion", themed);
+  await songs.createSong("song", songFixture("song"));
+  const data = await songs.load(),
+    ctx = await resolveAppearance(
+      repo,
+      data,
+      { kind: "song", songId: "song" },
+      { id: t.id, scope: "all" },
+    ),
+    storage = new PresentationRepository(writer.gate, name),
+    controller = new PresentationController(writer.gate, storage, measure);
+  await controller.loadRecovery();
+  await controller.prepare(
+    data,
+    { kind: "song", songId: "song" },
+    style,
+    undefined,
+    ctx,
+  );
+  await controller.goLive();
+  const bg = () => controller.snapshot().live!.backgroundPlayback!;
+  expect(bg()).toMatchObject({ paused: false, muted: true, volume: 0 });
+  controller.toggle("black");
+  expect(bg().paused).toBe(true);
+  controller.toggle("black");
+  expect(bg().paused).toBe(false);
+  controller.background(true);
+  controller.toggle("black");
+  controller.toggle("black");
+  expect(bg().paused).toBe(true);
+  await controller.settled();
 });

@@ -28,7 +28,9 @@ async function song(page: Page, title: string, lyrics: string[]) {
       .fill(lyrics[i]);
   }
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
 }
 
@@ -700,7 +702,7 @@ test("Media tab imports only pictures and videos and sends PDFs to Presentations
   await expect(page.getByText(/^Belum ada presentasi/)).toBeVisible();
 });
 
-test("song editor asks only title and author, and each part is picked from six choices", async ({
+test("song editor: title and author, six part choices, an empty part is a blank slide, one Simpan sekarang button", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Tambah lagu", exact: true }).click();
@@ -727,9 +729,14 @@ test("song editor asks only title and author, and each part is picked from six c
   await editor
     .getByLabel("Penyanyi / pencipta", { exact: true })
     .fill("Arising Church");
-  await editor
-    .getByLabel("Lirik bagian 1", { exact: true })
-    .fill("Synthetic delivered verse.");
+  // Only one button: Simpan sekarang (no Selesai, no Tambahkan ke urutan).
+  await expect(
+    editor.getByRole("button", { name: "Selesai", exact: true }),
+  ).toHaveCount(0);
+  await expect(editor.getByLabel("Tambahkan ke urutan")).toHaveCount(0);
+  await expect(editor.getByRole("status")).toHaveText(
+    "Draft tersimpan. Isi lirik minimal satu bagian untuk menyimpan lagu.",
+  );
   await editor
     .getByRole("button", { name: "Tambah bagian", exact: true })
     .click();
@@ -740,9 +747,7 @@ test("song editor asks only title and author, and each part is picked from six c
   await editor
     .getByLabel("Jenis bagian 2", { exact: true })
     .selectOption("Pre Chorus");
-  await expect(editor.getByRole("status")).toHaveText(
-    "Draft tersimpan. Isi lirik bagian 2 untuk menyimpan lagu.",
-  );
+  // Part 1 stays empty on purpose: the song is saved with a blank slide.
   await editor
     .getByLabel("Lirik bagian 2", { exact: true })
     .fill("Synthetic pre chorus.");
@@ -751,12 +756,24 @@ test("song editor asks only title and author, and each part is picked from six c
     /Verse 1/,
     /Pre Chorus/,
   ]);
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
+  await expect(page.getByText("Draft yang dapat dipulihkan")).toHaveCount(0);
   await songRow(page, "Delivered")
     .getByRole("button", { name: /^Delivered/ })
     .click();
   await previewReady(page);
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  await expect(live.locator(".slide-lines")).toHaveText("");
+  await live
+    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
+    .click();
+  await expect(live.locator(".slide-lines")).toHaveText(
+    "Synthetic pre chorus.",
+  );
   await page.reload();
   await page
     .getByRole("button", { name: "Edit Delivered", exact: true })

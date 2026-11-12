@@ -66,7 +66,9 @@ async function addSong(page: Page, title: string) {
     .getByLabel("Lirik bagian 1", { exact: true })
     .fill("Lirik sintetis untuk uji sinkron.");
   await expect(editor.getByRole("status")).toHaveText("Tersimpan lokal");
-  await editor.getByRole("button", { name: "Selesai", exact: true }).click();
+  await editor
+    .getByRole("button", { name: "Simpan sekarang", exact: true })
+    .click();
   await expect(editor).toHaveCount(0);
 }
 const row = (page: Page, title: string) =>

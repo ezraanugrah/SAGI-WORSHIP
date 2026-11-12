@@ -195,8 +195,11 @@ export function validSongInput(
         // A draft may hold a blank label while the operator retypes it;
         // saving the song fills it in (see withSectionLabels).
         text(x.label, 100, !draft) &&
-        text(x.text, 30000, !draft),
+        // An empty part is allowed: it becomes a blank slide.
+        text(x.text, 30000),
     ) &&
+    // A song needs at least one part with lyrics (a draft does not).
+    (draft || s.sections.some((x) => !!x.text.trim())) &&
     new Set(s.sections.map((x) => x.id)).size === s.sections.length &&
     Array.isArray(s.order) &&
     s.order.length > 0 &&
@@ -231,13 +234,8 @@ export function withSectionLabels(input: SongInput): SongInput {
 export function missingForSave(input: SongInput): string {
   const missing: string[] = [];
   if (!input.title.trim()) missing.push("judul lagu");
-  const empty = input.sections
-    .map((s, i) => (s.text.trim() ? 0 : i + 1))
-    .filter(Boolean);
-  if (empty.length)
-    missing.push(
-      `lirik bagian ${empty.length > 3 ? `${empty.slice(0, 3).join(", ")}, …` : empty.join(", ")}`,
-    );
+  if (!input.sections.some((s) => s.text.trim()))
+    missing.push("lirik minimal satu bagian");
   return missing.join(" dan ");
 }
 export function requireSong(
@@ -247,7 +245,7 @@ export function requireSong(
 ): asserts value is SongInput {
   if (!validSongInput(value, songId, draft))
     throw new Error(
-      "Lagu tidak valid: isi judul dan lirik setiap bagian; periksa urutan serta batas panjang teks.",
+      "Lagu tidak valid: isi judul dan lirik minimal satu bagian; periksa urutan serta batas panjang teks.",
     );
 }
 function meta(v: Record<string, unknown>) {

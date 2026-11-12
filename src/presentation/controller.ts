@@ -72,6 +72,8 @@ export class PresentationController {
   private generation = 0;
   private intent = 0;
   private reliveGeneration = 0;
+  /** The operator paused the theme's video background (Pause background LIVE). */
+  private backgroundHeld = false;
   private playbackRevision = 0;
   private lastVideoCheckpoint = 0;
   private releasedForDeck = "";
@@ -702,15 +704,18 @@ export class PresentationController {
         background.dim,
       ]);
       const previous = this.state.live?.backgroundPlayback;
+      if (previous?.frameId !== frameId) this.backgroundHeld = false;
       live = {
         ...live,
         backgroundPlayback:
           previous?.frameId === frameId
             ? clone(previous)
             : {
+                // A theme's video background plays by itself, looping and
+                // always silent (videos from the Media tab keep Play LIVE).
                 frameId,
                 revision: ++this.playbackRevision,
-                paused: true,
+                paused: live.mode === "black",
                 position: 0,
                 loop: true,
                 muted: true,
@@ -774,6 +779,7 @@ export class PresentationController {
   background(paused: boolean) {
     this.authorize();
     this.intent++;
+    this.backgroundHeld = paused;
     const live = this.state.live;
     if (!live?.backgroundPlayback)
       throw new Error("Tidak ada video background LIVE");
@@ -885,16 +891,24 @@ export class PresentationController {
     const live = this.state.live;
     this.intent++;
     const hides = mode === "black";
+    // Leaving Black starts the theme's video background again, unless the
+    // operator paused it.
+    const resumes =
+      !hides &&
+      live?.mode === "black" &&
+      !!live.backgroundPlayback?.paused &&
+      !this.backgroundHeld;
     if (live) {
       this.transition({
         ...live,
         mode,
-        ...(live.backgroundPlayback && hides
+        ...(live.backgroundPlayback && (hides || resumes)
           ? {
               backgroundPlayback: {
                 ...live.backgroundPlayback,
-                paused: true,
+                paused: hides,
                 revision: ++this.playbackRevision,
+                target: this.windows.documentNonce() || undefined,
               },
             }
           : {}),
@@ -968,9 +982,11 @@ export class PresentationController {
     const intent = ++this.intent;
     const recovered = clone(recovery.live);
     if (recovered.backgroundPlayback) {
+      this.backgroundHeld = false;
       recovered.backgroundPlayback = {
         ...recovered.backgroundPlayback,
-        paused: true,
+        // Silent theme background: plays again after Resume (not in Black).
+        paused: recovered.mode === "black",
         muted: true,
         volume: 0,
         revision: ++this.playbackRevision,

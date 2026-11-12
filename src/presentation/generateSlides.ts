@@ -1,8 +1,4 @@
-import {
-  layoutText,
-  lyricTheme,
-  type AppearanceContext,
-} from "./appearance";
+import { layoutText, lyricTheme, type AppearanceContext } from "./appearance";
 import { builtins } from "../themes/builtins";
 import type { ThemeSnapshot } from "../themes/models";
 import type { MediaSelection } from "../media/models";
@@ -231,26 +227,35 @@ export async function generateSlides(
         (s) => s.id === song.order[occurrence],
       )!;
       const key = `${song.id}:${song.revision}:${section.id}:${theme?.signature ?? "legacy"}`;
-      const themed = theme
-        ? layoutText(section.text, theme.spec, measure)
-        : null;
+      // An empty part is one blank slide (e.g. a quiet first slide).
+      const blank = !section.text.trim();
+      const themed =
+        theme && !blank ? layoutText(section.text, theme.spec, measure) : null;
       let pages = cached.get(key);
       if (!pages) {
-        pages = (themed?.pages ?? paginate(section.text, style, measure)).map(
-          (text) => {
-            if (deck.pages.length >= MAX_FRAMES)
-              throw new Error("Batas 10.000 slide terlampaui.");
-            return (
-              deck.pages.push(theme ? { text, themed: true } : { text }) - 1
-            );
-          },
-        );
+        pages = (
+          blank
+            ? [""]
+            : (themed?.pages ?? paginate(section.text, style, measure))
+        ).map((text) => {
+          if (deck.pages.length >= MAX_FRAMES)
+            throw new Error("Batas 10.000 slide terlampaui.");
+          return (
+            deck.pages.push({
+              text,
+              ...(theme ? { themed: true as const } : {}),
+              ...(blank ? { blank: true as const } : {}),
+            }) - 1
+          );
+        });
         cached.set(key, pages);
       }
       if (deck.frames.length + pages.length > MAX_FRAMES)
         throw new Error("Batas 10.000 slide terlampaui.");
       for (let page = 0; page < pages.length; page++) {
-        effectiveSizes.push(themed?.size ?? style.fontSize);
+        effectiveSizes.push(
+          themed?.size ?? (theme ? theme.spec.type.size : style.fontSize),
+        );
         deck.frames.push({
           id: JSON.stringify([
             item.itemId ?? song.id,
