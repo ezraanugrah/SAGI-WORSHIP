@@ -197,6 +197,69 @@ describe("generation, authorization, immutable LIVE and recovery", () => {
     controller.goLive();
     expect(controller.snapshot().live?.mode).toBe("normal");
   });
+  it("Edit teks under Live Output changes only the slide on screen and keeps Black", async () => {
+    await seed();
+    await controller.prepare(
+      await repo.load(),
+      { kind: "song", songId: "song" },
+      style,
+    );
+    controller.goLive();
+    controller.navigate(1);
+    const before = controller.snapshot().live!;
+    controller.toggle("black");
+    controller.editLive("Edited on the projector.");
+    const live = controller.snapshot().live!;
+    expect(frameText(live.deck, 1)).toBe("Edited on the projector.");
+    expect(frameText(live.deck, 0)).toBe(frameText(before.deck, 0));
+    expect(live.mode).toBe("black");
+    expect(validLive(live)).toBe(true);
+    // Back to the source text: the edit is dropped.
+    controller.editLive(before.deck.pages[before.deck.frames[1].page].text);
+    expect(controller.snapshot().live!.deck.overrides).toEqual([]);
+    // Text that cannot fit is refused and LIVE stays as it was.
+    const sequence = controller.snapshot().sequence;
+    expect(() => controller.editLive("x".repeat(5000))).toThrow("tidak muat");
+    expect(controller.snapshot().sequence).toBe(sequence);
+  });
+  it("a new lyric size shows the LIVE item again on the slide with the same text, keeping Black", async () => {
+    const input = songFixture("song");
+    input.sections[0].text = Array.from(
+      { length: 9 },
+      (_, i) => `Baris lagu nomor ${i + 1}`,
+    ).join("\n");
+    input.sections.push({
+      ...input.sections[0],
+      id: "chorus",
+      type: "Chorus",
+      label: "Chorus",
+      text: "Reff yang sama",
+    });
+    input.order = [input.sections[0].id, "chorus"];
+    await repo.createSong("song", input);
+    const data = await repo.load(),
+      selection = { kind: "song" as const, songId: "song" };
+    await controller.prepare(data, selection, style);
+    controller.goLive();
+    // Verse at 64 px: 6 + 3 lines; Chorus is slide 3.
+    controller.navigate(2);
+    controller.toggle("black");
+    const live = controller.snapshot().live!;
+    expect(frameText(live.deck, live.index)).toBe("Reff yang sama");
+    const smaller = await controller.build(data, selection, {
+      ...style,
+      fontSize: 40,
+    });
+    // The prepared Preview is not touched by build.
+    expect(controller.snapshot().preview!.deck.id).toBe(live.deck.id);
+    expect(await controller.relive(smaller, live.deck.id)).toBe(true);
+    const next = controller.snapshot().live!;
+    expect(next.deck.style.fontSize).toBe(40);
+    expect(frameText(next.deck, next.index)).toBe("Reff yang sama");
+    expect(next.mode).toBe("black");
+    // A rebuild for a LIVE that has changed meanwhile does nothing.
+    expect(await controller.relive(smaller, live.deck.id)).toBe(false);
+  });
   it("requires authorization for Go Live, navigation, modes, Apply, Resume, Discard and checkpoint writes", async () => {
     await seed();
     await controller.prepare(

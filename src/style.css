@@ -4500,3 +4500,89 @@ footer > span:last-child {
 .sagi-ui .slot-volume input[type="range"] {
   width: 90px;
 }
+
+/* Workspace = Jadwal Ibadah | Live Output (no Preview Output column). */
+.sagi-ui .dashboard-grid {
+  grid-template-columns: minmax(240px, 30fr) minmax(0, 70fr);
+}
+@media (max-width: 1180px) {
+  .sagi-ui .dashboard-grid {
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.6fr);
+  }
+  .sagi-ui .dashboard-grid > .live {
+    grid-column: auto;
+  }
+}
+@media (max-width: 760px) {
+  .sagi-ui .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* "Siap tayang" bar under Jadwal Ibadah: what Go Live will show next. */
+.sagi-ui .prepare-bar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px 8px;
+  border-top: 1px solid var(--sg-line);
+  background: var(--sg-panel);
+  font-size: 11px;
+}
+.sagi-ui .prepare-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.sagi-ui .prepare-label {
+  flex: 0 0 auto;
+  color: var(--sg-orange);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sagi-ui .prepare-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+  font-weight: 700;
+}
+.sagi-ui .prepare-status {
+  margin-left: auto;
+  color: var(--sg-muted);
+}
+.sagi-ui .prepare-position {
+  color: #c9ccd0;
+}
+.sagi-ui .prepare-bar .save-message {
+  margin: 0;
+}
+
+/* Row under Live Output: Slide X of N · ‹ › · Ukuran · Outline · Edit teks. */
+.sagi-ui .foot-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #c9ccd0;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.sagi-ui .foot-range input[type="range"] {
+  width: clamp(56px, 8vw, 120px);
+  accent-color: var(--sg-orange);
+}
+.sagi-ui .foot-range output {
+  min-width: 4ch;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 760px) {
+  .sagi-ui .output-fill .output-foot {
+    flex-wrap: wrap;
+  }
+}

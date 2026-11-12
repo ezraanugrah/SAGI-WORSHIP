@@ -1,8 +1,15 @@
 import { openDB } from "idb";
-import { FONT_VALUES } from "./presentation/fonts";
+import {
+  DEFAULT_OUTLINE_PX,
+  FONT_VALUES,
+  LYRIC_MAX_PX,
+  OUTLINE_MAX_PX,
+} from "./presentation/fonts";
 export type Preferences = {
   font: string;
   fontSize: number;
+  /** Lyric outline width in px (1080p); missing in older data = default. */
+  outline?: number;
   safeMargin: number;
   loopPreview: boolean;
   loopLive: boolean;
@@ -13,6 +20,7 @@ export type Preferences = {
 export const defaults: Preferences = {
   font: "Montserrat",
   fontSize: 64,
+  outline: DEFAULT_OUTLINE_PX,
   safeMargin: 8,
   loopPreview: false,
   loopLive: true,
@@ -63,8 +71,12 @@ export function validatePreferences(value: unknown): value is Preferences {
   return (
     FONT_VALUES.includes(p.font) &&
     Number.isFinite(p.fontSize) &&
-    p.fontSize >= 24 &&
-    p.fontSize <= 120 &&
+    p.fontSize >= 1 &&
+    p.fontSize <= LYRIC_MAX_PX &&
+    (p.outline === undefined ||
+      (Number.isFinite(p.outline) &&
+        p.outline >= 0 &&
+        p.outline <= OUTLINE_MAX_PX)) &&
     Number.isFinite(p.safeMargin) &&
     p.safeMargin >= 0 &&
     p.safeMargin <= 20 &&

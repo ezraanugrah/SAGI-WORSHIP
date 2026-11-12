@@ -40,10 +40,29 @@ export function loadLyricFonts() {
     return Promise.resolve();
   loading ??= Promise.all(
     ["Montserrat", "Poppins", "Bebas Neue"].flatMap((family) =>
-      [400, 700].map((weight) =>
+      [800].map((weight) =>
         document.fonts.load(`${weight} 64px "${family}"`).catch(() => []),
       ),
     ),
   );
   return loading;
 }
+
+/**
+ * The fixed lyric look: extra bold, white, with a black outline, whatever
+ * the font or theme. Size and outline width are set in percent (1–100 %).
+ */
+export const LYRIC_WEIGHT = 800;
+export const LYRIC_COLOR = "#ffffff";
+export const OUTLINE_COLOR = "#000000";
+/** 100 % font size, in px on the 1080p reference canvas. */
+export const LYRIC_MAX_PX = 160;
+/** 100 % outline width, in px on the 1080p reference canvas. */
+export const OUTLINE_MAX_PX = 12;
+export const DEFAULT_OUTLINE_PX = 3;
+export const percentOf = (px: number, max: number) =>
+  Math.max(1, Math.min(100, Math.round((px / max) * 100)));
+export const fontPx = (percent: number) =>
+  Math.max(1, Math.round((percent / 100) * LYRIC_MAX_PX));
+export const outlinePx = (percent: number) =>
+  Math.round((percent / 100) * OUTLINE_MAX_PX * 100) / 100;

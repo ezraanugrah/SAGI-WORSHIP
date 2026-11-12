@@ -168,12 +168,14 @@ test("without internet, verses not fetched yet fall back to AYT / KJV and say so
   await expect(
     page.getByText(/teks TB2 belum tersimpan, memakai AYT/),
   ).toBeVisible();
-  const preview = page.getByRole("region", { name: "Preview workspace" });
+  // No Preview monitor: what Go Live shows is checked in Live Output.
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  await expect(live.locator('.slide-column[data-column="left"]')).toContainText(
+    "Karena Allah sangat mengasihi dunia ini",
+  );
   await expect(
-    preview.locator('.slide-column[data-column="left"]'),
-  ).toContainText("Karena Allah sangat mengasihi dunia ini");
-  await expect(
-    preview.locator('.slide-column[data-column="right"]'),
+    live.locator('.slide-column[data-column="right"]'),
   ).toContainText("For God so loved the world");
 
   // The online sources panel is still open from configure().
@@ -240,14 +242,16 @@ test("TB from Alkitab SABDA in the left column, without an API key", async ({
   await bible(page)
     .getByRole("button", { name: "Preview", exact: true })
     .click();
-  const preview = page.getByRole("region", { name: "Preview workspace" });
+  // No Preview monitor: what Go Live shows is checked in Live Output.
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
   await expect(
-    preview.locator('.slide-column[data-column="left"]').first(),
+    live.locator('.slide-column[data-column="left"]').first(),
   ).toContainText(/³\s?TB uji ayat 3\..*⁵\s?TB uji ayat 5\./);
-  await expect(preview.locator(".scripture-footer").first()).toContainText(
+  await expect(live.locator(".scripture-footer").first()).toContainText(
     "Kejadian 1:3–5 · TB · 1974",
   );
-  await expect(preview.locator(".scripture-footer").first()).toContainText(
+  await expect(live.locator(".scripture-footer").first()).toContainText(
     "TB © LAI 1974 · Public Domain",
   );
 });

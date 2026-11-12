@@ -1,14 +1,14 @@
 import type { Style } from "./models";
-import { fontStack } from "./fonts";
+import { LYRIC_WEIGHT, fontStack } from "./fonts";
 export type Measure = (
   text: string,
-  style: Style & { weight?: 400 | 700; italic?: boolean },
+  style: Style & { weight?: 400 | 700 | 800; italic?: boolean },
 ) => number;
 let context: CanvasRenderingContext2D | null = null;
 export const browserMeasure: Measure = (text, style) => {
   context ??= document.createElement("canvas").getContext("2d");
   if (!context) throw new Error("Pengukuran teks tidak tersedia.");
-  context.font = `${style.italic ? "italic " : ""}${style.weight ?? 400} ${style.fontSize}px ${fontStack(style.font)}`;
+  context.font = `${style.italic ? "italic " : ""}${style.weight ?? LYRIC_WEIGHT} ${style.fontSize}px ${fontStack(style.font)}`;
   return context.measureText(text).width;
 };
 export function lineCapacity(style: Style) {

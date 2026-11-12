@@ -5,14 +5,11 @@ import App from "./App";
 import ProjectorApp from "./projector/ProjectorApp";
 import "./style.css";
 // Lyric fonts bundled for offline use (see presentation/fonts.ts).
-import "@fontsource/montserrat/latin-400.css";
-import "@fontsource/montserrat/latin-ext-400.css";
-import "@fontsource/montserrat/latin-700.css";
-import "@fontsource/montserrat/latin-ext-700.css";
-import "@fontsource/poppins/latin-400.css";
-import "@fontsource/poppins/latin-ext-400.css";
-import "@fontsource/poppins/latin-700.css";
-import "@fontsource/poppins/latin-ext-700.css";
+// Lyrics are always extra bold (800); Bebas Neue has a single weight.
+import "@fontsource/montserrat/latin-800.css";
+import "@fontsource/montserrat/latin-ext-800.css";
+import "@fontsource/poppins/latin-800.css";
+import "@fontsource/poppins/latin-ext-800.css";
 import "@fontsource/bebas-neue/latin-400.css";
 import "@fontsource/bebas-neue/latin-ext-400.css";
 const updateSW = registerSW({

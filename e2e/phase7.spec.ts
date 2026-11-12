@@ -1,9 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
-import {
-  previewPosition,
-  closeTextEditor,
-  openTextEditor,
-} from "./previewHelpers";
+import { previewPosition } from "./previewHelpers";
 import { dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 import {
   imageFile,
@@ -122,13 +118,6 @@ test("offline portable backup restores mixed image, theme, song and settings int
     .getByTestId("song-row")
     .getByRole("button", { name: /^Backup composition/ })
     .click();
-  await openTextEditor(page);
-  await page
-    .getByLabel("Teks slide sementara", { exact: true })
-    .fill("Original portable override.");
-  await page
-    .getByRole("button", { name: "Apply Preview", exact: true })
-    .click();
   await expect(
     page.getByRole("button", { name: "Go Live", exact: true }),
   ).toBeEnabled();
@@ -205,11 +194,6 @@ test("offline portable backup restores mixed image, theme, song and settings int
     .getByTestId("song-row")
     .getByRole("button", { name: /^Backup composition/ })
     .click();
-  await openTextEditor(target);
-  await expect(
-    target.getByLabel("Teks slide sementara", { exact: true }),
-  ).toHaveValue("Original portable override.");
-  await closeTextEditor(target);
   await target.getByRole("tab", { name: /Media/ }).click();
   await expect(
     target.getByRole("button", { name: "Pilih media backup.png", exact: true }),

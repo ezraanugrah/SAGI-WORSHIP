@@ -10,7 +10,11 @@ import {
   type Background,
 } from "../themes/models";
 import { cssBackground, contrast } from "../themes/builtins";
-import { layoutText, lyricSpec } from "../presentation/appearance";
+import {
+  layoutText,
+  lyricSpec,
+  type LyricStyle,
+} from "../presentation/appearance";
 import { loadLyricFonts, lyricFont } from "../presentation/fonts";
 import { browserMeasure } from "../presentation/layout";
 import type {
@@ -50,7 +54,7 @@ export function ThemeEditor({
   lyricStyle,
 }: {
   /** Global lyric style (font, size, margin, lines) shown in the preview. */
-  lyricStyle?: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">;
+  lyricStyle?: LyricStyle;
   /** Import an image/video file (Themes "Impor media") and return it. */
   onImportMedia?: (file: File) => Promise<MediaAsset>;
   initial?: ThemeSnapshot;
@@ -137,6 +141,9 @@ export function ThemeEditor({
               safeMargin: lyricStyle?.safeMargin ?? 8,
               theme: "black",
               lines: lyricStyle?.lines ?? 6,
+              ...(lyricStyle?.outline !== undefined
+                ? { outline: lyricStyle.outline }
+                : {}),
             },
             pages: [
               {
@@ -176,6 +183,7 @@ export function ThemeEditor({
     lyricStyle?.fontSize,
     lyricStyle?.safeMargin,
     lyricStyle?.lines,
+    lyricStyle?.outline,
   ]);
   const bg = spec.background;
   function backgroundKind(kind: Background["kind"]) {

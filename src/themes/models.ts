@@ -1,5 +1,10 @@
 import { validRef, type AssetRef } from "../media/models";
-import { FONT_VALUES, type FontName } from "../presentation/fonts";
+import {
+  FONT_VALUES,
+  LYRIC_MAX_PX,
+  OUTLINE_MAX_PX,
+  type FontName,
+} from "../presentation/fonts";
 export type Background =
   | { kind: "solid"; color: string }
   | { kind: "gradient"; angle: number; stops: { color: string; at: number }[] }
@@ -18,7 +23,7 @@ export type Typography = {
   /** Lyrics use the global text font; kept for stored data. */
   font: FontName;
   size: number;
-  weight: 400 | 700;
+  weight: 400 | 700 | 800;
   italic: boolean;
   underline: boolean;
   color: string;
@@ -139,8 +144,8 @@ export function validTypography(v: unknown): v is Typography {
     return false;
   return (
     FONT_VALUES.includes(v.font as string) &&
-    number(v.size, 24, 120) &&
-    [400, 700].includes(v.weight as number) &&
+    number(v.size, 1, LYRIC_MAX_PX) &&
+    [400, 700, 800].includes(v.weight as number) &&
     typeof v.italic === "boolean" &&
     typeof v.underline === "boolean" &&
     color(v.color) &&
@@ -148,7 +153,7 @@ export function validTypography(v: unknown): v is Typography {
     ["top", "middle", "bottom"].includes(v.vertical as string) &&
     number(v.lineHeight, 1, 2) &&
     Object.keys(v.outline).length === 2 &&
-    number(v.outline.width, 0, 4) &&
+    number(v.outline.width, 0, OUTLINE_MAX_PX) &&
     color(v.outline.color) &&
     Object.keys(v.shadow).length === 4 &&
     number(v.shadow.x, -12, 12) &&
@@ -164,7 +169,7 @@ export function validTypography(v: unknown): v is Typography {
     number(v.lines, 1, 12) &&
     ["paginate", "shrink"].includes(v.fit as string) &&
     Number.isInteger(v.minSize) &&
-    number(v.minSize, 24, v.size as number)
+    number(v.minSize, 1, v.size as number)
   );
 }
 export function validSpec(v: unknown): v is ThemeSpec {

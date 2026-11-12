@@ -1,4 +1,9 @@
-import { FONT_VALUES, type FontName } from "./fonts";
+import {
+  FONT_VALUES,
+  LYRIC_MAX_PX,
+  OUTLINE_MAX_PX,
+  type FontName,
+} from "./fonts";
 import {
   validRender,
   backgroundIdentity,
@@ -17,6 +22,8 @@ export const MAX_FRAMES = 10000,
 export type Style = {
   font: FontName;
   fontSize: number;
+  /** Black lyric outline in px (1080p); missing in older decks = default. */
+  outline?: number;
   safeMargin: number;
   theme: "black" | "sunset" | "ocean" | "purple";
   lines: number;
@@ -140,7 +147,12 @@ export function validStyle(v: unknown): v is Style {
   return (
     object(v) &&
     FONT_VALUES.includes(v.font as string) &&
-    integer(v.fontSize, 24, 120) &&
+    integer(v.fontSize, 1, LYRIC_MAX_PX) &&
+    (v.outline === undefined ||
+      (typeof v.outline === "number" &&
+        Number.isFinite(v.outline) &&
+        v.outline >= 0 &&
+        v.outline <= OUTLINE_MAX_PX)) &&
     integer(v.safeMargin, 0, 20) &&
     ["black", "sunset", "ocean", "purple"].includes(v.theme as string) &&
     integer(v.lines, 1, 12)
@@ -179,7 +191,7 @@ export function validDeck(v: unknown): v is Deck {
             typeof p.parallel === "string" &&
             p.parallel.length <= 30000)) &&
         (p.fontSize === undefined ||
-          (p.scripture === true && integer(p.fontSize, 12, 120))),
+          (p.scripture === true && integer(p.fontSize, 1, LYRIC_MAX_PX))),
     )
   )
     return false;

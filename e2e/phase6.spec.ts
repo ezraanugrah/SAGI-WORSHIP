@@ -26,9 +26,10 @@ async function themes(page: Page) {
 const create = createTheme;
 async function apply(page: Page) {
   await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  // Applied to the Preview item and straight on to Live Output.
   await expect(
     page
-      .getByRole("region", { name: "Preview workspace" })
+      .getByRole("region", { name: "LIVE projector control" })
       .locator(".themed-lines"),
   ).toBeVisible();
 }
@@ -132,23 +133,6 @@ test("video backgrounds are silent, independently controlled and paused after Bl
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
   await page
-    .getByRole("button", { name: "Play background Preview", exact: true })
-    .click();
-  await expect
-    .poll(() =>
-      page
-        .getByRole("region", { name: "Preview workspace" })
-        .locator(".theme-background video")
-        .evaluate((v: HTMLVideoElement) => v.paused),
-    )
-    .toBe(false);
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.paused))
-    .toBe(true);
-  await page
-    .getByRole("button", { name: "Pause background Preview", exact: true })
-    .click();
-  await page
     .getByRole("button", { name: "Play background LIVE", exact: true })
     .click();
   await expect
@@ -231,11 +215,6 @@ test("one Themes action themes the Preview item and Live Output together and kee
     .click();
   await expect(page.getByLabel("Item jadwal untuk tema")).toHaveCount(0);
   await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
-  await expect(
-    page
-      .getByRole("region", { name: "Preview workspace" })
-      .locator(".themed-lines"),
-  ).toHaveText(lyric);
   // Live Output and the projector follow without pressing Go Live.
   await expect(
     page

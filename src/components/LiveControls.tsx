@@ -1,5 +1,13 @@
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
+import { frameText } from "../presentation/models";
+import {
+  LYRIC_MAX_PX,
+  OUTLINE_MAX_PX,
+  fontPx,
+  outlinePx,
+  percentOf,
+} from "../presentation/fonts";
 import { SlideCanvas } from "./SlideCanvas";
 import {
   PresentationController,
@@ -11,14 +19,21 @@ const clock = (seconds: number) => {
   const total = Math.max(0, Math.floor(seconds));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 };
+export type LyricPatch = { fontSize?: number; outline?: number };
 export function LiveControls({
   controller,
   state,
   editable,
+  lyric,
+  onLyric,
 }: {
   controller: PresentationController;
   state: PresentationState;
   editable: boolean;
+  /** Global lyric size and outline in px (Pengaturan › Tipografi lirik). */
+  lyric: { fontSize: number; outline: number };
+  /** Save a new size/outline and show the LIVE slide with it. */
+  onLyric: (patch: LyricPatch) => void;
 }) {
   const region = useRef<HTMLElement>(null);
   usePresentationShortcuts(controller, editable);
@@ -33,6 +48,49 @@ export function LiveControls({
   };
   const live = state.live;
   const frame = live?.deck.frames[live.index];
+  // Size and outline sliders (1–100 %): shown at once, saved after a pause
+  // so dragging does not rebuild the LIVE slide on every step.
+  const [size, setSize] = useState(() =>
+      percentOf(lyric.fontSize, LYRIC_MAX_PX),
+    ),
+    [outline, setOutline] = useState(() =>
+      percentOf(lyric.outline, OUTLINE_MAX_PX),
+    ),
+    commit = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(
+    () => setSize(percentOf(lyric.fontSize, LYRIC_MAX_PX)),
+    [lyric.fontSize],
+  );
+  useEffect(
+    () => setOutline(percentOf(lyric.outline, OUTLINE_MAX_PX)),
+    [lyric.outline],
+  );
+  useEffect(() => () => clearTimeout(commit.current), []);
+  const later = (patch: LyricPatch) => {
+    clearTimeout(commit.current);
+    commit.current = setTimeout(() => onLyric(patch), 250);
+  };
+  // "Edit teks" for the slide on screen.
+  const [editing, setEditing] = useState(false),
+    [text, setText] = useState("");
+  const textFrame =
+    frame && frame.kind !== "media" && frame.kind !== "scripture";
+  useEffect(() => {
+    if (!textFrame) setEditing(false);
+  }, [textFrame]);
+  function openEditor() {
+    if (!live) return;
+    setText(frameText(live.deck, live.index));
+    setEditing(true);
+  }
+  function applyEdit(value: string) {
+    try {
+      controller.editLive(value);
+      setEditing(false);
+    } catch (e) {
+      controller.report(e);
+    }
+  }
   const duration =
     frame?.kind === "media" ? (frame.media.duration ?? 0) : undefined;
   // Projector playback in the footer, like "Slide 1 of 1" under Preview.
@@ -72,7 +130,8 @@ export function LiveControls({
           {state.connection.status}
         </span>
       </div>
-      {/* Live column = Live Output only (slides are chosen in Preview). */}
+      {/* Live Output: the monitor, then one row with slide steps, lyric
+          size/outline and Edit teks. */}
       <div className="output-area output-fill">
         <div className="output-frame">
           <div className="presentation-canvas">
@@ -121,6 +180,61 @@ export function LiveControls({
               <ChevronRight size={15} />
             </button>
           </div>
+          <label className="foot-range" title="Ukuran font lirik (semua slide)">
+            Ukuran
+            <input
+              type="range"
+              aria-label="Ukuran font LIVE"
+              min="1"
+              max="100"
+              value={size}
+              disabled={!editable}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setSize(value);
+                later({ fontSize: fontPx(value) });
+              }}
+            />
+            <output>{size}%</output>
+          </label>
+          <label className="foot-range" title="Tebal outline hitam lirik">
+            Outline
+            <input
+              type="range"
+              aria-label="Outline LIVE"
+              min="1"
+              max="100"
+              value={outline}
+              disabled={!editable}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setOutline(value);
+                later({ outline: outlinePx(value) });
+              }}
+            />
+            <output>{outline}%</output>
+          </label>
+          <button
+            className="button secondary edit-open"
+            aria-haspopup="dialog"
+            title={
+              !frame
+                ? "Go Live dulu"
+                : frame.kind === "media"
+                  ? "Slide media tidak punya teks"
+                  : frame.kind === "scripture"
+                    ? "Teks Scripture baca-saja"
+                    : "Ubah teks slide yang sedang LIVE"
+            }
+            disabled={!editable || !textFrame}
+            onClick={openEditor}
+          >
+            <Pencil size={13} /> Edit teks
+          </button>
+        </div>
+        {/* Same slot as under Preview Output, so both monitors keep the
+            same size and position whatever is on screen. */}
+        <div className="output-slot">
           {playbackStatus && (
             <span
               className="output-status"
@@ -130,10 +244,6 @@ export function LiveControls({
               {playbackStatus}
             </span>
           )}
-        </div>
-        {/* Same slot as under Preview Output, so both monitors keep the
-            same size and position whatever is on screen. */}
-        <div className="output-slot">
           {live?.backgroundPlayback && (
             <fieldset
               className="slot-controls"
@@ -226,6 +336,68 @@ export function LiveControls({
           </p>
         )}
       </div>
+      {editing && live && frame && (
+        <div
+          className="dialog-backdrop"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setEditing(false);
+          }}
+        >
+          <div
+            className="edit-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit teks LIVE"
+          >
+            <div className="pane-head">
+              <h3 className="pane-title">
+                Edit teks LIVE
+                <span className="pane-subject">
+                  {` - ${frame.title} · ${frame.label}`}
+                </span>
+              </h3>
+              <button
+                className="pane-icon"
+                aria-label="Tutup edit teks"
+                onClick={() => setEditing(false)}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <fieldset className="slide-editor" disabled={!editable}>
+              <textarea
+                autoFocus
+                aria-label="Teks slide LIVE"
+                maxLength={30000}
+                rows={Math.min(10, Math.max(4, text.split("\n").length + 1))}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+              <div className="edit-actions">
+                <span className="edit-spacer" />
+                <button
+                  className="button secondary"
+                  title="Kembalikan teks sumber"
+                  onClick={() => applyEdit(live.deck.pages[frame.page].text)}
+                >
+                  Reset
+                </button>
+                <button
+                  className="button primary"
+                  disabled={text === frameText(live.deck, live.index)}
+                  onClick={() => applyEdit(text)}
+                >
+                  Terapkan ke Live
+                </button>
+              </div>
+              <p className="field-help edit-note">
+                Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik
+                tidak berubah.
+              </p>
+            </fieldset>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

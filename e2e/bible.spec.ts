@@ -67,15 +67,17 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   // The eight verses of Kejadian 1:3–10 share as few slides as possible,
   // each numbered: two with the bundled default font Montserrat (it is wider
   // than the old Arial; the bundled font measures the same on every laptop).
-  const preview = page.getByRole("region", { name: "Preview workspace" });
   await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
+  // No Preview monitor: what Go Live shows is checked in Live Output.
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
   await expect(
-    preview.locator('.slide-column[data-column="left"]').first(),
+    live.locator('.slide-column[data-column="left"]').first(),
   ).toContainText(
     /³\s?Kemudian, Allah berfirman, “Jadilah terang\.”.*⁴\s?Allah melihat/,
   );
   await expect(
-    preview.locator('.slide-column[data-column="right"]').first(),
+    live.locator('.slide-column[data-column="right"]').first(),
   ).toContainText(
     /³\s?And God said, Let there be light.*⁴\s?And God saw the light/,
   );
@@ -124,15 +126,17 @@ test("Preview shows the whole picked range together: Bilangan 4:4–7 on one sli
     .getByRole("button", { name: "Preview", exact: true })
     .click();
   await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
-  const preview = page.getByRole("region", { name: "Preview workspace" });
+  // No Preview monitor: what Go Live shows is checked in Live Output.
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
   for (const column of ["left", "right"])
     await expect(
-      preview.locator(`.slide-column[data-column="${column}"]`),
+      live.locator(`.slide-column[data-column="${column}"]`),
     ).toContainText(/⁴.*⁵.*⁶.*⁷/);
-  await expect(preview.locator(".scripture-footer")).toContainText(
+  await expect(live.locator(".scripture-footer")).toContainText(
     "Bilangan 4:4–7 · AYT · 2024",
   );
-  await expect(preview.locator(".scripture-footer")).toContainText(
+  await expect(live.locator(".scripture-footer")).toContainText(
     "Numbers 4:4–7 · KJV · 1769",
   );
   await page.screenshot({
@@ -146,13 +150,14 @@ test("Preview shows the whole picked range together: Bilangan 4:4–7 on one sli
     .getByRole("button", { name: "Preview", exact: true })
     .click();
   await expect(previewPosition(page)).toHaveText(/^Slide 1 of ([2-9]|\d\d)$/);
-  const footer = preview.locator(".scripture-footer");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const footer = live.locator(".scripture-footer");
   await expect(footer).toContainText(/Mazmur 119:1–(\d+) · AYT/);
   const end = Number(
     (await footer.innerText()).match(/Mazmur 119:1–(\d+)/)![1],
   );
   await page
-    .getByRole("button", { name: "Preview berikutnya", exact: true })
+    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
     .click();
   await expect(footer).toContainText(`Mazmur 119:${end + 1}`);
 });
@@ -237,11 +242,12 @@ test("a theme keeps the two columns and both references", async ({ page }) => {
     .click();
   await createTheme(page, "Ibadah");
   await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
-  const preview = page.getByRole("region", { name: "Preview workspace" });
-  await expect(preview.locator(".themed-lines.slide-columns")).toBeVisible();
-  await expect(
-    preview.locator('.slide-column[data-column="right"]'),
-  ).toHaveText("And God said, Let there be light: and there was light.");
+  // The theme goes to Preview and straight on to Live Output.
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  await expect(live.locator(".themed-lines.slide-columns")).toBeVisible();
+  await expect(live.locator('.slide-column[data-column="right"]')).toHaveText(
+    "And God said, Let there be light: and there was light.",
+  );
   const pending = page.waitForEvent("popup");
   await page.getByRole("button", { name: "Live", exact: true }).click();
   const projector = await pending;

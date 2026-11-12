@@ -106,7 +106,14 @@ async function exactCheckpoint(c: any) {
     "videoDefaults",
     "scriptureLicenses",
   ]);
-  fields(d.style, ["font", "fontSize", "safeMargin", "theme", "lines"]);
+  fields(d.style, [
+    "font",
+    "fontSize",
+    "outline",
+    "safeMargin",
+    "theme",
+    "lines",
+  ]);
   for (const p of d.pages)
     fields(p, ["text", "scripture", "media", "themed", "parallel", "fontSize"]);
   for (const f of d.frames) {
@@ -404,6 +411,7 @@ export async function validateRows(
           fields(v.value, [
             "font",
             "fontSize",
+            "outline",
             "safeMargin",
             "loopPreview",
             "loopLive",
@@ -463,7 +471,14 @@ export async function validateRows(
           "sourceSignature",
           "revision",
         ]);
-        fields(v.style, ["font", "fontSize", "safeMargin", "theme", "lines"]);
+        fields(v.style, [
+          "font",
+          "fontSize",
+          "outline",
+          "safeMargin",
+          "theme",
+          "lines",
+        ]);
         valid = validOverride(v);
         break;
       case "live_session_state":

@@ -1,5 +1,18 @@
 import { BackupRecovery } from "./components/BackupRecovery";
-import { LYRIC_FONTS, fontStack, lyricFont } from "./presentation/fonts";
+import {
+  DEFAULT_OUTLINE_PX,
+  LYRIC_COLOR,
+  LYRIC_FONTS,
+  LYRIC_MAX_PX,
+  LYRIC_WEIGHT,
+  OUTLINE_COLOR,
+  OUTLINE_MAX_PX,
+  fontPx,
+  fontStack,
+  lyricFont,
+  outlinePx,
+  percentOf,
+} from "./presentation/fonts";
 import { useThemes } from "./hooks/useThemes";
 import { AdvancedSettings } from "./components/AdvancedSettings";
 import { useMedia } from "./hooks/useMedia";
@@ -149,7 +162,14 @@ export default function App() {
     };
   }, []);
   function change<K extends keyof Preferences>(key: K, value: Preferences[K]) {
-    const next = { ...prefs, [key]: value };
+    changePrefs({ [key]: value } as Partial<Preferences>);
+  }
+  // Latest preferences, so quick successive changes never drop one another.
+  const latestPrefs = useRef(prefs);
+  latestPrefs.current = prefs;
+  function changePrefs(patch: Partial<Preferences>) {
+    const next = { ...latestPrefs.current, ...patch };
+    latestPrefs.current = next;
     setPrefs(next);
     setSaved("Menyimpan…");
     pending.current = pending.current
@@ -380,6 +400,7 @@ export default function App() {
               repo={repo}
               editable={editable && loaded}
               prefs={prefs}
+              onPrefsChange={changePrefs}
               onPreviewDirty={setPreviewDirty}
             />
           ) : (
@@ -414,15 +435,39 @@ export default function App() {
                     </select>
                   </label>
                   <label>
-                    Ukuran teks <output>{prefs.fontSize} px</output>
+                    Ukuran teks{" "}
+                    <output>{percentOf(prefs.fontSize, LYRIC_MAX_PX)}%</output>
                     <input
                       type="range"
                       aria-label="Ukuran teks"
-                      min="24"
-                      max="120"
-                      value={prefs.fontSize}
+                      min="1"
+                      max="100"
+                      value={percentOf(prefs.fontSize, LYRIC_MAX_PX)}
                       onChange={(e) =>
-                        change("fontSize", Number(e.target.value))
+                        change("fontSize", fontPx(Number(e.target.value)))
+                      }
+                    />
+                  </label>
+                  <label>
+                    Outline{" "}
+                    <output>
+                      {percentOf(
+                        prefs.outline ?? DEFAULT_OUTLINE_PX,
+                        OUTLINE_MAX_PX,
+                      )}
+                      %
+                    </output>
+                    <input
+                      type="range"
+                      aria-label="Outline"
+                      min="1"
+                      max="100"
+                      value={percentOf(
+                        prefs.outline ?? DEFAULT_OUTLINE_PX,
+                        OUTLINE_MAX_PX,
+                      )}
+                      onChange={(e) =>
+                        change("outline", outlinePx(Number(e.target.value)))
                       }
                     />
                   </label>
@@ -440,9 +485,10 @@ export default function App() {
                     />
                   </label>
                   <p className="field-help">
-                    Font dan ukuran lirik untuk semua slide, dengan atau tanpa
-                    tema. Tema hanya mengatur latar serta warna/bayangan teks.
-                    Berlaku saat item disiapkan lagi di Preview.
+                    Lirik selalu Extra Bold, putih, dengan outline hitam. Font,
+                    ukuran, dan outline berlaku untuk semua slide, dengan atau
+                    tanpa tema; tema hanya mengatur latar. Ukuran dan outline
+                    juga bisa diubah langsung di bawah Live Output.
                   </p>
                 </fieldset>
               </section>
@@ -472,6 +518,10 @@ export default function App() {
                       fontFamily: fontStack(prefs.font),
                       padding: `${prefs.safeMargin}%`,
                       fontSize: `${prefs.fontSize / 3}px`,
+                      fontWeight: LYRIC_WEIGHT,
+                      color: LYRIC_COLOR,
+                      WebkitTextStroke: `${(prefs.outline ?? DEFAULT_OUTLINE_PX) / 3}px ${OUTLINE_COLOR}`,
+                      paintOrder: "stroke fill",
                     }}
                   >
                     Persiapkan hati untuk menyembah.

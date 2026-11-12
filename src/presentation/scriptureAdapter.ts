@@ -64,7 +64,7 @@ export const packStyle = (style: Style, fontSize: number): Style => ({
 });
 /** Several verses on one slide never go below half the normal size (min 24 px). */
 export const minPackSize = (style: Style) =>
-  Math.max(24, Math.round(style.fontSize / 2));
+  Math.min(style.fontSize, Math.max(24, Math.round(style.fontSize / 2)));
 /**
  * Adds the selected verses as slides, using as few slides as possible:
  * consecutive verses share a slide (each starting with its number,

@@ -9,7 +9,13 @@ import type { Workspace } from "../domain/models";
 import type { Selection } from "./generateSlides";
 import type { ThemeRepository } from "../data/themeRepository";
 import { signature } from "../themes/builtins";
-import { lyricFont } from "./fonts";
+import {
+  DEFAULT_OUTLINE_PX,
+  LYRIC_COLOR,
+  LYRIC_WEIGHT,
+  OUTLINE_COLOR,
+  lyricFont,
+} from "./fonts";
 export type AppearanceContext = {
   settings: AdvancedSettings;
   defaultTheme?: ThemeSnapshot;
@@ -21,10 +27,7 @@ export type AppearanceContext = {
  * Tipografi lirik). The theme keeps its background and the text's colour,
  * weight, alignment, outline and shadow.
  */
-export function lyricSpec(
-  spec: ThemeSpec,
-  style: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">,
-): ThemeSpec {
+export function lyricSpec(spec: ThemeSpec, style: LyricStyle): ThemeSpec {
   const m = style.safeMargin;
   return {
     ...spec,
@@ -35,13 +38,24 @@ export function lyricSpec(
       minSize: Math.min(spec.type.minSize, style.fontSize),
       margins: { top: m, right: m, bottom: m, left: m },
       lines: style.lines,
+      // Fixed look for every font and theme: extra bold, white, black outline.
+      weight: LYRIC_WEIGHT,
+      color: LYRIC_COLOR,
+      outline: {
+        width: style.outline ?? DEFAULT_OUTLINE_PX,
+        color: OUTLINE_COLOR,
+      },
     },
   };
 }
+export type LyricStyle = Pick<
+  Style,
+  "font" | "fontSize" | "safeMargin" | "lines" | "outline"
+>;
 /** A theme snapshot with the global lyric style, signed for its new content. */
 export async function lyricTheme(
   theme: ThemeSnapshot,
-  style: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">,
+  style: LyricStyle,
 ): Promise<ThemeSnapshot> {
   const spec = lyricSpec(theme.spec, style);
   return { ...theme, spec, signature: await signature(spec) };
@@ -76,7 +90,7 @@ export function layoutText(
       (scripture ? 170 : 0) -
       padding * 2;
   function paginate(size: number) {
-    const style: Style & { weight: 400 | 700; italic: boolean } = {
+    const style: Style & { weight: 400 | 700 | 800; italic: boolean } = {
       font: t.font,
       fontSize: size,
       safeMargin: 0,

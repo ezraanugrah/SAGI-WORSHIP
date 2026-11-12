@@ -3,6 +3,7 @@ import {
   previewPosition,
   previewReady,
   openTextEditor,
+  editLiveText,
 } from "./previewHelpers";
 import { dragToWeek, openWeek } from "./dragHelpers";
 const first = "Original first verse for projector verification.",
@@ -113,26 +114,14 @@ test("two real windows preserve Preview/LIVE isolation and all visibility/naviga
   const output = await start(page),
     preview = page.getByRole("region", { name: "Preview workspace" }),
     live = page.getByRole("region", { name: "LIVE projector control" });
-  await preview
-    .getByRole("button", { name: "Preview berikutnya", exact: true })
+  // The prepared item (Siap tayang) never reaches the projector by itself.
+  await expect(previewPosition(preview)).toHaveText(/^Slide 1 of/);
+  await live
+    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
     .click();
-  await expect(previewPosition(preview)).toHaveText(/^Slide 2 of/);
-  await expect(output.locator(".slide-lines")).toHaveText(first);
-  await openTextEditor(page);
-  await preview
-    .getByLabel("Teks slide sementara", { exact: true })
-    .fill("Original temporary override.");
-  await expect(
-    page.getByRole("button", { name: "Go Live", exact: true }),
-  ).toBeDisabled();
-  await preview
-    .getByRole("button", { name: "Apply Preview", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Go Live", exact: true }),
-  ).toBeEnabled();
-  await expect(output.locator(".slide-lines")).toHaveText(first);
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(live).toContainText(/Slide 2 of/);
+  // Edit teks under Live Output changes the slide on the projector at once.
+  await editLiveText(page, "Original temporary override.");
   await expect(output.locator(".slide-lines")).toHaveText(
     "Original temporary override.",
   );
@@ -460,7 +449,7 @@ test("fullscreen/popup denial and BroadcastChannel fallback remain actionable", 
   await expect(output.getByRole("status")).toContainText("Fullscreen ditolak");
   await expect(output.locator(".slide-lines")).toHaveText(first);
 });
-test("presentation shortcuts never intercept source/Preview text editing", async ({
+test("presentation shortcuts never intercept source or LIVE text editing", async ({
   page,
 }) => {
   const output = await start(page),
@@ -486,7 +475,7 @@ test("presentation shortcuts never intercept source/Preview text editing", async
     "normal",
   );
   await openTextEditor(page);
-  await page.getByLabel("Teks slide sementara", { exact: true }).focus();
+  await page.getByLabel("Teks slide LIVE", { exact: true }).focus();
   await page.keyboard.press("c");
   await expect(output.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",

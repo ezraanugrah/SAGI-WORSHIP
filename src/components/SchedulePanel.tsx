@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { revealInPane } from "./revealInPane";
 import {
   BookOpen,
@@ -42,6 +42,7 @@ export function SchedulePanel({
   openItemId,
   slides,
   onSlide,
+  footer,
 }: {
   data: Workspace;
   slideCounts?: Record<string, number>;
@@ -60,6 +61,8 @@ export function SchedulePanel({
   openItemId?: string | null;
   slides?: ScheduleSlide[];
   onSlide?: (index: number) => void;
+  /** Shown at the bottom of the panel: what Go Live will show next. */
+  footer?: ReactNode;
 }) {
   const schedule = data.schedules.find((s) => s.id === data.activeId),
     [announcement, setAnnouncement] = useState(""),
@@ -333,6 +336,7 @@ export function SchedulePanel({
           ? `${schedule.itemIds.length} item · tarik dari Musik/Media · seret untuk urutkan`
           : "0 item · tarik lagu dari Musik ke sini"}
       </div>
+      {footer}
     </section>
   );
 }

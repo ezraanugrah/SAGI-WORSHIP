@@ -1,5 +1,11 @@
 import { ThemedFrame } from "./ThemedFrame";
-import { fontStack } from "../presentation/fonts";
+import {
+  DEFAULT_OUTLINE_PX,
+  LYRIC_COLOR,
+  LYRIC_WEIGHT,
+  OUTLINE_COLOR,
+  fontStack,
+} from "../presentation/fonts";
 import { themeFor } from "../presentation/appearance";
 import { MediaCanvas } from "./MediaCanvas";
 import {
@@ -155,6 +161,11 @@ export function SlideCanvas({
                 fontFamily: fontStack(deck.style.font),
                 fontSize: pageFontSize ?? deck.style.fontSize,
                 lineHeight: 1.3,
+                // Fixed lyric look: extra bold, white, black outline.
+                fontWeight: LYRIC_WEIGHT,
+                color: LYRIC_COLOR,
+                WebkitTextStroke: `${deck.style.outline ?? DEFAULT_OUTLINE_PX}px ${OUTLINE_COLOR}`,
+                paintOrder: "stroke fill",
               }}
             >
               <SlideText text={text} parallel={parallel} />

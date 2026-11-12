@@ -3,6 +3,7 @@ import {
   previewReady,
   previewPosition,
   openTextEditor,
+  editLiveText,
 } from "./previewHelpers";
 import { imageFile, syntheticPDF, videoFile } from "./mediaFixtures";
 import { activeSchedule, dragToWeek, mediaCard, openWeek } from "./dragHelpers";
@@ -224,10 +225,8 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
   await expect(output.getByTestId("slide-alert")).toBeVisible();
   // The alert stays up when the next slide goes LIVE.
   await page
-    .getByRole("button", { name: "Preview berikutnya", exact: true })
+    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
     .click();
-  await expect(previewPosition(page)).toHaveText("Slide 2 of 2");
-  await toolbar.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator(".slide-lines")).toHaveText(
     "Second toolbar line.",
   );
@@ -270,9 +269,7 @@ test("Jadwal Ibadah expands the open item into slides and Live Output steps slid
   await expect(
     page.getByRole("region", { name: "Preview workspace" }),
   ).toContainText("Slide 3 of 3");
-  await page
-    .getByRole("button", { name: "Preview sebelumnya", exact: true })
-    .click();
+  await slides.getByRole("button").nth(1).click();
   await expect(previewPosition(page)).toHaveText("Slide 2 of 3");
   await expect(slides.getByRole("button").nth(1)).toHaveAttribute(
     "aria-current",
@@ -442,7 +439,7 @@ test("a newly added song is highlighted in Musik and dragged into Jadwal Ibadah 
   await expect(songRow(page, "Yesus Baik")).toBeInViewport();
 });
 
-test("Preview column is Preview Output only and text is edited in the Edit teks window", async ({
+test("Jadwal Ibadah | Live Output: Siap tayang says what comes next; the row under Live Output steps, sizes, outlines and edits", async ({
   page,
 }) => {
   await song(page, "Window song", [
@@ -450,44 +447,84 @@ test("Preview column is Preview Output only and text is edited in the Edit teks 
     "Window second line.",
   ]);
   await preview(page, "Window song");
-  const previewPane = page.getByRole("region", { name: "Preview workspace" });
-  // No slide list in Preview: just the monitor, Slide X of N, arrows, Edit teks.
-  await expect(previewPane.getByRole("list")).toHaveCount(0);
+  // Only Jadwal Ibadah and Live Output; Siap tayang is information only.
+  await expect(
+    page
+      .locator(".dashboard-grid > *")
+      .evaluateAll((els) => els.map((e) => e.getAttribute("aria-label"))),
+  ).resolves.toEqual(["Jadwal ibadah", "LIVE projector control"]);
+  const ready = page.getByRole("region", { name: "Preview workspace" });
+  await expect(ready).toContainText("Siap tayang");
+  await expect(ready).toContainText("Window song");
+  await expect(ready.getByRole("button")).toHaveCount(0);
+  await expect(ready.locator(".presentation-canvas")).toHaveCount(0);
   await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
-  await expect(page.getByLabel("Teks slide sementara")).toHaveCount(0);
-  const dialog = await openTextEditor(page);
-  await expect(dialog.getByLabel("Teks slide sementara")).toBeFocused();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  const edit = live.getByRole("button", { name: "Edit teks", exact: true });
+  await expect(edit).toBeDisabled();
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const lines = live.locator(".slide-lines");
+  await expect(lines).toHaveText("Window first line.");
+  // Fixed lyric look: extra bold, white, black outline.
+  await expect(lines).toHaveCSS("font-weight", "800");
+  await expect(lines).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(lines).toHaveCSS("-webkit-text-stroke-color", "rgb(0, 0, 0)");
+  // One row under the monitor: Slide X of N · ‹ › · Ukuran · Outline · Edit teks.
+  const row = [
+    live.getByText("Slide 1 of 2", { exact: true }),
+    live.getByRole("button", { name: "Slide berikutnya LIVE", exact: true }),
+    live.getByRole("slider", { name: "Ukuran font LIVE", exact: true }),
+    live.getByRole("slider", { name: "Outline LIVE", exact: true }),
+    edit,
+  ];
+  const canvas = (await live.locator(".presentation-canvas").boundingBox())!;
+  const centres = await Promise.all(
+    row.map(async (l) => {
+      const b = (await l.boundingBox())!;
+      expect(b.y).toBeGreaterThan(canvas.y + canvas.height);
+      return b.y + b.height / 2;
+    }),
+  );
+  for (const y of centres) expect(Math.abs(y - centres[0])).toBeLessThan(8);
+  // Edit teks: Esc closes; Terapkan changes the slide on screen; Reset undoes.
+  let dialog = await openTextEditor(page);
+  await expect(dialog.getByLabel("Teks slide LIVE")).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
-  // Unapplied changes ask before closing; Apply closes and updates Preview.
-  await openTextEditor(page);
-  await page.getByLabel("Teks slide sementara").fill("Edited in the window.");
-  await expect(
-    page.getByRole("button", { name: "Go Live", exact: true }),
-  ).toBeDisabled();
-  page.once("dialog", (d) => void d.dismiss());
-  await page
-    .getByRole("button", { name: "Tutup edit teks", exact: true })
+  await editLiveText(page, "Edited in the window.");
+  await expect(lines).toHaveText("Edited in the window.");
+  dialog = await openTextEditor(page);
+  await dialog.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(lines).toHaveText("Window first line.");
+  // Size and outline in percent re-render LIVE on the same slide.
+  await live
+    .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
     .click();
-  await expect(page.getByLabel("Teks slide sementara")).toHaveValue(
-    "Edited in the window.",
-  );
-  await page
-    .getByRole("button", { name: "Apply Preview", exact: true })
-    .click();
+  await expect(lines).toHaveText("Window second line.");
+  await live
+    .getByRole("slider", { name: "Ukuran font LIVE", exact: true })
+    .fill("75");
+  await expect(lines).toHaveCSS("font-size", "120px");
+  await expect(lines).toHaveText("Window second line.");
+  await live
+    .getByRole("slider", { name: "Outline LIVE", exact: true })
+    .fill("50");
+  await expect(lines).toHaveCSS("-webkit-text-stroke-width", "6px");
+  await expect(live).toContainText("75%");
+  await expect(live).toContainText("50%");
+  // Saved for every slide: Pengaturan shows the same values.
+  await page.getByRole("link", { name: "Pengaturan", exact: true }).click();
   await expect(
-    page.getByRole("dialog", { name: "Edit teks sebelum LIVE" }),
-  ).toHaveCount(0);
-  await expect(previewPane.locator(".slide-lines")).toHaveText(
-    "Edited in the window.",
-  );
+    page.getByRole("slider", { name: "Ukuran teks", exact: true }),
+  ).toHaveValue("75");
   await expect(
-    page.getByRole("button", { name: "Go Live", exact: true }),
-  ).toBeEnabled();
+    page.getByRole("slider", { name: "Outline", exact: true }),
+  ).toHaveValue("50");
 });
 
 test("Live Output changes only when Go Live is clicked", async ({ page }) => {
   await song(page, "Go Live song", ["Go Live line one.", "Go Live line two."]);
+  await song(page, "Next song", ["Next song line."]);
   await expect(
     page.getByRole("button", { name: "Langsung ke Live" }),
   ).toHaveCount(0);
@@ -499,14 +536,15 @@ test("Live Output changes only when Go Live is clicked", async ({ page }) => {
   await expect(live.locator(".slide-lines")).toHaveCount(0);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(live.locator(".slide-lines")).toHaveText("Go Live line one.");
-  await page
-    .getByRole("button", { name: "Preview berikutnya", exact: true })
-    .click();
-  await expect(previewPosition(page)).toHaveText("Slide 2 of 2");
+  // Preparing the next song (Siap tayang) leaves LIVE as it is.
+  await preview(page, "Next song");
+  await expect(
+    page.getByRole("region", { name: "Preview workspace" }),
+  ).toContainText("Next song");
   await expect(live).toContainText("Slide 1 of 2");
   await expect(live.locator(".slide-lines")).toHaveText("Go Live line one.");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
-  await expect(live.locator(".slide-lines")).toHaveText("Go Live line two.");
+  await expect(live.locator(".slide-lines")).toHaveText("Next song line.");
 });
 
 test("Themes Library imports media (image or video) like the Media tab", async ({
@@ -678,7 +716,7 @@ test("song editor asks only title and author, and each part is picked from six c
   );
 });
 
-test("Live Output matches Preview Output and its video plays along with the projector", async ({
+test("Live Output takes the Preview column's place and its video plays along with the projector", async ({
   page,
 }) => {
   await page.getByRole("tab", { name: "Media", exact: true }).click();
@@ -698,15 +736,15 @@ test("Live Output matches Preview Output and its video plays along with the proj
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
-  const preview = page.getByRole("region", { name: "Preview workspace" });
   const live = page.getByRole("region", { name: "LIVE projector control" });
-  // Same monitor size and height on screen, with the LIVE video controls.
   await expect(live.getByRole("button", { name: "Play LIVE" })).toBeVisible();
-  const box = async (region: typeof live) => {
-    const b = (await region.locator(".presentation-canvas").boundingBox())!;
+  // A 16:9 monitor that keeps its size while the video plays.
+  const box = async () => {
+    const b = (await live.locator(".presentation-canvas").boundingBox())!;
     return [Math.round(b.y), Math.round(b.width), Math.round(b.height)];
   };
-  expect(await box(live)).toEqual(await box(preview));
+  const before = await box();
+  expect(before[1] / before[2]).toBeCloseTo(16 / 9, 1);
   const monitor = live.locator("video");
   await page.getByRole("button", { name: "Play LIVE", exact: true }).click();
   await expect
@@ -725,7 +763,7 @@ test("Live Output matches Preview Output and its video plays along with the proj
   await expect
     .poll(() => monitor.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
-  expect(await box(live)).toEqual(await box(preview));
+  expect(await box()).toEqual(before);
 });
 
 test("lyrics keep the Pengaturan font and size on any theme, and the background fills the 16:9 output", async ({
@@ -741,9 +779,10 @@ test("lyrics keep the Pengaturan font and size on any theme, and the background 
     "Times New Roman",
   ]);
   await font.selectOption("Poppins");
+  // 50 % of the 160 px maximum.
   await page
     .getByRole("slider", { name: "Ukuran teks", exact: true })
-    .fill("100");
+    .fill("50");
   await page.getByRole("link", { name: "Dashboard", exact: true }).click();
   await song(page, "Ladang", ["Synthetic harvest line."]);
   await songRow(page, "Ladang")
@@ -757,12 +796,12 @@ test("lyrics keep the Pengaturan font and size on any theme, and the background 
     await imageFile(page, "ladang.png", "#c2410c"),
   );
   await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
-  for (const region of ["Preview workspace", "LIVE projector control"]) {
+  for (const region of ["LIVE projector control"]) {
     const lines = page
       .getByRole("region", { name: region })
       .locator(".themed-lines");
     await expect(lines).toHaveText("Synthetic harvest line.");
-    await expect(lines).toHaveCSS("font-size", "100px");
+    await expect(lines).toHaveCSS("font-size", "80px");
     await expect(lines).toHaveCSS("font-family", /Poppins/);
     await expect(
       page

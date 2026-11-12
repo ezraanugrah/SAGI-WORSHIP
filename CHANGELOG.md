@@ -174,6 +174,15 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - `docs/SYNC.md` punya bagian **Tidak bisa masuk?**. Semua akun yang masuk berbagi pustaka lagu yang sama; lagu dari satu laptop muncul di laptop lain setelah laptop pertama juga masuk dan tersinkron.
 - Tes: unit test untuk akun belum dikonfirmasi, terlalu banyak percobaan, dan server dijeda (server tiruan menjawab seperti Supabase Auth). Dua tes E2E kini memakai `baseURL` dari konfigurasi, bukan port yang ditulis langsung.
 
+### Preview Output dihapus; lirik Extra Bold putih bergaris hitam; ukuran, outline, dan Edit teks di bawah Live Output
+
+- **Workspace kini hanya Jadwal Ibadah | Live Output.** Kolom Preview Output dihapus, sehingga monitor Live Output melebar (di 1440×900 kira-kira 700×394, sebelumnya 504×283). Di bawah Jadwal Ibadah ada baris info **Siap tayang**: judul item yang akan tampil saat Go Live dan "Slide X of N". Slide awal dipilih dari daftar slide item di Jadwal Ibadah. Live Output tetap hanya berubah saat Go Live diklik.
+- **Tampilan lirik tetap untuk semua font dan tema: Extra Bold (800), putih, dengan outline hitam.** Montserrat dan Poppins dibundel dalam ketebalan 800; Bebas Neue (satu ketebalan) ditebalkan browser; Georgia/Times New Roman memakai Bold bawaan. Editor tema tidak lagi punya Bobot teks, Warna teks, dan Outline (warna/tebal) karena sudah tetap; tema mengatur latar, posisi, dan bayangan.
+- **Satu baris di bawah Live Output:** Slide X of N · ‹ › · **Ukuran** (1–100%) · **Outline** (1–100%) · **Edit teks**. 100% ukuran = 160 px dan 100% outline = 12 px pada layar 1080p. Menggeser Ukuran/Outline langsung menyusun ulang slide yang sedang LIVE di posisi teks yang sama (mode Black/Clear Text tetap), dan nilainya tersimpan untuk semua slide berikutnya. **Edit teks** mengubah teks slide yang sedang LIVE dan langsung tampil di layar jemaat (Reset mengembalikan teks sumber; lagu di Musik tidak berubah). Teks yang tidak muat ditolak dengan pesan.
+- **Pengaturan › Tipografi lirik**: Ukuran teks kini dalam persen (1–100%) dan ada slider **Outline** (1–100%); keduanya sama dengan slider di bawah Live Output.
+- Fitur edit teks dan ‹ › di Preview (Apply Preview, font/ukuran per Preview) dihapus bersama Preview Output, agar tidak ada tombol ganda. Data lama tetap terbaca; backup baru menyimpan nilai outline.
+- Tes: unit test tampilan lirik tetap, Edit teks LIVE (termasuk saat Black dan teks yang tidak muat), dan penyusunan ulang LIVE dengan ukuran baru di slide yang sama; E2E baris di bawah Live Output (satu baris, ukuran 75% = 120 px, outline 50% = 6 px, Edit teks + Reset, tersimpan di Pengaturan), Siap tayang tanpa tombol, dan tes lama diubah ke alur Live.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

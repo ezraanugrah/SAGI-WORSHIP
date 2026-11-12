@@ -65,6 +65,7 @@ export class PresentationController {
   private listeners = new Set<() => void>();
   private generation = 0;
   private intent = 0;
+  private reliveGeneration = 0;
   private playbackRevision = 0;
   private lastVideoCheckpoint = 0;
   private releasedForDeck = "";
@@ -283,6 +284,28 @@ export class PresentationController {
         this.update({ preparing: false, error: (e as Error).message });
     }
     return false;
+  }
+  /**
+   * Slides for `selection` without touching Preview or LIVE: used to show
+   * the LIVE item again with a new lyric size/outline (see relive).
+   */
+  async build(
+    data: Workspace,
+    selection: Selection,
+    style: Style,
+    videoDefaults?: Deck["videoDefaults"],
+    appearance?: AppearanceContext,
+  ): Promise<Preview> {
+    const built = await generateSlides(
+      data,
+      selection,
+      style,
+      this.measure,
+      () => false,
+      appearance,
+    );
+    if (videoDefaults) built.deck.videoDefaults = clone(videoDefaults);
+    return built;
   }
   async calibration(settings: AdvancedSettings = advancedDefaults) {
     const generation = ++this.generation;
@@ -565,6 +588,82 @@ export class PresentationController {
         ...this.keptAlert(),
       }),
     );
+  }
+  /**
+   * "Edit teks" under Live Output: change the text of the slide on screen.
+   * The edit lives in the LIVE deck only (Black/Clear Text stay as they are);
+   * an empty or unchanged text goes back to the source text.
+   */
+  editLive(text: string) {
+    this.authorize();
+    const live = this.state.live;
+    if (!live) throw new Error("Belum ada slide LIVE.");
+    const frame = live.deck.frames[live.index];
+    if (frame.kind === "media")
+      throw new Error("Slide media tidak punya teks.");
+    if (frame.kind === "scripture")
+      throw new Error("Teks Scripture baca-saja.");
+    if (text.length > 30000) throw new Error("Teks terlalu panjang.");
+    const deck = clone(live.deck),
+      source = deck.pages[frame.page].text;
+    deck.overrides = deck.overrides.filter((o) => o.frameId !== frame.id);
+    if (text.trim() && text !== source)
+      deck.overrides.push({ frameId: frame.id, text });
+    if (!fitsFrame(deck, live.index, this.measure))
+      throw new Error(
+        "Teks tidak muat di slide. Perpendek teks atau kecilkan ukuran font.",
+      );
+    this.intent++;
+    this.transition({ ...live, deck });
+  }
+  /**
+   * Show the LIVE item again with a new lyric style (size/outline from the
+   * row under Live Output), on the slide that holds the text now on screen.
+   * `next` is the same material prepared with the new style. Returns false
+   * when LIVE changed in the meantime.
+   */
+  async relive(next: Preview, liveDeckId: string) {
+    this.authorize();
+    const generation = ++this.reliveGeneration,
+      live = this.state.live;
+    if (!live || live.deck.id !== liveDeckId) return false;
+    const index = matchingFrame(live, next.deck),
+      old = live.deck.frames[live.index],
+      edited = live.deck.overrides.find((o) => o.frameId === old.id);
+    const deck = clone(next.deck);
+    // Keep a text edit made on the current slide when it still fits.
+    if (edited && deck.frames[index].kind === "song") {
+      const candidate = clone(deck);
+      candidate.overrides.push({
+        frameId: candidate.frames[index].id,
+        text: edited.text,
+      });
+      if (fitsFrame(candidate, index, this.measure))
+        deck.overrides = candidate.overrides;
+    }
+    if (mediaRefs(deck).length)
+      await this.repo
+        .mediaRepository()
+        .pin(deck, `live:${this.windows.pairing.session}:${deck.id}`);
+    this.authorize();
+    const current = this.state.live;
+    if (
+      generation !== this.reliveGeneration ||
+      !current ||
+      current.deck.id !== liveDeckId
+    )
+      return false;
+    this.intent++;
+    this.transition(
+      this.withPausedVideo({
+        deck,
+        index:
+          current.index === live.index ? index : matchingFrame(current, deck),
+        mode: current.mode,
+        ...this.keptAlert(),
+      }),
+    );
+    return true;
   }
   private withPausedVideo(live: Live): Live {
     const theme = themeFor(live.deck, live.index),
@@ -889,4 +988,34 @@ export class PresentationController {
   settled() {
     return this.writes;
   }
+}
+
+/**
+ * The slide of `deck` that shows the same material as the LIVE slide: same
+ * schedule item and section (or verse), and the page holding the first line
+ * now on screen. Falls back to the same position.
+ */
+export function matchingFrame(live: Live, deck: Deck): number {
+  const old = live.deck.frames[live.index],
+    firstLine = frameText(live.deck, live.index)
+      .split("\n")
+      .map((l) => l.trim())
+      .find(Boolean),
+    same = deck.frames
+      .map((frame, index) => ({ frame, index }))
+      .filter(({ frame }) => {
+        if (frame.itemId !== old.itemId || frame.kind !== old.kind)
+          return false;
+        if (frame.kind === "scripture" && old.kind === "scripture")
+          return frame.scripture.verseId === old.scripture.verseId;
+        if (frame.kind === "media" && old.kind === "media")
+          return frame.media.id === old.media.id;
+        return frame.label === old.label && frame.occurrence === old.occurrence;
+      });
+  const byText =
+    firstLine &&
+    same.find(({ frame }) => deck.pages[frame.page].text.includes(firstLine));
+  if (byText) return byText.index;
+  if (same.length) return same[0].index;
+  return Math.min(live.index, deck.frames.length - 1);
 }

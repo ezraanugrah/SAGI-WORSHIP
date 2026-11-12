@@ -1,5 +1,9 @@
 import { ThemesLibrary } from "./ThemesLibrary";
-import { loadLyricFonts, lyricFont } from "../presentation/fonts";
+import {
+  DEFAULT_OUTLINE_PX,
+  loadLyricFonts,
+  lyricFont,
+} from "../presentation/fonts";
 import { resolveAppearance } from "../presentation/appearance";
 import type { useThemes } from "../hooks/useThemes";
 import { MediaLibrary } from "./MediaLibrary";
@@ -42,8 +46,11 @@ export function Phase2Dashboard({
   mediaServices,
   themeServices,
   onPreviewDirty,
+  onPrefsChange,
 }: {
   onPreviewDirty?: (dirty: boolean) => void;
+  /** Save preferences (lyric size/outline from the row under Live Output). */
+  onPrefsChange?: (patch: Partial<Preferences>) => void;
   repo: Repository;
   editable: boolean;
   prefs: Preferences;
@@ -109,20 +116,39 @@ export function Phase2Dashboard({
     [],
   );
   const lastSelection = useRef<Selection | null>(null);
-  async function prepare(
+  // What each prepared deck was made from, so the LIVE item can be shown
+  // again with a new lyric size/outline (row under Live Output).
+  type Request = {
+    selection: Selection;
+    override?: { id: string; scope: "item" | "all" };
+  };
+  const requests = useRef(new Map<string, Request>());
+  const remember = (deckId: string, request: Request) => {
+    requests.current.set(deckId, request);
+    while (requests.current.size > 30)
+      requests.current.delete(requests.current.keys().next().value!);
+  };
+  const latestPrefs = useRef(prefs);
+  latestPrefs.current = prefs;
+  const lyricStyle = (p: Preferences): Style => ({
+    font: lyricFont(p.font),
+    fontSize: p.fontSize,
+    outline: p.outline ?? DEFAULT_OUTLINE_PX,
+    safeMargin: p.safeMargin,
+    theme: p.theme as Style["theme"],
+    lines: 6,
+  });
+  const videoDefaults = (p: Preferences) => ({
+    loop: p.loopLive,
+    muted: p.muted,
+    volume: p.volume / 100,
+  });
+  /** Workspace and themes resolved for `selection` (null after an error). */
+  async function inputs(
     selection: Selection,
-    override?: { id: string; scope: "item" | "all" },
+    override: Request["override"],
+    signal?: AbortSignal,
   ) {
-    const request = ++preparationRequest.current;
-    preparationAbort.current?.abort();
-    const abort = new AbortController();
-    preparationAbort.current = abort;
-    if (
-      (previewDirty ||
-        (override && presentationState.preview?.deck.overrides.length)) &&
-      !window.confirm("Buang perubahan Preview yang belum diterapkan?")
-    )
-      return;
     // Measure with the real lyric fonts, not a fallback.
     await loadLyricFonts();
     await document.fonts.ready;
@@ -141,42 +167,91 @@ export function Phase2Dashboard({
       resolved = await mediaServices.repo.resolveWorkspace(
         resolved,
         selection as Parameters<typeof mediaServices.repo.resolveWorkspace>[1],
-        abort.signal,
+        signal,
       );
-    } catch (e) {
-      if (request !== preparationRequest.current || abort.signal.aborted)
-        return;
-      presentation.report(e);
-      return;
-    }
-    if (request !== preparationRequest.current || abort.signal.aborted) return;
-    let appearance;
-    try {
-      appearance = await resolveAppearance(
+      if (signal?.aborted) return null;
+      const appearance = await resolveAppearance(
         themeServices.repo,
         resolved,
         selection,
         override,
       );
+      return { resolved, appearance };
+    } catch (e) {
+      if (!signal?.aborted) presentation.report(e);
+      return null;
+    }
+  }
+  async function prepare(
+    selection: Selection,
+    override?: { id: string; scope: "item" | "all" },
+  ) {
+    const request = ++preparationRequest.current;
+    preparationAbort.current?.abort();
+    const abort = new AbortController();
+    preparationAbort.current = abort;
+    if (
+      (previewDirty ||
+        (override && presentationState.preview?.deck.overrides.length)) &&
+      !window.confirm("Buang perubahan Preview yang belum diterapkan?")
+    )
+      return;
+    const input = await inputs(selection, override, abort.signal);
+    if (
+      !input ||
+      request !== preparationRequest.current ||
+      abort.signal.aborted
+    )
+      return;
+    lastSelection.current = selection;
+    const ready = await presentation.prepare(
+      input.resolved,
+      selection,
+      lyricStyle(latestPrefs.current),
+      videoDefaults(latestPrefs.current),
+      input.appearance,
+    );
+    const prepared = presentation.snapshot().preview;
+    if (ready && prepared) remember(prepared.deck.id, { selection, override });
+    return ready;
+  }
+  /**
+   * New lyric size/outline from the row under Live Output: save it, then
+   * show the LIVE item again with it on the same slide. Without a known
+   * source (e.g. after a restart) it only applies to the next preparation.
+   */
+  const reliveRun = useRef(0);
+  async function relive(patch: { fontSize?: number; outline?: number }) {
+    onPrefsChange?.(patch);
+    const next = { ...latestPrefs.current, ...patch };
+    latestPrefs.current = next;
+    const token = ++reliveRun.current,
+      start = presentation.snapshot().live,
+      source = start && requests.current.get(start.deck.id);
+    if (!start || !source || start.deck.frames.every((f) => f.kind === "media"))
+      return;
+    const input = await inputs(source.selection, source.override);
+    if (!input || token !== reliveRun.current) return;
+    try {
+      const built = await presentation.build(
+        input.resolved,
+        source.selection,
+        lyricStyle(next),
+        videoDefaults(next),
+        input.appearance,
+      );
+      const now = presentation.snapshot().live;
+      if (
+        token !== reliveRun.current ||
+        !now ||
+        requests.current.get(now.deck.id) !== source
+      )
+        return;
+      if (await presentation.relive(built, now.deck.id))
+        remember(built.deck.id, source);
     } catch (e) {
       presentation.report(e);
-      return;
     }
-    if (request !== preparationRequest.current || abort.signal.aborted) return;
-    lastSelection.current = selection;
-    return presentation.prepare(
-      resolved,
-      selection,
-      {
-        font: lyricFont(prefs.font),
-        fontSize: prefs.fontSize,
-        safeMargin: prefs.safeMargin,
-        theme: prefs.theme as Style["theme"],
-        lines: 6,
-      },
-      { loop: prefs.loopLive, muted: prefs.muted, volume: prefs.volume / 100 },
-      appearance,
-    );
   }
   async function run(
     operation: () => Promise<unknown>,
@@ -388,22 +463,19 @@ export function Phase2Dashboard({
                   itemId,
                 });
             }}
-          />
-          <PreviewWorkspace
-            controller={presentation}
-            state={presentationState}
-            editable={editable}
-            onDirty={markDirty}
-            videoDefaults={{
-              loop: prefs.loopPreview,
-              muted: prefs.muted,
-              volume: prefs.volume / 100,
-            }}
+            footer={
+              <PreviewWorkspace state={presentationState} onDirty={markDirty} />
+            }
           />
           <LiveControls
             controller={presentation}
             state={presentationState}
             editable={editable}
+            lyric={{
+              fontSize: prefs.fontSize,
+              outline: prefs.outline ?? DEFAULT_OUTLINE_PX,
+            }}
+            onLyric={(patch) => void relive(patch)}
           />
         </div>
         <section className="library">
@@ -519,12 +591,7 @@ export function Phase2Dashboard({
                   return asset;
                 }}
                 services={themeServices}
-                lyricStyle={{
-                  font: lyricFont(prefs.font),
-                  fontSize: prefs.fontSize,
-                  safeMargin: prefs.safeMargin,
-                  lines: 6,
-                }}
+                lyricStyle={lyricStyle(prefs)}
                 preview={presentationState.preview}
                 data={data}
                 editable={editable}

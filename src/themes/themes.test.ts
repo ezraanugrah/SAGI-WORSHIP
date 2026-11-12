@@ -482,7 +482,7 @@ it("cleanup blocks missing theme pins rather than deleting a referenced backgrou
   expect(await db.get("media_assets", p.id)).toBeDefined();
   db.close();
 });
-it("lyrics use the global text style on every theme; the theme keeps its background and text look", async () => {
+it("lyrics use the global text style and the fixed look on every theme; the theme keeps its background", async () => {
   await songs.createSong("song", songFixture("song", "Theme free lyric"));
   const t = await create("Small lyric theme", {
       background: { kind: "solid", color: "#224466" },
@@ -503,7 +503,13 @@ it("lyrics use the global text style on every theme; the theme keeps its backgro
       { kind: "song", songId: "song" },
       { id: t.id, scope: "item" },
     ),
-    big: Style = { ...style, font: "Bebas Neue", fontSize: 110, safeMargin: 4 },
+    big: Style = {
+      ...style,
+      font: "Bebas Neue",
+      fontSize: 110,
+      safeMargin: 4,
+      outline: 6,
+    },
     { deck } = await generateSlides(
       data,
       { kind: "song", songId: "song" },
@@ -514,10 +520,13 @@ it("lyrics use the global text style on every theme; the theme keeps its backgro
     );
   expect(validDeck(deck)).toBe(true);
   const snapshot = Object.values(deck.render!.themes)[0];
+  // Extra bold, white, black outline whatever the theme said.
   expect(snapshot.spec.type).toMatchObject({
     font: "Bebas Neue",
     size: 110,
-    color: "#ffee00",
+    weight: 800,
+    color: "#ffffff",
+    outline: { width: 6, color: "#000000" },
     margins: { top: 4, right: 4, bottom: 4, left: 4 },
     lines: 6,
   });

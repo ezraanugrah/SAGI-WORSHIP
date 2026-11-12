@@ -30,20 +30,10 @@ export function TypographyEditor({
   return (
     <div className="typography-editor">
       <p className="field-help typography-note">
-        Font dan ukuran lirik diatur di Pengaturan › Tipografi lirik dan berlaku
-        untuk semua tema. Di sini hanya tampilan teks di atas latar ini.
+        Lirik selalu Extra Bold, putih, dengan outline hitam. Font, ukuran, dan
+        tebal outline diatur di Pengaturan › Tipografi lirik atau di bawah Live
+        Output, untuk semua tema. Di sini hanya posisi dan bayangan teks.
       </p>
-      <label>
-        Bobot teks
-        <select
-          aria-label="Bobot teks"
-          value={value.weight}
-          onChange={(e) => set({ weight: Number(e.target.value) as 400 | 700 })}
-        >
-          <option value={400}>Normal</option>
-          <option value={700}>Bold</option>
-        </select>
-      </label>
       <label>
         <input
           aria-label="Italic tema"
@@ -61,15 +51,6 @@ export function TypographyEditor({
           onChange={(e) => set({ underline: e.target.checked })}
         />{" "}
         Underline
-      </label>
-      <label>
-        Warna teks
-        <input
-          aria-label="Warna teks"
-          type="color"
-          value={value.color}
-          onChange={(e) => set({ color: e.target.value })}
-        />
       </label>
       <label>
         Rata horizontal
@@ -100,33 +81,6 @@ export function TypographyEditor({
         </select>
       </label>
       {numeric("Jarak baris", "lineHeight", 1, 2, 0.05)}
-      <label>
-        Outline width
-        <input
-          aria-label="Outline width"
-          type="number"
-          min={0}
-          max={4}
-          step={0.5}
-          value={value.outline.width}
-          onChange={(e) =>
-            set({
-              outline: { ...value.outline, width: Number(e.target.value) },
-            })
-          }
-        />
-      </label>
-      <label>
-        Outline color
-        <input
-          aria-label="Outline color"
-          type="color"
-          value={value.outline.color}
-          onChange={(e) =>
-            set({ outline: { ...value.outline, color: e.target.value } })
-          }
-        />
-      </label>
       {(["x", "y", "blur"] as const).map((key) => (
         <label key={key}>
           Shadow {key}

@@ -1,5 +1,6 @@
 import { frameText, type Preview, type Style } from "../presentation/models";
 import { fontStack } from "../presentation/fonts";
+import type { LyricStyle } from "../presentation/appearance";
 import { useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import type { MediaAsset } from "../media/models";
@@ -21,7 +22,7 @@ export function ThemesLibrary({
   lyricStyle,
 }: {
   /** Global lyric style, shown in the theme editor preview. */
-  lyricStyle?: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">;
+  lyricStyle?: LyricStyle;
   /** Import an image/video file into Media and return it (backgrounds). */
   onImportMedia?: (file: File) => Promise<MediaAsset>;
   services: ReturnType<typeof useThemes>;
