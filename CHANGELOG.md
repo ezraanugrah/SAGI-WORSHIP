@@ -271,6 +271,12 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Untuk membuka jendela proyektor sebelum ada slide, atau menyambungkannya lagi, pakai **Reconnect** di kiri atas (juga memakai layar yang dipilih).
 - Tes: E2E diperbarui (Go Live membuka proyektor; tes lain membuka proyektor lewat Reconnect).
 
+### Go Live selalu sampai ke proyektor
+
+- **Diperbaiki:** setelah halaman SAGI dimuat ulang (refresh atau pembaruan), Go Live membuka jendela baru (biasanya di layar laptop) sementara jendela proyektor yang sudah terbuka tidak berubah, sehingga tampak "Go Live tidak keluar di proyektor". Kini jendela proyektor punya nama tetap: Go Live/Reconnect menemukan jendela yang masih terbuka dan menyambungkannya kembali di tempat, tanpa memuat ulang (tetap fullscreen, slide terakhir tetap tampil sampai slide baru tiba).
+- **Diperbaiki:** setelah dimuat ulang, Go Live sebelumnya mati diam-diam selama banner "Checkpoint presentasi tersedia" belum dijawab. Kini Go Live tetap bisa diklik: SAGI bertanya "Buang presentasi itu dan tampilkan slide Preview ini?" lalu menampilkannya. Resume/Discard di banner tetap tersedia.
+- Tes: E2E baru (Go Live → muat ulang SAGI → lagu lain → Go Live sampai ke jendela proyektor yang sama tanpa jendela baru dan tanpa reload); helper tes proyektor memakai ulang jendela yang sama.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

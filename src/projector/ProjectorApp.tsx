@@ -10,21 +10,24 @@ import { clone, uid, type Live } from "../presentation/models";
 import { browserMeasure } from "../presentation/layout";
 import { useScreenWakeLock } from "../hooks/useScreenWakeLock";
 import { commandForKey, presentationKey } from "../presentation/shortcuts";
+function readPairing(): Pairing {
+  const query = new URLSearchParams(location.hash.split("?")[1]);
+  return {
+    session: query.get("session") ?? "",
+    epoch: query.get("epoch") ?? "",
+    pair: query.get("pair") ?? "",
+  };
+}
+const samePairing = (a: Pairing, b: Pairing) =>
+  a.session === b.session && a.epoch === b.epoch && a.pair === b.pair;
 export default function ProjectorApp() {
   // Follows the operator's language choice (shared per laptop).
   useLang();
-  const [pairing] = useState<Pairing>(() => {
-    const query = new URLSearchParams(location.hash.split("?")[1]);
-    return {
-      session: query.get("session") ?? "",
-      epoch: query.get("epoch") ?? "",
-      pair: query.get("pair") ?? "",
-    };
-  });
+  const [pairing, setPairing] = useState<Pairing>(readPairing);
   const [controlsVisible, setControlsVisible] = useState(false),
     hideControls = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(hideControls.current), []);
-  const [receiver] = useState(() => new Receiver(pairing, uid())),
+  const [receiver, setReceiver] = useState(() => new Receiver(pairing, uid())),
     [current, setCurrent] = useState<{ live: Live | null; sequence: number }>({
       live: null,
       sequence: -1,
@@ -37,6 +40,23 @@ export default function ProjectorApp() {
       live: null,
       sequence: -1,
     });
+  // When the operator page reloads, it reconnects this same window by putting
+  // a new pairing in the address. Re-pair without reloading, so fullscreen and
+  // the last slide stay on screen until the new state arrives.
+  const pairingNow = useRef(pairing);
+  useEffect(() => {
+    const repair = () => {
+      const next = readPairing();
+      if (samePairing(pairingNow.current, next)) return;
+      pairingNow.current = next;
+      pendingSequence.current = -1;
+      loadGeneration.current++;
+      setPairing(next);
+      setReceiver(new Receiver(next, uid()));
+    };
+    window.addEventListener("hashchange", repair);
+    return () => window.removeEventListener("hashchange", repair);
+  }, []);
   const send = useCallback(
     (type: Message["type"], error?: string) =>
       transport.current?.send({

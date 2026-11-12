@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import { projectorWindow } from "./projectorHelpers";
 import {
   previewPosition,
   previewReady,
@@ -49,12 +50,7 @@ async function prepare(page: Page, title = "Projection composition") {
   await previewReady(page);
 }
 async function openOutput(page: Page) {
-  const popup = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
-  const output = await popup;
-  await expect(output.getByTestId("projector")).toBeVisible();
-  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
-  return output;
+  return projectorWindow(page);
 }
 async function start(page: Page) {
   await song(page);

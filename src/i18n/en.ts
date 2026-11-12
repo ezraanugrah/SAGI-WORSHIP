@@ -552,6 +552,10 @@ export const EN: Record<string, string> = {
   "Salin API key aplikasi itu ke kolom di bawah, centang ketentuan, klik Simpan ESV lalu Tes ESV.":
     "Copy that application's API key into the field below, tick the terms, click Save ESV, then Test ESV.",
   "Sambungkan ulang jendela proyektor": "Reconnect the projector window",
+  "Presentasi sebelumnya belum dilanjutkan: Go Live akan membuangnya":
+    "The previous presentation was not resumed: Go Live will discard it",
+  "Presentasi sebelumnya belum dilanjutkan. Buang presentasi itu dan tampilkan slide Preview ini?":
+    "The previous presentation was not resumed. Discard it and show this Preview slide?",
   "Buka atau sambungkan ulang jendela proyektor":
     "Open or reconnect the projector window",
   "Tampilkan slide Preview ke jemaat (membuka jendela proyektor)":

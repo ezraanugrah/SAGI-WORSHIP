@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { projectorWindow } from "./projectorHelpers";
 import { previewPosition, previewReady } from "./previewHelpers";
 import { dragToWeek, mediaCard, openWeek } from "./dragHelpers";
 import {
@@ -29,12 +30,7 @@ async function prepare(page: Page) {
   await previewReady(page);
 }
 async function output(page: Page) {
-  const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
-  const p = await pending;
-  await expect(p.getByTestId("projector")).toBeVisible();
-  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
-  return p;
+  return projectorWindow(page);
 }
 async function live(page: Page) {
   await page.getByRole("button", { name: "Go Live", exact: true }).click();

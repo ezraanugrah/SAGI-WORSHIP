@@ -67,8 +67,8 @@ export function LiveToolbar({
   const readOnlyHint = t("Tab ini hanya baca");
   const goLiveHint = !editable
     ? readOnlyHint
-    : state.recovery
-      ? t("Pilih Resume atau Discard checkpoint dulu")
+    : state.recovery && state.preview
+      ? t("Presentasi sebelumnya belum dilanjutkan: Go Live akan membuangnya")
       : state.preparing
         ? t("Menyiapkan slide…")
         : !state.preview
@@ -94,16 +94,30 @@ export function LiveToolbar({
           !state.preview ||
           dirty ||
           state.preparing ||
-          !!state.recovery
+          state.recovering
         }
-        onClick={() =>
+        onClick={() => {
+          // A presentation from before a reload is waiting for Resume or
+          // Discard: Go Live replaces it, after asking.
+          const replace = !!state.recovery;
+          if (
+            replace &&
+            !window.confirm(
+              t(
+                "Presentasi sebelumnya belum dilanjutkan. Buang presentasi itu dan tampilkan slide Preview ini?",
+              ),
+            )
+          )
+            return;
           run(() => {
             // Opened inside this click so the browser allows the popup.
             if (!controller.windows.hasOpenOutput())
               controller.windows.open(screen);
-            return controller.goLive();
-          })
-        }
+            return replace
+              ? controller.discard().then(() => controller.goLive())
+              : controller.goLive();
+          });
+        }}
       />
       <span className="toolbar-divider" aria-hidden="true" />
       <div className="tool-menu">

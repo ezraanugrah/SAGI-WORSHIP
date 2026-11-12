@@ -23,6 +23,8 @@ export type ScreenChoice = {
   width: number;
   height: number;
 };
+/** Name of the audience window, shared across reloads of the operator page. */
+export const PROJECTOR_WINDOW = "SAGI_Projector";
 export class WindowManager {
   private output: Window | null = null;
   private transport: Transport | null = null;
@@ -184,11 +186,10 @@ export class WindowManager {
     const features = screen
       ? `popup,width=${screen.width},height=${screen.height},left=${screen.left},top=${screen.top}`
       : "popup,width=1280,height=720";
-    const output = window.open(
-      url.href,
-      `SAGI_Projector_${this.pairing.session}`,
-      features,
-    );
+    // One fixed window name: after this page reloads, opening again finds
+    // the projector window that is still open (on the projector screen) and
+    // re-pairs it in place through its address, instead of a new window.
+    const output = window.open(url.href, PROJECTOR_WINDOW, features);
     if (!output) {
       this.update({
         status: "Error",

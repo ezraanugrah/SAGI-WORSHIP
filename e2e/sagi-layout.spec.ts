@@ -1011,3 +1011,52 @@ test("the language switch shows the operator screens in English or Indonesian, k
     page.getByRole("button", { name: "Tambah lagu", exact: true }),
   ).toBeVisible();
 });
+
+test("after SAGI reloads, Go Live still reaches the projector window that is open", async ({
+  page,
+  context,
+}) => {
+  await song(page, "Lagu pertama", ["Baris lagu pertama."]);
+  await song(page, "Lagu kedua", ["Baris lagu kedua."]);
+  await preview(page, "Lagu pertama");
+  const popup = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const projector = await popup;
+  await expect(projector.locator(".slide-lines")).toHaveText(
+    "Baris lagu pertama.",
+  );
+  await expect(page.getByText(/Checkpoint tersimpan/)).toBeVisible();
+  const projectorUrl = projector.url();
+  // A marker that would vanish if the projector window reloaded.
+  await projector.evaluate(() => {
+    (window as unknown as { sameDocument: boolean }).sameDocument = true;
+  });
+  // The operator page reloads (refresh or update); the projector stays open.
+  await page.reload();
+  await expect(
+    page.getByRole("region", { name: "Pemulihan presentasi" }),
+  ).toBeVisible();
+  await preview(page, "Lagu kedua");
+  const goLive = page.getByRole("button", { name: "Go Live", exact: true });
+  await expect(goLive).toBeEnabled();
+  let opened = false;
+  page.on("popup", () => (opened = true));
+  page.once("dialog", (d) => void d.accept());
+  await goLive.click();
+  // Same window, re-paired in place (no reload, so fullscreen would stay).
+  await expect(projector.locator(".slide-lines")).toHaveText(
+    "Baris lagu kedua.",
+  );
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  await expect(
+    page.getByRole("region", { name: "Pemulihan presentasi" }),
+  ).toHaveCount(0);
+  expect(opened).toBe(false);
+  expect(context.pages()).toHaveLength(2);
+  expect(projector.url()).not.toBe(projectorUrl);
+  expect(
+    await projector.evaluate(
+      () => (window as unknown as { sameDocument?: boolean }).sameDocument,
+    ),
+  ).toBe(true);
+});
