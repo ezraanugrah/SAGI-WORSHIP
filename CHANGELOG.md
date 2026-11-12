@@ -265,6 +265,12 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Status sinkron: "… · 3 tema · 2 jadwal".
 - Tes: 5 unit test (Week berisi lagu + ayat + gambar ke laptop lain dengan id Alkitab/media masing-masing, urut/hapus/kosongkan dua arah, gabung saat pertama masuk, menunggu Alkitab, server belum siap) dan E2E dua laptop (tarik lagu ke Week 1 lalu muncul di laptop lain; hapus ikut).
 
+### Tombol Live dihapus: cukup Go Live
+
+- Tombol **Live** di toolbar kanan atas dihapus. **Go Live** kini sekaligus membuka jendela proyektor bila belum terbuka (di layar yang dipilih lewat **Layar**), lalu menampilkan slide ke jemaat.
+- Untuk membuka jendela proyektor sebelum ada slide, atau menyambungkannya lagi, pakai **Reconnect** di kiri atas (juga memakai layar yang dipilih).
+- Tes: E2E diperbarui (Go Live membuka proyektor; tes lain membuka proyektor lewat Reconnect).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

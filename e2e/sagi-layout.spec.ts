@@ -163,10 +163,14 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
   const toolbar = page.getByRole("toolbar", { name: "Kontrol LIVE" });
   const status = page.getByTestId("app-status");
   // Each LIVE control exists once (no duplicates in the LIVE panel).
-  for (const name of ["Go Live", "Black", "Clear Text", "Live", "Alerts"])
+  for (const name of ["Go Live", "Black", "Clear Text", "Alerts"])
     await expect(page.getByRole("button", { name, exact: true })).toHaveCount(
       1,
     );
+  // No separate "Live" button: Go Live opens the projector window itself.
+  await expect(
+    page.getByRole("button", { name: "Live", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Restore" })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Open Projector Window" }),
@@ -185,15 +189,11 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
     "Second toolbar line.",
   ]);
   await preview(page, "Toolbar song");
-  // Live opens (or focuses) the projector window and lights up once synced.
+  // The first Go Live opens the projector window and shows the slide there.
   const popup = page.waitForEvent("popup");
-  await toolbar.getByRole("button", { name: "Live", exact: true }).click();
+  await toolbar.getByRole("button", { name: "Go Live", exact: true }).click();
   const output = await popup;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
-  await expect(
-    toolbar.getByRole("button", { name: "Live", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await toolbar.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(status).toHaveText(/LIVE/);
   await expect(output.locator(".slide-lines")).toHaveText(
     "First toolbar line.",
@@ -419,7 +419,7 @@ test("a second tab is clearly read-only and can take over editing", async ({
   const banner = second.getByTestId("readonly-banner");
   await expect(banner).toContainText("Tab ini hanya baca");
   await expect(
-    second.getByRole("button", { name: "Live", exact: true }),
+    second.getByRole("button", { name: "Reconnect", exact: true }),
   ).toBeDisabled();
   await expect(
     second.getByRole("button", { name: "Go Live", exact: true }),
@@ -574,7 +574,7 @@ test("the projector changes only when Go Live is clicked; the panel shows the pi
   const live = page.getByRole("region", { name: "LIVE projector control" });
   const status = page.getByTestId("app-status");
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const projector = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await preview(page, "Go Live song");
@@ -798,7 +798,7 @@ test("Live Output takes the Preview column's place and its video plays along wit
     .click();
   await previewReady(page);
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const projector = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
@@ -930,7 +930,7 @@ test("Media videos play with sound; if Chrome blocks sound, the projector plays 
     .click();
   await previewReady(page);
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const projector = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();

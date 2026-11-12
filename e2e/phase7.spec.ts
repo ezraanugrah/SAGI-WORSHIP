@@ -225,7 +225,7 @@ test("backup during LIVE does not change output; restore requires End Session an
     .getByRole("button", { name: /^Backup composition/ })
     .click();
   const popup = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const output = await popup;
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator(".slide-lines")).toContainText(
@@ -418,7 +418,7 @@ test("restored video checkpoint requires explicit Resume and fresh output remain
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
   const popup = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const output = await popup;
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator("video")).toBeVisible();
@@ -446,7 +446,7 @@ test("restored video checkpoint requires explicit Resume and fresh output remain
     .getByRole("button", { name: "Resume presentasi", exact: true })
     .click();
   const nextPopup = p.waitForEvent("popup");
-  await p.getByRole("button", { name: "Live", exact: true }).click();
+  await p.getByRole("button", { name: "Reconnect", exact: true }).click();
   const next = await nextPopup;
   await expect(next.locator("video")).toBeVisible();
   expect(

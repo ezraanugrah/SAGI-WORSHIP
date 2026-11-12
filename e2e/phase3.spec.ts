@@ -50,7 +50,7 @@ async function prepare(page: Page, title = "Projection composition") {
 }
 async function openOutput(page: Page) {
   const popup = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const output = await popup;
   await expect(output.getByTestId("projector")).toBeVisible();
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
@@ -439,7 +439,7 @@ test("fullscreen/popup denial and BroadcastChannel fallback remain actionable", 
     return true;
   });
   expect(original).toBe(true);
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   await expect(page.getByText(/Popup diblokir/)).toBeVisible();
   await page.evaluate(() => {
     window.open = (
@@ -497,7 +497,7 @@ test("secondary operator and projector never acquire presentation authority or m
   await secondary.goto("/");
   await expect(
     secondary.getByRole("button", {
-      name: "Live",
+      name: "Reconnect",
       exact: true,
     }),
   ).toBeDisabled();

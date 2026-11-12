@@ -72,8 +72,11 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   // The whole pick on one slide, each verse numbered, the font shrunk to
   // fit (bundled Montserrat measures the same on every laptop).
   await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
-  // No Preview monitor: what Go Live shows is checked in Live Output.
+  // No Preview monitor: what Go Live shows is checked in Live Output. The
+  // first Go Live also opens the projector window.
+  const pending = page.waitForEvent("popup");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const projector = await pending;
   const live = page.getByRole("region", { name: "LIVE projector control" });
   await expect(
     live.locator('.slide-column[data-column="left"]').first(),
@@ -86,11 +89,7 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
     /³\s?And God said, Let there be light.*⁴\s?And God saw the light/,
   );
 
-  const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
-  const projector = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(
     projector.locator('.slide-column[data-column="left"]'),
   ).toContainText(/³\s?Kemudian, Allah berfirman/);
@@ -286,7 +285,7 @@ test("verses keep their own background: Themes do not change them, Latar ayat do
   });
 
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const projector = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();

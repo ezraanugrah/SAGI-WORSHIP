@@ -5,8 +5,8 @@ import { PresentationController } from "../presentation/controller";
 import { listScreens, type ScreenChoice } from "../presentation/windowManager";
 
 /**
- * Projector window tools on the left of the top bar (every page). The window
- * itself is opened with "Live" in the LIVE toolbar, on the screen picked here.
+ * Projector window tools on the left of the top bar (every page). Go Live (or
+ * Reconnect) opens the projector window, on the screen picked here.
  */
 export function ProjectorBar({
   controller,
@@ -107,9 +107,15 @@ export function ProjectorBar({
         type="button"
         className="tool-button"
         aria-label="Reconnect"
-        title={t("Sambungkan ulang jendela proyektor")}
+        title={t("Buka atau sambungkan ulang jendela proyektor")}
         disabled={!editable}
-        onClick={() => run(() => controller.windows.reconnect())}
+        onClick={() =>
+          run(() =>
+            controller.windows.reconnect(
+              screen === "" ? undefined : screens[Number(screen)],
+            ),
+          )
+        }
       >
         <span className="tool-icon" aria-hidden="true">
           <RefreshCw size={17} />

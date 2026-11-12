@@ -57,7 +57,7 @@ test("“Nanti” keeps the current version; the button still installs it", asyn
 
 test("waits while the projector window is open", async ({ page }) => {
   const popup = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   await popup;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await newVersion(page);

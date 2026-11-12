@@ -165,7 +165,7 @@ test("Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery",
     .getByRole("button", { name: /^Phase eight synthetic/ })
     .click();
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const output = await pending;
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(output.locator(".slide-lines")).toHaveText(lyric);
@@ -202,6 +202,6 @@ test("Phase 8 Unicode keyboard, responsive layout and explicit frozen recovery",
     .getByRole("button", { name: "Resume presentasi", exact: true })
     .click();
   const nextPending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   await expect((await nextPending).locator(".slide-lines")).toHaveText(lyric);
 });

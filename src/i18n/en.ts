@@ -552,6 +552,10 @@ export const EN: Record<string, string> = {
   "Salin API key aplikasi itu ke kolom di bawah, centang ketentuan, klik Simpan ESV lalu Tes ESV.":
     "Copy that application's API key into the field below, tick the terms, click Save ESV, then Test ESV.",
   "Sambungkan ulang jendela proyektor": "Reconnect the projector window",
+  "Buka atau sambungkan ulang jendela proyektor":
+    "Open or reconnect the projector window",
+  "Tampilkan slide Preview ke jemaat (membuka jendela proyektor)":
+    "Show the Preview slide to the congregation (opens the projector window)",
   sampai: "to",
   "Saya memahami dampak restore dan pilihan konflik":
     "I understand the impact of the restore and the conflict choices",

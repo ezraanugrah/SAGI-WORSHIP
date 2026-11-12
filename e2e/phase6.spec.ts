@@ -37,7 +37,7 @@ async function apply(page: Page) {
 }
 async function output(page: Page) {
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const p = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   return p;

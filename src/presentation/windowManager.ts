@@ -225,10 +225,11 @@ export class WindowManager {
     });
     this.start();
   }
-  reconnect() {
+  /** Re-sync the projector window, or open it (on `screen`) when closed. */
+  reconnect(screen?: ScreenChoice) {
     this.authorized();
     if (!this.output || this.output.closed) {
-      this.open();
+      this.open(screen);
       return;
     }
     this.update({ status: "Menunggu render", error: "" });

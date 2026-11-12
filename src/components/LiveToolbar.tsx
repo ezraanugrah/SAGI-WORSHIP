@@ -1,7 +1,6 @@
 import { t } from "../i18n";
 import {
   BellRing,
-  Cast,
   ChevronDown,
   Eraser,
   MonitorPlay,
@@ -16,8 +15,8 @@ import { ALERT_MAX } from "../presentation/models";
 import type { ScreenChoice } from "../presentation/windowManager";
 
 /**
- * LIVE toolbar in the top bar (visible on every page). This is the only place
- * for Go Live, Black, Clear, Alerts and opening the projector window.
+ * LIVE toolbar in the top bar (visible on every page): Go Live, Alerts, Black
+ * and Clear. Go Live also opens the projector window when it is not open yet.
  */
 export function LiveToolbar({
   controller,
@@ -64,7 +63,6 @@ export function LiveToolbar({
       return false;
     }
   };
-  const projectorOn = state.connection.status === "Tersinkron";
   // Hover text: what the button does, or why it is not available yet.
   const readOnlyHint = t("Tab ini hanya baca");
   const goLiveHint = !editable
@@ -77,7 +75,11 @@ export function LiveToolbar({
           ? t("Klik lagu atau item jadwal untuk Preview dulu")
           : dirty
             ? t("Apply Preview atau buang perubahan dulu")
-            : t("Tampilkan slide Preview ke jemaat");
+            : controller.windows.hasOpenOutput()
+              ? t("Tampilkan slide Preview ke jemaat")
+              : t(
+                  "Tampilkan slide Preview ke jemaat (membuka jendela proyektor)",
+                );
   const liveHint = (action: string) =>
     !editable ? readOnlyHint : !live ? t("Go Live dulu") : t(action);
   return (
@@ -94,7 +96,14 @@ export function LiveToolbar({
           state.preparing ||
           !!state.recovery
         }
-        onClick={() => run(() => controller.goLive())}
+        onClick={() =>
+          run(() => {
+            // Opened inside this click so the browser allows the popup.
+            if (!controller.windows.hasOpenOutput())
+              controller.windows.open(screen);
+            return controller.goLive();
+          })
+        }
       />
       <span className="toolbar-divider" aria-hidden="true" />
       <div className="tool-menu">
@@ -174,15 +183,6 @@ export function LiveToolbar({
         pressed={live?.mode === "clearText"}
         disabled={!editable || !live}
         onClick={() => run(() => controller.toggle("clearText"))}
-      />
-      <span className="toolbar-divider" aria-hidden="true" />
-      <ToolButton
-        label="Live"
-        title={editable ? t("Buka jendela proyektor") : readOnlyHint}
-        icon={<Cast size={20} />}
-        pressed={projectorOn}
-        disabled={!editable}
-        onClick={() => run(() => controller.windows.open(screen))}
       />
     </div>
   );

@@ -125,7 +125,7 @@ test("TB2 left and ESV right from the official APIs, with the church's keys, thr
     .getByRole("button", { name: "Preview", exact: true })
     .click();
   const pending = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Live", exact: true }).click();
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
   const projector = await pending;
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
