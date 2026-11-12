@@ -537,7 +537,6 @@ export default function App() {
                     [
                       { key: "loopLive", title: "Loop video LIVE" },
                       { key: "loopPreview", title: "Loop video Preview" },
-                      { key: "muted", title: "Mulai video tanpa suara" },
                     ] as const
                   ).map((x) => (
                     <label className="toggle-row" key={x.key}>
@@ -562,10 +561,12 @@ export default function App() {
                     />
                   </label>
                   <p className="field-help">
-                    Default untuk persiapan video berikutnya. LIVE yang sedang
-                    berjalan tetap menggunakan snapshot. Di atas 100% = penguat
-                    volume di proyektor (maks. 200%); suara bisa pecah jika
-                    video sudah keras.
+                    Video dari tab Media selalu mulai bersuara (Mute LIVE bisa
+                    mematikannya); latar video tema selalu tanpa suara. Default
+                    untuk persiapan video berikutnya. LIVE yang sedang berjalan
+                    tetap menggunakan snapshot. Di atas 100% = penguat volume di
+                    proyektor (maks. 200%); suara bisa pecah jika video sudah
+                    keras.
                   </p>
                 </fieldset>
               </section>

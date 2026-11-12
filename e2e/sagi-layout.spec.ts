@@ -894,3 +894,66 @@ test("lyrics keep the Pengaturan font and size on any theme, and the background 
     await expect(editor.getByLabel(gone, { exact: true })).toHaveCount(0);
   await expect(editor).toContainText("Pengaturan › Tipografi lirik");
 });
+
+test("Media videos play with sound; if Chrome blocks sound, the projector plays and turns it on after one click", async ({
+  page,
+  context,
+}) => {
+  // The projector window refuses sound until it is clicked once, like Chrome
+  // does for a window that has not been clicked yet.
+  await context.addInitScript(() => {
+    // Only the projector window (opened by the operator window).
+    if (!window.opener) return;
+    let clicked = false;
+    window.addEventListener("pointerdown", () => (clicked = true), true);
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      if (!clicked && !this.muted)
+        return Promise.reject(
+          new DOMException("no gesture", "NotAllowedError"),
+        );
+      return play.call(this);
+    };
+  });
+  await page.getByRole("link", { name: "Pengaturan", exact: true }).click();
+  await expect(page.getByText("Mulai video tanpa suara")).toHaveCount(0);
+  await page.getByRole("link", { name: "Dashboard", exact: true }).click();
+  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  await page
+    .getByLabel("File media", { exact: true })
+    .setInputFiles(await videoFile(page));
+  await page
+    .getByRole("button", { name: "Pilih media synthetic.webm", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Preview media", exact: true })
+    .click();
+  await previewReady(page);
+  const pending = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Live", exact: true }).click();
+  const projector = await pending;
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  // Media video: sound on by default.
+  await expect(live.getByLabel("Mute LIVE", { exact: true })).not.toBeChecked();
+  await page.getByRole("button", { name: "Play LIVE", exact: true }).click();
+  const video = projector.getByLabel("Video LIVE", { exact: true });
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused))
+    .toBe(true);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
+  await expect(live.locator(".output-status")).toContainText(
+    "Suara menunggu satu klik di jendela proyektor",
+  );
+  await projector.getByTestId("slide-canvas").click();
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => v.muted))
+    .toBe(false);
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused))
+    .toBe(true);
+  await expect(live.locator(".output-status")).not.toContainText(
+    "menunggu satu klik",
+  );
+});

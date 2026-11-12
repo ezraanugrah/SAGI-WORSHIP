@@ -24,7 +24,7 @@ export const defaults: Preferences = {
   safeMargin: 8,
   loopPreview: false,
   loopLive: true,
-  muted: true,
+  muted: false,
   volume: 80,
   theme: "black",
 };

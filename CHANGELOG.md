@@ -198,6 +198,12 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - **Latar video tema berputar sendiri**, berulang dan **tanpa suara**, di panel Live Output (juga saat "Belum tayang") dan di proyektor; berhenti saat Black dan berputar lagi setelah Black dimatikan, juga setelah proyektor di-refresh atau presentasi dipulihkan. **Pause background LIVE** tetap bisa menghentikannya. Video dari tab **Media** tidak berubah: bersuara dan diputar dengan **Play LIVE**.
 - Tes: unit test bagian kosong (lagu valid, slide kosong polos/bertema) dan latar video otomatis/Black/jeda operator; E2E editor satu tombol dengan slide kosong, dan latar video yang berputar sendiri.
 
+### Video dari Media selalu bersuara
+
+- **Video dari tab Media mulai bersuara** di proyektor (centang **Mute LIVE** tidak lagi menyala sendiri). Opsi "Mulai video tanpa suara" di Pengaturan dihapus; Mute LIVE tetap bisa dipakai kapan saja. **Latar video tema tetap selalu tanpa suara.**
+- Bila Chrome menahan suara di jendela proyektor yang belum pernah diklik, video tetap diputar (sementara tanpa suara), status di bawah Live Output menampilkan "Suara menunggu satu klik di jendela proyektor (mis. tombol Fullscreen)", dan suara langsung menyala setelah satu klik di jendela proyektor.
+- Tes: E2E video Media bersuara dan simulasi suara yang ditahan browser lalu menyala setelah satu klik.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

@@ -44,6 +44,8 @@ export function MediaCanvas({
     render = useRef(onRendered),
     feedback = useRef(onFeedback),
     previewInitialized = useRef<HTMLVideoElement | null>(null),
+    soundWanted = useRef(false),
+    soundBlocked = useRef(false),
     positioned = useRef<{ element: HTMLVideoElement; frameId: string } | null>(
       null,
     ),
@@ -155,12 +157,19 @@ export function MediaCanvas({
     // Above 100% the projector needs one click before Chrome lets the
     // volume boost run; tell the operator in the LIVE playback status.
     const wantsBoost = role === "audience" && !silent && (p?.volume ?? 0) > 1;
+    // Sound is wanted on the projector unless muted (Media videos have sound;
+    // theme backgrounds are silent).
+    soundWanted.current =
+      role === "audience" && !silent && mode !== "black" && p?.muted === false;
     const report = (error?: string) => {
       if (!activeCommand) return;
-      const hint =
-        !error && wantsBoost && !v.muted && !boosted(v)
-          ? "Volume >100% menunggu satu klik di jendela proyektor"
-          : undefined;
+      const hint = error
+        ? undefined
+        : soundBlocked.current && soundWanted.current
+          ? "Suara menunggu satu klik di jendela proyektor (mis. tombol Fullscreen)"
+          : wantsBoost && !v.muted && !boosted(v)
+            ? "Volume >100% menunggu satu klik di jendela proyektor"
+            : undefined;
       feedback.current?.({
         frameId,
         revision: p?.revision ?? 0,
@@ -202,6 +211,36 @@ export function MediaCanvas({
         } else await v.play();
         if (activeCommand) render.current?.();
       } catch (e) {
+        // Chrome may refuse sound until the projector window got a click.
+        // Play silently now and turn the sound on at the first click there.
+        if (
+          (e as DOMException).name === "NotAllowedError" &&
+          soundWanted.current &&
+          !v.muted
+        ) {
+          v.muted = true;
+          soundBlocked.current = true;
+          const unmute = () => {
+            window.removeEventListener("pointerdown", unmute, true);
+            window.removeEventListener("keydown", unmute, true);
+            soundBlocked.current = false;
+            if (video.current === v && soundWanted.current) {
+              v.muted = false;
+              if (wantsBoost) setVolume(v, p?.volume ?? 1);
+              void v.play().catch(() => {});
+            }
+          };
+          window.addEventListener("pointerdown", unmute, true);
+          window.addEventListener("keydown", unmute, true);
+          try {
+            await v.play();
+            report();
+          } catch (again) {
+            report(`Playback diblokir/gagal: ${(again as Error).message}`);
+          }
+          render.current?.();
+          return;
+        }
         report(`Playback diblokir/gagal: ${(e as Error).message}`);
         render.current?.();
       }

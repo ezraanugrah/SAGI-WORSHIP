@@ -138,9 +138,11 @@ export function Phase2Dashboard({
     theme: p.theme as Style["theme"],
     lines: 6,
   });
+  // Videos from the Media tab always start with sound (Mute LIVE can still
+  // silence them); theme video backgrounds are always silent.
   const videoDefaults = (p: Preferences) => ({
     loop: p.loopLive,
-    muted: p.muted,
+    muted: false,
     volume: p.volume / 100,
   });
   /** Workspace and themes resolved for `selection` (null after an error). */

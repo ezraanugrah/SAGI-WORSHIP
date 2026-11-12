@@ -740,7 +740,7 @@ export class PresentationController {
         paused: true,
         position: 0,
         loop: live.deck.videoDefaults?.loop ?? false,
-        muted: live.deck.videoDefaults?.muted ?? true,
+        muted: live.deck.videoDefaults?.muted ?? false,
         volume: live.deck.videoDefaults?.volume ?? 0.8,
         target: this.windows.documentNonce() || undefined,
       },
