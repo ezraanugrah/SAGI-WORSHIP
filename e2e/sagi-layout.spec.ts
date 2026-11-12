@@ -100,7 +100,7 @@ test("SONGS tab lists playlists and folders, and switches the active Week", asyn
   await expect(folders).toContainText("Musik");
   await expect(folders.locator(".side-count")).toHaveText("1");
   const row = songRow(page, "Been So Good");
-  await expect(row).toContainText("Demo Penyembahan · 1 section");
+  await expect(row).toContainText("Demo Penyembahan · 1 bagian");
   await dragToWeek(row);
   await expect(week2.locator(".side-count")).toHaveText("1");
   await expect(
@@ -956,4 +956,58 @@ test("Media videos play with sound; if Chrome blocks sound, the projector plays 
   await expect(live.locator(".output-status")).not.toContainText(
     "menunggu satu klik",
   );
+});
+
+test("the language switch shows the operator screens in English or Indonesian, kept per laptop; lyrics stay as typed", async ({
+  page,
+}) => {
+  const toggle = page.getByTestId("language-toggle");
+  await expect(toggle).toHaveText("ID");
+  await expect(
+    page.getByRole("button", { name: "Tambah lagu", exact: true }),
+  ).toBeVisible();
+  await toggle.click();
+  await expect(toggle).toHaveText("EN");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(
+    page.getByRole("link", { name: "Settings", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Jadwal ibadah" }),
+  ).toContainText("Service Schedule");
+  // A song made in English: labels and messages in English, lyrics as typed.
+  await page.getByRole("button", { name: "Add song", exact: true }).click();
+  const editor = page.getByRole("region", { name: "Editor lagu" });
+  await editor.getByLabel("Song title", { exact: true }).fill("Kudus");
+  await expect(editor.getByRole("status")).toHaveText(
+    "Draft saved. Fill in lyrics in at least one part to save the song.",
+  );
+  await editor
+    .getByLabel("Lirik bagian 1", { exact: true })
+    .fill("Kudus kudus kudus");
+  await expect(editor.getByRole("status")).toHaveText("Saved locally");
+  await editor.getByRole("button", { name: "Save now", exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  await expect(page.locator(".songs-count")).toHaveText("1 song");
+  await page
+    .getByTestId("song-row")
+    .getByRole("button", { name: /^Kudus/ })
+    .click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  await expect(live.locator(".slide-lines")).toHaveText("Kudus kudus kudus");
+  await expect(live.getByTestId("staged-badge")).toHaveText(
+    "Not live yet · click Go Live",
+  );
+  // Kept on this laptop after a reload.
+  await page.reload();
+  await expect(toggle).toHaveText("EN");
+  await expect(
+    page.getByRole("button", { name: "Add song", exact: true }),
+  ).toBeVisible();
+  await toggle.click();
+  await expect(toggle).toHaveText("ID");
+  await expect(page.locator("html")).toHaveAttribute("lang", "id");
+  await expect(
+    page.getByRole("button", { name: "Tambah lagu", exact: true }),
+  ).toBeVisible();
 });

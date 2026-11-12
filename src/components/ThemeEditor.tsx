@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { TypographyEditor } from "./TypographyEditor";
@@ -207,8 +208,8 @@ export function ThemeEditor({
       if (!a) {
         setError(
           kind === "image"
-            ? "Belum ada gambar. Klik “Impor media” untuk memilih gambar."
-            : "Belum ada video. Klik “Impor media” untuk memilih video.",
+            ? t("Belum ada gambar. Klik “Impor media” untuk memilih gambar.")
+            : t("Belum ada video. Klik “Impor media” untuk memilih video."),
         );
         return;
       }
@@ -258,7 +259,7 @@ export function ThemeEditor({
         target &&
         (target.tagName === "A" ||
           target.getAttribute("aria-selected") !== "true") &&
-        !window.confirm("Buang perubahan tema yang belum disimpan?")
+        !window.confirm(t("Buang perubahan tema yang belum disimpan?"))
       ) {
         e.preventDefault();
         e.stopPropagation();
@@ -281,26 +282,26 @@ export function ThemeEditor({
       data-live-shortcuts="off"
     >
       <div className="section-heading">
-        <h3>{initial ? "Edit tema" : "Buat tema"}</h3>
+        <h3>{initial ? t("Edit tema") : t("Buat tema")}</h3>
         <button
           className="button secondary"
           onClick={() => {
             if (
               window.confirm(
-                "Tutup editor dan buang perubahan yang belum disimpan?",
+                t("Tutup editor dan buang perubahan yang belum disimpan?"),
               )
             )
               onCancel();
           }}
         >
-          Tutup editor tema
+          {t("Tutup editor tema")}
         </button>
       </div>
       <div className="theme-editor-grid">
         <div>
           <fieldset disabled={!editable || saving}>
             <label>
-              Nama tema
+              {t("Nama tema")}
               <input
                 aria-label="Nama tema"
                 maxLength={100}
@@ -317,7 +318,7 @@ export function ThemeEditor({
                   onClick={() => upload.current?.click()}
                 >
                   <ImagePlus size={14} />{" "}
-                  {uploading ? "Mengimpor…" : "Impor media"}
+                  {uploading ? t("Mengimpor…") : t("Impor media")}
                 </button>
                 <input
                   ref={upload}
@@ -339,13 +340,14 @@ export function ThemeEditor({
                   }}
                 />
                 <span className="field-help">
-                  Gambar/video (JPG · PNG · WebP · MP4 · WebM) jadi background
-                  tema · video selalu silent
+                  {t(
+                    "Gambar/video (JPG · PNG · WebP · MP4 · WebM) jadi background tema · video selalu silent",
+                  )}
                 </span>
               </div>
             )}
             <label>
-              Jenis background
+              {t("Jenis background")}
               <select
                 aria-label="Jenis background"
                 value={bg.kind}
@@ -355,13 +357,15 @@ export function ThemeEditor({
               >
                 <option value="solid">Solid</option>
                 <option value="gradient">Gradient</option>
-                <option value="image">Gambar lokal</option>
-                <option value="video">Video lokal · selalu silent</option>
+                <option value="image">{t("Gambar lokal")}</option>
+                <option value="video">
+                  {t("Video lokal · selalu silent")}
+                </option>
               </select>
             </label>
             {bg.kind === "solid" && (
               <label>
-                Warna background
+                {t("Warna background")}
                 <input
                   aria-label="Warna background"
                   type="color"
@@ -378,7 +382,7 @@ export function ThemeEditor({
             {bg.kind === "gradient" && (
               <>
                 <label>
-                  Sudut gradient
+                  {t("Sudut gradient")}
                   <input
                     aria-label="Sudut gradient"
                     type="number"
@@ -395,7 +399,7 @@ export function ThemeEditor({
                 </label>
                 {bg.stops.map((stop, i) => (
                   <label key={i}>
-                    Gradient stop {i + 1}
+                    {t("Gradient stop {n}", { n: i + 1 })}
                     <input
                       aria-label={`Gradient color ${i + 1}`}
                       type="color"
@@ -439,7 +443,7 @@ export function ThemeEditor({
             {(bg.kind === "image" || bg.kind === "video") && (
               <>
                 <label>
-                  Media background
+                  {t("Media background")}
                   <select
                     aria-label="Media background"
                     value={bg.libraryId}
@@ -459,7 +463,7 @@ export function ThemeEditor({
                   >
                     {!assets.some((a) => a.id === bg.libraryId) && (
                       <option value={bg.libraryId}>
-                        Media dipertahankan oleh tema
+                        {t("Media dipertahankan oleh tema")}
                       </option>
                     )}
                     {assets
@@ -472,7 +476,7 @@ export function ThemeEditor({
                   </select>
                 </label>
                 <label>
-                  Dim background
+                  {t("Dim background")}
                   <input
                     aria-label="Dim background"
                     type="range"
@@ -497,7 +501,7 @@ export function ThemeEditor({
           </fieldset>
         </div>
         <div className="theme-sample">
-          <h4>Preview editor · bukan LIVE</h4>
+          <h4>{t("Preview editor · bukan LIVE")}</h4>
           {sample && (
             <label>
               <input
@@ -506,7 +510,7 @@ export function ThemeEditor({
                 checked={useSource}
                 onChange={(e) => setUseSource(e.target.checked)}
               />{" "}
-              Gunakan teks Preview saat ini
+              {t("Gunakan teks Preview saat ini")}
             </label>
           )}
           <div className="presentation-canvas">
@@ -530,24 +534,27 @@ export function ThemeEditor({
           )}
           <p className="field-help">
             {reducedMotion
-              ? "Reduced motion: background dimulai paused."
-              : "Background tetap paused sampai Play eksplisit."}{" "}
-            Video selalu silent.
+              ? t("Reduced motion: background dimulai paused.")
+              : t("Background tetap paused sampai Play eksplisit.")}{" "}
+            {t("Video selalu silent.")}
           </p>
           <p className="field-help">
             {bg.kind === "solid"
-              ? `Kontras ${contrast(spec.type.color, bg.color).toFixed(2)}:1${contrastWarnings && contrast(spec.type.color, bg.color) < 4.5 ? " · Periksa keterbacaan" : ""}`
-              : "Kontras gradient/media bersifat advisory; periksa semua area dan frame."}
+              ? `${t("Kontras")} ${contrast(spec.type.color, bg.color).toFixed(2)}:1${contrastWarnings && contrast(spec.type.color, bg.color) < 4.5 ? ` · ${t("Periksa keterbacaan")}` : ""}`
+              : t(
+                  "Kontras gradient/media bersifat advisory; periksa semua area dan frame.",
+                )}
           </p>
           <p className="field-help">
-            Font sistem dapat berbeda. Teks, referensi dan atribusi tidak boleh
-            terpotong.
+            {t(
+              "Font sistem dapat berbeda. Teks, referensi dan atribusi tidak boleh terpotong.",
+            )}
           </p>
         </div>
       </div>
       {error && (
         <p role="alert" className="error-text">
-          {error}
+          {t(error)}
         </p>
       )}
       <div className="media-filters">
@@ -566,16 +573,16 @@ export function ThemeEditor({
             }
           }}
         >
-          Simpan tema
+          {t("Simpan tema")}
         </button>
         <button
           className="button secondary"
           onClick={() => {
-            if (window.confirm("Buang perubahan tema yang belum disimpan?"))
+            if (window.confirm(t("Buang perubahan tema yang belum disimpan?")))
               onCancel();
           }}
         >
-          Batalkan tema
+          {t("Batalkan tema")}
         </button>
       </div>
     </section>

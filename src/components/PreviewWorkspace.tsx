@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect } from "react";
 import type {
   PresentationController,
@@ -23,14 +24,14 @@ export function PreviewWorkspace({
   return (
     <section className="prepare-bar" aria-label="Preview workspace">
       <div className="prepare-line">
-        <span className="prepare-label">Siap tayang</span>
+        <span className="prepare-label">{t("Siap tayang")}</span>
         <span
           className="prepare-title"
           title={frame?.title || preview?.deck.label}
         >
           {preview
             ? frame?.title || preview.deck.label
-            : "Klik lagu atau item jadwal"}
+            : t("Klik lagu atau item jadwal")}
         </span>
         <span data-testid="preview-position" className="prepare-position">
           {preview
@@ -39,14 +40,15 @@ export function PreviewWorkspace({
         </span>
         {state.preparing && (
           <span className="prepare-status" role="status">
-            Menyiapkan slide…
+            {t("Menyiapkan slide…")}
           </span>
         )}
       </div>
       {state.sourceChanged && (
         <p className="save-message">
-          Sumber berubah/dihapus. Item siap tayang dan LIVE tidak diperbarui
-          otomatis. Pilih ulang materi untuk menyiapkan versi baru.
+          {t(
+            "Sumber berubah/dihapus. Item siap tayang dan LIVE tidak diperbarui otomatis. Pilih ulang materi untuk menyiapkan versi baru.",
+          )}
         </p>
       )}
     </section>
@@ -59,6 +61,6 @@ export function slideSummary(deck: Deck, index: number) {
   if (frame.kind === "media")
     return frame.media.kind === "video"
       ? "Video"
-      : `Halaman ${frame.pageNumber}`;
-  return frameText(deck, index) || "(slide kosong)";
+      : t("Halaman {n}", { n: frame.pageNumber });
+  return frameText(deck, index) || t("(slide kosong)");
 }

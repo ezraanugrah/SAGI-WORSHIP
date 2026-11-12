@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Typography } from "../themes/models";
 export function TypographyEditor({
   value,
@@ -30,9 +31,9 @@ export function TypographyEditor({
   return (
     <div className="typography-editor">
       <p className="field-help typography-note">
-        Lirik selalu Extra Bold, putih, dengan outline hitam. Font, ukuran, dan
-        tebal outline diatur di Pengaturan › Tipografi lirik atau di bawah Live
-        Output, untuk semua tema. Di sini hanya posisi dan bayangan teks.
+        {t(
+          "Lirik selalu Extra Bold, putih, dengan outline hitam. Font, ukuran, dan tebal outline diatur di Pengaturan › Tipografi lirik atau di bawah Live Output, untuk semua tema. Di sini hanya posisi dan bayangan teks.",
+        )}
       </p>
       <label>
         <input
@@ -53,7 +54,7 @@ export function TypographyEditor({
         Underline
       </label>
       <label>
-        Rata horizontal
+        {t("Rata horizontal")}
         <select
           aria-label="Rata horizontal"
           value={value.align}
@@ -61,13 +62,13 @@ export function TypographyEditor({
             set({ align: e.target.value as Typography["align"] })
           }
         >
-          <option value="left">Kiri</option>
-          <option value="center">Tengah</option>
-          <option value="right">Kanan</option>
+          <option value="left">{t("Kiri")}</option>
+          <option value="center">{t("Tengah")}</option>
+          <option value="right">{t("Kanan")}</option>
         </select>
       </label>
       <label>
-        Rata vertikal
+        {t("Rata vertikal")}
         <select
           aria-label="Rata vertikal"
           value={value.vertical}
@@ -75,12 +76,12 @@ export function TypographyEditor({
             set({ vertical: e.target.value as Typography["vertical"] })
           }
         >
-          <option value="top">Atas</option>
-          <option value="middle">Tengah</option>
-          <option value="bottom">Bawah</option>
+          <option value="top">{t("Atas")}</option>
+          <option value="middle">{t("Tengah")}</option>
+          <option value="bottom">{t("Bawah")}</option>
         </select>
       </label>
-      {numeric("Jarak baris", "lineHeight", 1, 2, 0.05)}
+      {numeric(t("Jarak baris"), "lineHeight", 1, 2, 0.05)}
       {(["x", "y", "blur"] as const).map((key) => (
         <label key={key}>
           Shadow {key}

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen } from "lucide-react";
 import type { ScriptureRepository } from "../data/scriptureRepository";
@@ -94,8 +95,9 @@ export function BibleLibrary({
           <div>
             <h3>Alkitab / Bible</h3>
             <p>
-              Indonesia (AYT) di kiri · English (KJV) di kanan · tersimpan
-              offline
+              {t(
+                "Indonesia (AYT) di kiri · English (KJV) di kanan · tersimpan offline",
+              )}
             </p>
           </div>
         </div>
@@ -142,14 +144,14 @@ function Install({
     try {
       for (const bible of BUNDLED_BIBLES) {
         if (findBible(bible, translations)) continue;
-        setWorking(`Mengunduh ${bible.label}…`);
+        setWorking(t("Mengunduh {name}…", { name: bible.label }));
         const file = await downloadBible(bible);
-        setWorking(`Memeriksa ${bible.label}…`);
+        setWorking(t("Memeriksa {name}…", { name: bible.label }));
         void importer.choose(file);
         const checked = await settle(importer, ["review", "error", "idle"]);
         if (checked.phase !== "review")
           throw new Error(checked.message || "Validasi gagal.");
-        setWorking(`Menyimpan ${bible.label}…`);
+        setWorking(t("Menyimpan {name}…", { name: bible.label }));
         await importer.confirm(true);
         const saved = importer.snapshot();
         if (saved.phase !== "done")
@@ -169,8 +171,9 @@ function Install({
         <li>
           <strong>Indonesia · Alkitab Yang Terbuka (AYT)</strong>
           <span>
-            © 2011–2024 YLSA · Creative Commons BY-NC-SA (non-komersial,
-            sebutkan sumber)
+            {t(
+              "© 2011–2024 YLSA · Creative Commons BY-NC-SA (non-komersial, sebutkan sumber)",
+            )}
           </span>
         </li>
         <li>
@@ -179,8 +182,9 @@ function Install({
         </li>
       </ul>
       <p className="field-help">
-        Kejadian sampai Wahyu, 66 kitab, 31.102 ayat per bahasa. Diunduh sekali
-        (sekitar 3 MB), lalu tersimpan offline di perangkat ini.
+        {t(
+          "Kejadian sampai Wahyu, 66 kitab, 31.102 ayat per bahasa. Diunduh sekali (sekitar 3 MB), lalu tersimpan offline di perangkat ini.",
+        )}
       </p>
       <label className="attestation">
         <input
@@ -189,22 +193,25 @@ function Install({
           disabled={!editable || !!working}
           onChange={(e) => setAgreed(e.target.checked)}
         />
-        Alkitab ini dipakai untuk ibadah non-komersial, dengan atribusi di
-        setiap slide, sesuai lisensi AYT dan KJV.
+        {t(
+          "Alkitab ini dipakai untuk ibadah non-komersial, dengan atribusi di setiap slide, sesuai lisensi AYT dan KJV.",
+        )}
       </label>
       <button
         className="button primary"
         disabled={!editable || !agreed || !!working}
         onClick={() => void install()}
       >
-        {working ? `${working}${progress}` : "Pasang Alkitab"}
+        {working ? `${working}${progress}` : t("Pasang Alkitab")}
       </button>
       {!editable && (
-        <p className="field-help">Tab ini hanya baca; pasang dari tab edit.</p>
+        <p className="field-help">
+          {t("Tab ini hanya baca; pasang dari tab edit.")}
+        </p>
       )}
       {error && (
         <p className="error-text" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>
@@ -367,7 +374,9 @@ function Picker({
       await repo.addToSchedule(schedule.id, selection(), schedule.revision);
       onChanged();
       setError("");
-      setMessage(`${label} ditambahkan ke ${schedule.name}.`);
+      setMessage(
+        t("{label} ditambahkan ke {name}.", { label, name: schedule.name }),
+      );
     } catch (e) {
       setError((e as Error).message);
     }
@@ -382,22 +391,22 @@ function Picker({
         }}
       >
         <label>
-          Cari cepat
+          {t("Cari cepat")}
           <input
             aria-label="Cari ayat"
-            placeholder="Kej 1:3-10 atau John 3:16"
+            placeholder={t("Kej 1:3-10 atau John 3:16")}
             maxLength={60}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
         <button className="button secondary" disabled={!query.trim()}>
-          Pilih
+          {t("Pilih")}
         </button>
       </form>
       <div className="bible-selectors">
         <label>
-          Kitab
+          {t("Kitab")}
           <select
             aria-label="Kitab"
             value={book.id}
@@ -411,7 +420,7 @@ function Picker({
           </select>
         </label>
         <label>
-          Pasal
+          {t("Pasal")}
           <select
             aria-label="Pasal"
             value={chapter}
@@ -425,7 +434,7 @@ function Picker({
           </select>
         </label>
         <label>
-          Ayat
+          {t("Ayat")}
           <select
             aria-label="Ayat dari"
             value={from}
@@ -443,7 +452,7 @@ function Picker({
           </select>
         </label>
         <label>
-          sampai
+          {t("sampai")}
           <select
             aria-label="Ayat sampai"
             value={to}
@@ -471,7 +480,7 @@ function Picker({
           href={sabdaChapterUrl(book.order, chapter)}
           target="_blank"
           rel="noreferrer"
-          title="Buka pasal ini (TB) di sabda.org"
+          title={t("Buka pasal ini (TB) di sabda.org")}
         >
           sabda.org ↗
         </a>
@@ -481,7 +490,7 @@ function Picker({
             href={esvPassageUrl(english.name, chapter, from, to)}
             target="_blank"
             rel="noreferrer"
-            title="Buka perikop ini di www.esv.org"
+            title={t("Buka perikop ini di www.esv.org")}
           >
             esv.org ↗
           </a>
@@ -498,36 +507,36 @@ function Picker({
           disabled={!editable || busy}
           onClick={() => void add()}
         >
-          Tambahkan ke jadwal
+          {t("Tambahkan ke jadwal")}
         </button>
       </div>
       {message && (
         <p className="field-help" role="status">
-          {message}
+          {t(message)}
         </p>
       )}
       {fetching && (
         <p className="field-help" role="status">
-          Mengambil{" "}
-          {[
-            settings.left === "tb" && "TB dari Alkitab SABDA",
-            settings.left === "tb2" && "TB2",
-            settings.right === "esv" && "ESV",
-          ]
-            .filter(Boolean)
-            .join(" dan ")}{" "}
-          dari API resmi…
+          {t("Mengambil {what} dari API resmi…", {
+            what: [
+              settings.left === "tb" && t("TB dari Alkitab SABDA"),
+              settings.left === "tb2" && "TB2",
+              settings.right === "esv" && "ESV",
+            ]
+              .filter(Boolean)
+              .join(` ${t("dan")} `),
+          })}
         </p>
       )}
       {error && (
         <div className="alert" role="alert">
-          {error}
-          <button onClick={() => setError("")}>Tutup</button>
+          {t(error)}
+          <button onClick={() => setError("")}>{t("Tutup")}</button>
         </div>
       )}
       <div className="bible-columns" role="table" aria-label="Ayat dua bahasa">
         <div className="bible-row bible-head" role="row">
-          <span role="columnheader">Ayat</span>
+          <span role="columnheader">{t("Ayat")}</span>
           <span role="columnheader">Indonesia · {leftName}</span>
           <span role="columnheader">English · {rightName}</span>
         </div>
@@ -562,7 +571,7 @@ function Picker({
         ) : (
           "KJV Public Domain"
         )}
-        . Atribusi ikut tampil di setiap slide.
+        . {t("Atribusi ikut tampil di setiap slide.")}
       </p>
       <OnlineSources
         settings={settings}
@@ -653,17 +662,18 @@ function OnlineSources({
   }
   return (
     <details className="bible-online">
-      <summary>Sumber online: TB (SABDA), ESV (esv.org), TB2 (LAI)</summary>
+      <summary>
+        {t("Sumber online: TB (SABDA), ESV (esv.org), TB2 (LAI)")}
+      </summary>
       <p className="field-help">
-        Teks diambil per perikop dari sumber resmi. Pengaturan dan API key hanya
-        disimpan di browser ini (tidak ikut backup). Hanya ayat yang dipilih
-        yang diambil, maks. {ONLINE_LIMIT} ayat per versi, terhapus otomatis
-        setelah 30 hari. Tanpa internet, ayat yang belum tersimpan memakai
-        AYT/KJV.
+        {t(
+          "Teks diambil per perikop dari sumber resmi. Pengaturan dan API key hanya disimpan di browser ini (tidak ikut backup). Hanya ayat yang dipilih yang diambil, maks. {n} ayat per versi, terhapus otomatis setelah 30 hari. Tanpa internet, ayat yang belum tersimpan memakai AYT/KJV.",
+          { n: ONLINE_LIMIT },
+        )}
       </p>
       <div className="bible-columns-choice">
         <label>
-          Kolom kiri (Indonesia)
+          {t("Kolom kiri (Indonesia)")}
           <select
             aria-label="Kolom kiri"
             value={settings.left}
@@ -685,7 +695,7 @@ function OnlineSources({
           </select>
         </label>
         <label>
-          Kolom kanan (English)
+          {t("Kolom kanan (English)")}
           <select
             aria-label="Kolom kanan"
             value={settings.right}
@@ -710,7 +720,7 @@ function OnlineSources({
       <fieldset className="bible-api">
         <legend>TB · Alkitab SABDA (sabda.org)</legend>
         <p className="field-help">
-          Alkitab Terjemahan Baru 1974 © LAI, diambil per perikop dari{" "}
+          {t("Alkitab Terjemahan Baru 1974 © LAI, diambil per perikop dari")}{" "}
           <a
             href="https://sabda.org/alkitab/tb/"
             target="_blank"
@@ -718,16 +728,18 @@ function OnlineSources({
           >
             Alkitab SABDA
           </a>
-          . Tanpa API key. Sesuai{" "}
+          . {t("Tanpa API key. Sesuai")}{" "}
           <a
             href="https://www.alkitab.or.id/tentang-kami/penggunaan-teks"
             target="_blank"
             rel="noreferrer"
           >
-            kebijakan teks LAI
+            {t("kebijakan teks LAI")}
           </a>
-          , kutipan untuk ibadah non-komersial (bukan satu kitab utuh) boleh
-          tanpa izin tertulis.
+          ,{" "}
+          {t(
+            "kutipan untuk ibadah non-komersial (bukan satu kitab utuh) boleh tanpa izin tertulis.",
+          )}
         </p>
         <label className="attestation">
           <input
@@ -735,8 +747,9 @@ function OnlineSources({
             checked={tbAgreed}
             onChange={(e) => setTbAgreed(e.target.checked)}
           />
-          TB dipakai untuk ibadah non-komersial, per perikop, dengan atribusi
-          "TB © LAI 1974" di setiap slide.
+          {t(
+            'TB dipakai untuk ibadah non-komersial, per perikop, dengan atribusi "TB © LAI 1974" di setiap slide.',
+          )}
         </label>
         <div className="bible-api-actions">
           <button
@@ -746,14 +759,14 @@ function OnlineSources({
               save(
                 { ...settings, tb: { agreed: true }, left: "tb" },
                 "tb",
-                "TB aktif di Kolom kiri.",
+                t("TB aktif di Kolom kiri."),
               )
             }
           >
-            Pakai TB
+            {t("Pakai TB")}
           </button>
           <button className="button secondary" onClick={() => void test("tb")}>
-            Tes TB
+            {t("Tes TB")}
           </button>
           <button
             className="text-button"
@@ -769,16 +782,16 @@ function OnlineSources({
                   left: settings.left === "tb" ? "ayt" : settings.left,
                 },
                 "tb",
-                "TB dimatikan dan cache-nya dihapus.",
+                t("TB dimatikan dan cache-nya dihapus."),
               );
             }}
           >
-            Matikan TB
+            {t("Matikan TB")}
           </button>
         </div>
         {status.tb && (
           <p className="field-help" role="status">
-            {status.tb}
+            {t(status.tb)}
           </p>
         )}
       </fieldset>
@@ -787,29 +800,31 @@ function OnlineSources({
         <ol className="bible-steps">
           <li>
             <a href={ESV_LINKS.register} target="_blank" rel="noreferrer">
-              Buat akun gratis di esv.org
+              {t("Buat akun gratis di esv.org")}
             </a>{" "}
-            atas nama gereja, atau{" "}
+            {t("atas nama gereja, atau")}{" "}
             <a href={ESV_LINKS.signIn} target="_blank" rel="noreferrer">
-              masuk
+              {t("masuk")}
             </a>
             .
           </li>
           <li>
             <a href={ESV_LINKS.createKey} target="_blank" rel="noreferrer">
-              Buat aplikasi di api.esv.org
+              {t("Buat aplikasi di api.esv.org")}
             </a>
-            : beri nama (mis. SagiWorship) dan keterangan "proyeksi ayat untuk
-            ibadah gereja, non-komersial".
+            :{" "}
+            {t(
+              'beri nama (mis. SagiWorship) dan keterangan "proyeksi ayat untuk ibadah gereja, non-komersial".',
+            )}
           </li>
           <li>
-            Salin <strong>API key</strong> aplikasi itu ke kolom di bawah,
-            centang ketentuan, klik <strong>Simpan ESV</strong> lalu{" "}
-            <strong>Tes ESV</strong>.
+            {t(
+              "Salin API key aplikasi itu ke kolom di bawah, centang ketentuan, klik Simpan ESV lalu Tes ESV.",
+            )}
           </li>
         </ol>
         <label>
-          API key ESV
+          {t("API key ESV")}
           <input
             aria-label="API key ESV"
             type="password"
@@ -825,12 +840,14 @@ function OnlineSources({
             checked={esvAgreed}
             onChange={(e) => setEsvAgreed(e.target.checked)}
           />
-          Dipakai untuk ibadah non-komersial sesuai{" "}
+          {t("Dipakai untuk ibadah non-komersial sesuai")}{" "}
           <a href={ESV_LINKS.terms} target="_blank" rel="noreferrer">
-            ketentuan ESV API
+            {t("ketentuan ESV API")}
           </a>
-          : paling banyak 500 ayat tersimpan, teks tidak diubah, atribusi ESV
-          dan www.esv.org.
+          :{" "}
+          {t(
+            "paling banyak 500 ayat tersimpan, teks tidak diubah, atribusi ESV dan www.esv.org.",
+          )}
         </label>
         <div className="bible-api-actions">
           <button
@@ -840,18 +857,18 @@ function OnlineSources({
               save(
                 { ...settings, esv },
                 "esv",
-                "Tersimpan di perangkat ini. Pilih ESV di Kolom kanan.",
+                t("Tersimpan di perangkat ini. Pilih ESV di Kolom kanan."),
               )
             }
           >
-            Simpan ESV
+            {t("Simpan ESV")}
           </button>
           <button
             className="button secondary"
             disabled={!esv.key}
             onClick={() => void test("esv")}
           >
-            Tes ESV
+            {t("Tes ESV")}
           </button>
           <button
             className="text-button"
@@ -864,16 +881,16 @@ function OnlineSources({
               save(
                 { ...settings, esv: null, right: "kjv" },
                 "esv",
-                "Key ESV dan cache dihapus.",
+                t("Key ESV dan cache dihapus."),
               );
             }}
           >
-            Hapus key
+            {t("Hapus key")}
           </button>
         </div>
         {status.esv && (
           <p className="field-help" role="status">
-            {status.esv}
+            {t(status.esv)}
           </p>
         )}
         <p className="field-help">
@@ -886,11 +903,12 @@ function OnlineSources({
       <fieldset className="bible-api">
         <legend>TB2 · Bible API Lembaga Alkitab Indonesia</legend>
         <p className="field-help">
-          Minta akses ke LAI (info@alkitab.or.id, bible-api.alkitab.or.id). Isi
-          alamat dan kode versi sesuai dokumentasi yang diberikan LAI.
+          {t(
+            "Minta akses ke LAI (info@alkitab.or.id, bible-api.alkitab.or.id). Isi alamat dan kode versi sesuai dokumentasi yang diberikan LAI.",
+          )}
         </p>
         <label>
-          API key / token LAI
+          {t("API key / token LAI")}
           <input
             aria-label="API key LAI"
             type="password"
@@ -901,7 +919,7 @@ function OnlineSources({
           />
         </label>
         <label>
-          Alamat API
+          {t("Alamat API")}
           <input
             aria-label="Alamat API LAI"
             spellCheck={false}
@@ -910,7 +928,7 @@ function OnlineSources({
           />
         </label>
         <label>
-          Kode versi
+          {t("Kode versi")}
           <input
             aria-label="Kode versi LAI"
             spellCheck={false}
@@ -924,8 +942,9 @@ function OnlineSources({
             checked={tb2Agreed}
             onChange={(e) => setTb2Agreed(e.target.checked)}
           />
-          Gereja kami punya akses resmi Bible API LAI dan mengikuti perjanjian
-          lisensinya untuk TB2.
+          {t(
+            "Gereja kami punya akses resmi Bible API LAI dan mengikuti perjanjian lisensinya untuk TB2.",
+          )}
         </label>
         <div className="bible-api-actions">
           <button
@@ -935,18 +954,18 @@ function OnlineSources({
               save(
                 { ...settings, tb2 },
                 "tb2",
-                "Tersimpan di perangkat ini. Pilih TB2 di Kolom kiri.",
+                t("Tersimpan di perangkat ini. Pilih TB2 di Kolom kiri."),
               )
             }
           >
-            Simpan TB2
+            {t("Simpan TB2")}
           </button>
           <button
             className="button secondary"
             disabled={!tb2.key}
             onClick={() => void test("tb2")}
           >
-            Tes TB2
+            {t("Tes TB2")}
           </button>
           <button
             className="text-button"
@@ -959,23 +978,27 @@ function OnlineSources({
               save(
                 { ...settings, tb2: null, left: "ayt" },
                 "tb2",
-                "Key TB2 dan cache dihapus.",
+                t("Key TB2 dan cache dihapus."),
               );
             }}
           >
-            Hapus key
+            {t("Hapus key")}
           </button>
         </div>
         {status.tb2 && (
           <p className="field-help" role="status">
-            {status.tb2}
+            {t(status.tb2)}
           </p>
         )}
       </fieldset>
       <div className="bible-api-actions">
         <span className="field-help">
-          Tersimpan: TB {counts.tb}/{ONLINE_LIMIT} · TB2 {counts.tb2}/
-          {ONLINE_LIMIT} · ESV {counts.esv}/{ONLINE_LIMIT} ayat
+          {t("Tersimpan: TB {tb}/{n} · TB2 {tb2}/{n} · ESV {esv}/{n} ayat", {
+            tb: counts.tb,
+            tb2: counts.tb2,
+            esv: counts.esv,
+            n: ONLINE_LIMIT,
+          })}
         </span>
         <button
           className="text-button"
@@ -986,7 +1009,7 @@ function OnlineSources({
             refresh();
           }}
         >
-          Hapus cache online
+          {t("Hapus cache online")}
         </button>
       </div>
     </details>

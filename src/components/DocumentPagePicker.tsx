@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useState } from "react";
 import type { MediaAsset } from "../media/models";
 import { readAsset } from "../media/assetReader";
@@ -66,11 +67,11 @@ export function DocumentPagePicker({
             {thumbs[n] ? (
               <img className="media-thumbnail" src={thumbs[n]} alt="" />
             ) : (
-              <span className="media-thumbnail">Memuat halaman…</span>
+              <span className="media-thumbnail">{t("Memuat halaman…")}</span>
             )}
             <span>
               Halaman {n}
-              {selected.includes(n) ? " · dipilih" : ""}
+              {selected.includes(n) ? ` · ${t("dipilih")}` : ""}
             </span>
           </button>
         ))}
@@ -82,14 +83,14 @@ export function DocumentPagePicker({
           disabled={offset === 0}
           onClick={() => setOffset(Math.max(0, offset - 6))}
         >
-          Halaman sebelumnya
+          {t("Halaman sebelumnya")}
         </button>
         <button
           type="button"
           disabled={offset + 6 >= asset.pages}
           onClick={() => setOffset(offset + 6)}
         >
-          Halaman berikutnya
+          {t("Halaman berikutnya")}
         </button>
       </div>
     </div>

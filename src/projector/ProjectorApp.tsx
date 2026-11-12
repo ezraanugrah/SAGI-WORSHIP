@@ -1,3 +1,4 @@
+import { t, useLang } from "../i18n";
 import { preflight } from "./preflight";
 import { loadLyricFonts } from "../presentation/fonts";
 import { fitsFrame } from "../presentation/scriptureAdapter";
@@ -10,6 +11,8 @@ import { browserMeasure } from "../presentation/layout";
 import { useScreenWakeLock } from "../hooks/useScreenWakeLock";
 import { commandForKey, presentationKey } from "../presentation/shortcuts";
 export default function ProjectorApp() {
+  // Follows the operator's language choice (shared per laptop).
+  useLang();
   const [pairing] = useState<Pairing>(() => {
     const query = new URLSearchParams(location.hash.split("?")[1]);
     return {
@@ -239,7 +242,7 @@ export default function ProjectorApp() {
         >
           Fullscreen
         </button>
-        {hint && <span role="status">{hint}</span>}
+        {hint && <span role="status">{t(hint)}</span>}
       </div>
     </main>
   );

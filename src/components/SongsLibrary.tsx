@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { SyncPanel } from "./SyncPanel";
 import type { useSongSync } from "../hooks/useSongSync";
 import { useEffect, useLayoutEffect, useRef } from "react";
@@ -83,7 +84,7 @@ export function SongsLibrary({
       <aside className="songs-side">
         <section aria-labelledby="playlists-title">
           <h3 id="playlists-title" className="side-title">
-            <FolderOpen size={13} aria-hidden="true" /> Playlist Jadwal
+            <FolderOpen size={13} aria-hidden="true" /> {t("Playlist Jadwal")}
           </h3>
           <ul className="side-list" aria-labelledby="playlists-title">
             {WEEKS.map((n, i) => {
@@ -119,7 +120,7 @@ export function SongsLibrary({
             <li>
               <span className="folder active">
                 <Music size={13} aria-hidden="true" />
-                <span className="side-name">Musik</span>
+                <span className="side-name">{t("Musik")}</span>
                 <span className="side-count">{data.songs.length}</span>
               </span>
             </li>
@@ -130,12 +131,14 @@ export function SongsLibrary({
       <div className="songs-main">
         <div className="songs-toolbar">
           <div>
-            <h3>Musik</h3>
-            <p>Klik judul = Preview · Tarik lagu ke Jadwal Ibadah</p>
+            <h3>{t("Musik")}</h3>
+            <p>{t("Klik judul = Preview · Tarik lagu ke Jadwal Ibadah")}</p>
           </div>
           <div className="songs-toolbar-actions">
             <span className="songs-count">
-              {songs.length} lagu{query ? " ditemukan" : ""}
+              {query
+                ? t("{n} lagu ditemukan", { n: songs.length })
+                : t("{n} lagu", { n: songs.length })}
             </span>
             <button
               className="button primary"
@@ -143,7 +146,7 @@ export function SongsLibrary({
               onClick={onNew}
             >
               <Plus size={15} />
-              Tambah lagu
+              {t("Tambah lagu")}
             </button>
           </div>
         </div>
@@ -152,7 +155,7 @@ export function SongsLibrary({
             aria-label="Cari musik"
             value={query}
             onChange={(e) => onQuery(e.target.value)}
-            placeholder="Cari musik…"
+            placeholder={t("Cari musik…")}
           />
           <button
             className="icon-button"
@@ -165,19 +168,19 @@ export function SongsLibrary({
         </div>
         {data.drafts.length > 0 && (
           <div className="draft-list">
-            <h3>Draft yang dapat dipulihkan</h3>
+            <h3>{t("Draft yang dapat dipulihkan")}</h3>
             {data.drafts.map((d) => (
               <div className="draft-row" key={d.id}>
                 <span>
-                  {d.value.title || "Lagu tanpa judul"}{" "}
-                  <small>· belum diterapkan</small>
+                  {d.value.title || t("Lagu tanpa judul")}{" "}
+                  <small>· {t("belum diterapkan")}</small>
                 </span>
                 <button
                   className="button secondary"
                   disabled={busy}
                   onClick={() => onRecover(d.songId)}
                 >
-                  Buka draft
+                  {t("Buka draft")}
                 </button>
                 <button
                   className="icon-button danger"
@@ -195,11 +198,13 @@ export function SongsLibrary({
           <div className="songs-empty">
             <strong>
               {query
-                ? `Tidak ada hasil untuk “${query}”`
-                : "Belum ada lagu di Musik"}
+                ? t("Tidak ada hasil untuk “{q}”", { q: query })
+                : t("Belum ada lagu di Musik")}
             </strong>
             <p>
-              Tambahkan lirik milik Anda atau materi yang Anda berhak gunakan.
+              {t(
+                "Tambahkan lirik milik Anda atau materi yang Anda berhak gunakan.",
+              )}
             </p>
           </div>
         ) : (
@@ -211,7 +216,7 @@ export function SongsLibrary({
                 className={song.id === freshId ? "fresh" : undefined}
                 data-testid="song-row"
                 draggable={editable && !busy}
-                title="Tarik ke Jadwal Ibadah"
+                title={t("Tarik ke Jadwal Ibadah")}
                 onDragStart={(e) => {
                   e.dataTransfer.setData(SONG_DRAG_TYPE, song.id);
                   e.dataTransfer.setData("text/plain", song.title);
@@ -229,12 +234,14 @@ export function SongsLibrary({
                 >
                   <strong>{song.title}</strong>
                   {song.id === freshId && (
-                    <span className="fresh-badge">Baru · tarik ke jadwal</span>
+                    <span className="fresh-badge">
+                      {t("Baru · tarik ke jadwal")}
+                    </span>
                   )}
                   <small>
                     {[
                       song.author || song.category,
-                      `${song.sections.length} section`,
+                      t("{n} bagian", { n: song.sections.length }),
                     ]
                       .filter(Boolean)
                       .join(" · ")}
@@ -255,7 +262,7 @@ export function SongsLibrary({
                     disabled={!editable || busy}
                     onClick={() => onDelete(song)}
                   >
-                    Hapus
+                    {t("Hapus")}
                   </button>
                   <button
                     className="icon-button"

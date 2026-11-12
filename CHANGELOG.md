@@ -204,6 +204,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Bila Chrome menahan suara di jendela proyektor yang belum pernah diklik, video tetap diputar (sementara tanpa suara), status di bawah Live Output menampilkan "Suara menunggu satu klik di jendela proyektor (mis. tombol Fullscreen)", dan suara langsung menyala setelah satu klik di jendela proyektor.
 - Tes: E2E video Media bersuara dan simulasi suara yang ditahan browser lalu menyala setelah satu klik.
 
+### Dua bahasa: Indonesia / English
+
+- Tombol bahasa (ikon terjemah + **ID**/**EN**) di kanan atas mengganti semua layar operator ke **English** atau kembali ke **Indonesia**: bar atas, Jadwal Ibadah, Live Output, tab Songs/Scriptures/Media/Presentations/Themes, editor lagu dan tema, sinkron antar laptop, Pengaturan (termasuk Backup & Recovery), dialog konfirmasi, serta pesan status dan error yang sering muncul. Pilihan disimpan per laptop dan diikuti jendela proyektor. Bahasa Indonesia tetap bawaan.
+- Isi slide (lirik, ayat, judul lagu) tidak pernah diterjemahkan. Label teknis (aria) tetap bahasa Indonesia.
+- Teks Indonesia dipakai sebagai kunci kamus (`src/i18n/en.ts`); pesan yang dibuat saat berjalan (mis. "Tersinkron 11.13 · 25 lagu", "Checkpoint tersimpan · LIVE 4") diterjemahkan dengan pola, termasuk bentuk tunggal/jamak bahasa Inggris.
+- Tes: unit test memastikan setiap teks `t("…")` punya terjemahan Inggris dengan placeholder yang sama; E2E tombol bahasa (lagu dibuat dalam English, lirik tetap, pilihan bertahan setelah muat ulang).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

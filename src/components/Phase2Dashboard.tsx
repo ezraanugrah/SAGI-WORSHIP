@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { ThemesLibrary } from "./ThemesLibrary";
 import {
   DEFAULT_OUTLINE_PX,
@@ -195,7 +196,7 @@ export function Phase2Dashboard({
     if (
       (previewDirty ||
         (override && presentationState.preview?.deck.overrides.length)) &&
-      !window.confirm("Buang perubahan Preview yang belum diterapkan?")
+      !window.confirm(t("Buang perubahan Preview yang belum diterapkan?"))
     )
       return;
     const input = await inputs(selection, override, abort.signal);
@@ -330,7 +331,10 @@ export function Phase2Dashboard({
     ).length;
     if (
       window.confirm(
-        `Hapus lagu “${song.title}” secara permanen? ${count} item yang memakai lagu ini juga akan dihapus dari jadwal. Tindakan ini tidak dapat dibatalkan.`,
+        t(
+          "Hapus lagu “{title}” secara permanen? {count} item yang memakai lagu ini juga akan dihapus dari jadwal. Tindakan ini tidak dapat dibatalkan.",
+          { title: song.title, count },
+        ),
       )
     )
       act(
@@ -382,21 +386,23 @@ export function Phase2Dashboard({
     <>
       {(error || mutationError) && (
         <div className="alert" role="alert">
-          {error || mutationError}
+          {t(error || mutationError)}
           <button
             onClick={() => {
               setMutationError("");
               void reload();
             }}
           >
-            Muat ulang data
+            {t("Muat ulang data")}
           </button>
         </div>
       )}
       {data.issues.length > 0 && (
         <div className="data-issues" role="alert">
           <strong>
-            Beberapa data memerlukan pemeriksaan. Data asli tidak dihapus.
+            {t(
+              "Beberapa data memerlukan pemeriksaan. Data asli tidak dihapus.",
+            )}
           </strong>
           <ul>
             {data.issues.map((issue, i) => (
@@ -407,7 +413,7 @@ export function Phase2Dashboard({
       )}
       {message && (
         <div className="operation-status" role="status" key={message}>
-          {message}
+          {t(message)}
         </div>
       )}
       <div className="workspace">
@@ -432,7 +438,10 @@ export function Phase2Dashboard({
             onClear={(s) => {
               if (
                 window.confirm(
-                  `Kosongkan “${s.name}”? Semua item dilepas dari jadwal ini; lagu di Musik dan media tidak dihapus.`,
+                  t(
+                    "Kosongkan “{name}”? Semua item dilepas dari jadwal ini; lagu di Musik dan media tidak dihapus.",
+                    { name: s.name },
+                  ),
                 )
               )
                 act(
@@ -468,7 +477,7 @@ export function Phase2Dashboard({
               if (
                 previewDirty &&
                 !window.confirm(
-                  "Buang perubahan Preview yang belum diterapkan?",
+                  t("Buang perubahan Preview yang belum diterapkan?"),
                 )
               )
                 return;
@@ -541,7 +550,9 @@ export function Phase2Dashboard({
               >
                 {name}
                 {name === "Media" && newMedia > 0 && (
-                  <span className="tab-badge">{newMedia} baru</span>
+                  <span className="tab-badge">
+                    {t("{n} baru", { n: newMedia })}
+                  </span>
                 )}
               </button>
             ))}
@@ -580,7 +591,7 @@ export function Phase2Dashboard({
                 onDiscard={(songId, sequence) => {
                   if (
                     window.confirm(
-                      "Buang draft ini? Lagu tersimpan tidak diubah.",
+                      t("Buang draft ini? Lagu tersimpan tidak diubah."),
                     )
                   )
                     act(

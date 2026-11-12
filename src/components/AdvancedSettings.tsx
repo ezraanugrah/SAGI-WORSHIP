@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { PresentationController } from "../presentation/controller";
 import { useEffect, useState } from "react";
 import type { useThemes } from "../hooks/useThemes";
@@ -33,7 +34,7 @@ export function AdvancedSettings({
               setDraft({ ...draft, defaultThemeId: e.target.value || null })
             }
           >
-            <option value="">Gunakan preferensi dasar legacy</option>
+            <option value="">{t("Tanpa tema (latar hitam)")}</option>
             {services.themes.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -69,8 +70,8 @@ export function AdvancedSettings({
               })
             }
           >
-            <option value="fit">Fit · aspect ratio tetap</option>
-            <option value="no-upscale">Fit tanpa pembesaran</option>
+            <option value="fit">{t("Fit · aspect ratio tetap")}</option>
+            <option value="no-upscale">{t("Fit tanpa pembesaran")}</option>
           </select>
         </label>
         <label>
@@ -93,14 +94,12 @@ export function AdvancedSettings({
               setDraft({ ...draft, contrastWarnings: e.target.checked })
             }
           />{" "}
-          Peringatan kontras
+          {t("Peringatan kontras")}
         </label>
         <p className="field-help">
-          Tema default memiliki tipografi sendiri dan mengungguli preferensi
-          dasar. Default ini hanya dipakai saat persiapan baru; LIVE tidak
-          berubah. Font memakai unit referensi 1080. Reference canvas tidak
-          mengubah resolusi monitor fisik. Video background selalu silent dan
-          dimulai paused.
+          {t(
+            "Default theme = tema yang sedang dipakai (sama dengan pilihan di tab Themes), untuk lagu yang ditampilkan berikutnya; LIVE tidak berubah. Font dan ukuran lirik diatur di Tipografi lirik. Reference canvas tidak mengubah resolusi monitor fisik. Latar video tema selalu tanpa suara dan berputar sendiri saat tayang.",
+          )}
         </p>
         <button
           className="button primary"
@@ -114,7 +113,7 @@ export function AdvancedSettings({
                 services.settings.revision,
               );
               await services.reload();
-              setError("Pengaturan lanjutan tersimpan lokal");
+              setError(t("Pengaturan lanjutan tersimpan lokal"));
             } catch (e) {
               setError((e as Error).message);
             } finally {
@@ -122,7 +121,7 @@ export function AdvancedSettings({
             }
           }}
         >
-          Simpan pengaturan lanjutan
+          {t("Simpan pengaturan lanjutan")}
         </button>
       </fieldset>
       <button
@@ -131,7 +130,9 @@ export function AdvancedSettings({
         onClick={async () => {
           if (
             !window.confirm(
-              "Reset pengaturan lanjutan ke default? Tema, media, lagu, dan LIVE tidak dihapus/diubah.",
+              t(
+                "Reset pengaturan lanjutan ke default? Tema, media, lagu, dan LIVE tidak dihapus/diubah.",
+              ),
             )
           )
             return;
@@ -142,7 +143,7 @@ export function AdvancedSettings({
               services.settings.revision,
             );
             await services.reload();
-            setError("Pengaturan lanjutan direset");
+            setError(t("Pengaturan lanjutan direset"));
           } catch (e) {
             setError((e as Error).message);
           } finally {
@@ -150,19 +151,17 @@ export function AdvancedSettings({
           }
         }}
       >
-        Reset pengaturan lanjutan
+        {t("Reset pengaturan lanjutan")}
       </button>
-      {error && <p role="status">{error}</p>}
-      {services.error && <p role="alert">{services.error}</p>}
+      {error && <p role="status">{t(error)}</p>}
+      {services.error && <p role="alert">{t(services.error)}</p>}
       <button className="button secondary" onClick={onCalibration}>
-        Siapkan kalibrasi di Preview
+        {t("Siapkan kalibrasi di Preview")}
       </button>
       <p className="field-help">
-        Kalibrasi tetap di Preview; tampilkan ke audience hanya dengan Go Live.
-        Buka proyektor dengan tombol Live di kanan atas (Layar/Fullscreen di
-        kiri atas); jika izin layar ditolak, pindahkan jendela secara manual.
-        Media, pin, dan quota tersedia di Data & penyimpanan serta Media
-        Library. Audio foreground tetap memakai kontrol Phase 5.
+        {t(
+          "Kalibrasi tampil di panel Live Output dulu; ke proyektor hanya dengan Go Live. Buka proyektor dengan tombol Live di kanan atas (Layar/Fullscreen di kiri atas); jika izin layar ditolak, pindahkan jendela secara manual.",
+        )}
       </p>
     </section>
   );

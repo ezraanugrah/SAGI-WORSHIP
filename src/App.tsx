@@ -1,3 +1,5 @@
+import { t, useLang } from "./i18n";
+import { LanguageToggle } from "./components/LanguageToggle";
 import { BackupRecovery } from "./components/BackupRecovery";
 import {
   DEFAULT_OUTLINE_PX,
@@ -67,6 +69,8 @@ function PanelTitle({
   );
 }
 export default function App() {
+  // Re-render every screen when the language changes.
+  useLang();
   const [page, setPage] = useState(route),
     [prefs, setPrefs] = useState<Preferences>(defaults),
     [loaded, setLoaded] = useState(false),
@@ -198,7 +202,7 @@ export default function App() {
     : !live
       ? {
           state: "ready",
-          label: presentationState.preparing ? "MENYIAPKAN" : "READY",
+          label: presentationState.preparing ? t("MENYIAPKAN") : "READY",
         }
       : live.mode === "black"
         ? { state: "black", label: "BLACK" }
@@ -222,7 +226,7 @@ export default function App() {
             className={page === "settings" ? "nav active" : "nav"}
             href="#/settings"
           >
-            Pengaturan
+            {t("Pengaturan")}
           </a>
         </nav>
         <ProjectorBar
@@ -234,7 +238,7 @@ export default function App() {
           {!online && (
             <span className="status-pill">
               <i className="dot amber" />
-              Tanpa internet
+              {t("Tanpa internet")}
             </span>
           )}
           <LiveToolbar
@@ -252,13 +256,14 @@ export default function App() {
           >
             <i aria-hidden="true">*</i> {appStatus.label}
           </span>
+          <LanguageToggle />
         </div>
       </header>
       <div className="main-shell">
         <main>
           {page === "settings" && (
             <div className="heading">
-              <h1>Pengaturan</h1>
+              <h1>{t("Pengaturan")}</h1>
             </div>
           )}
           {readOnly && writerMessage && (
@@ -268,34 +273,38 @@ export default function App() {
               data-testid="readonly-banner"
             >
               <span>
-                <strong>Tab ini hanya baca</strong> — tombol LIVE dan edit
-                dinonaktifkan. {writerMessage}
+                <strong>{t("Tab ini hanya baca")}</strong> —{" "}
+                {t("tombol LIVE dan edit dinonaktifkan.")} {t(writerMessage)}
               </span>
               <button
                 className="button secondary"
                 onClick={() => location.reload()}
               >
-                Muat ulang
+                {t("Muat ulang")}
               </button>
               <button
                 className="button primary"
                 onClick={() => {
                   if (
                     window.confirm(
-                      "Pakai tab ini untuk mengedit? Tab/jendela SAGI lain menjadi hanya baca, termasuk kontrol LIVE di sana. Layar proyektor tetap menampilkan slide terakhir.",
+                      t(
+                        "Pakai tab ini untuk mengedit? Tab/jendela SAGI lain menjadi hanya baca, termasuk kontrol LIVE di sana. Layar proyektor tetap menampilkan slide terakhir.",
+                      ),
                     )
                   )
                     void takeOver().catch((e) => setNotice(e.message));
                 }}
               >
-                Edit di tab ini
+                {t("Edit di tab ini")}
               </button>
             </div>
           )}
           {presentationState.error && (
             <div className="alert" role="alert">
-              {presentationState.error}
-              <button onClick={() => presentation.clearError()}>Tutup</button>
+              {t(presentationState.error)}
+              <button onClick={() => presentation.clearError()}>
+                {t("Tutup")}
+              </button>
             </div>
           )}
           {presentationState.recovery && (
@@ -305,13 +314,16 @@ export default function App() {
               aria-label="Pemulihan presentasi"
             >
               <strong>
-                Checkpoint presentasi tersedia. Tidak dilanjutkan otomatis.
+                {t(
+                  "Checkpoint presentasi tersedia. Tidak dilanjutkan otomatis.",
+                )}
               </strong>
               <span>
-                Resume mengembalikan snapshot tersimpan, termasuk mode
-                Black/Clear Text.
+                {t(
+                  "Resume mengembalikan snapshot tersimpan, termasuk mode Black/Clear Text.",
+                )}
               </span>
-              <p role="status">{presentationState.checkpoint}</p>
+              <p role="status">{t(presentationState.checkpoint)}</p>
               <button
                 className="button primary"
                 disabled={!editable || presentationState.recovering}
@@ -321,7 +333,7 @@ export default function App() {
                     .catch((e) => presentation.report(e))
                 }
               >
-                Resume presentasi
+                {t("Resume presentasi")}
               </button>
               <button
                 className="button secondary"
@@ -329,7 +341,9 @@ export default function App() {
                 onClick={() => {
                   if (
                     window.confirm(
-                      "Buang checkpoint presentasi? Materi sumber tidak dihapus.",
+                      t(
+                        "Buang checkpoint presentasi? Materi sumber tidak dihapus.",
+                      ),
                     )
                   )
                     void presentation
@@ -343,16 +357,18 @@ export default function App() {
           )}
           {error && (
             <div className="alert" role="alert">
-              {error}{" "}
-              <button onClick={() => location.reload()}>Muat ulang</button>
+              {t(error)}{" "}
+              <button onClick={() => location.reload()}>
+                {t("Muat ulang")}
+              </button>
             </div>
           )}
           {update && (
             <div className="notice update-banner" role="status">
               <span>
-                Versi baru SAGI tersedia.
+                {t("Versi baru SAGI tersedia.")}
                 {presentationState.live
-                  ? " LIVE sedang berjalan: muat versi baru setelah ibadah selesai."
+                  ? ` ${t("LIVE sedang berjalan: muat versi baru setelah ibadah selesai.")}`
                   : ""}
               </span>
               <button
@@ -362,7 +378,9 @@ export default function App() {
                   if (
                     presentationState.live &&
                     !window.confirm(
-                      "LIVE sedang berjalan. Halaman ini akan dimuat ulang; layar proyektor tetap menampilkan slide terakhir dan Anda perlu Resume. Lanjutkan?",
+                      t(
+                        "LIVE sedang berjalan. Halaman ini akan dimuat ulang; layar proyektor tetap menampilkan slide terakhir dan Anda perlu Resume. Lanjutkan?",
+                      ),
                     )
                   )
                     return;
@@ -375,13 +393,13 @@ export default function App() {
                   });
                 }}
               >
-                {updating ? "Memuat…" : "Muat versi baru"}
+                {updating ? t("Memuat…") : t("Muat versi baru")}
               </button>
             </div>
           )}
           {notice && (
             <div className="notice" role="status">
-              {notice}
+              {t(notice)}
               <button
                 onClick={() => setNotice("")}
                 aria-label="Tutup pemberitahuan"
@@ -417,7 +435,7 @@ export default function App() {
               />
               <section className="panel settings-panel">
                 <PanelTitle icon={<Type size={18} />}>
-                  Tipografi lirik
+                  {t("Tipografi lirik")}
                 </PanelTitle>
                 <fieldset disabled={!loaded || !editable}>
                   <label>
@@ -435,7 +453,7 @@ export default function App() {
                     </select>
                   </label>
                   <label>
-                    Ukuran teks{" "}
+                    {t("Ukuran teks")}{" "}
                     <output>{percentOf(prefs.fontSize, LYRIC_MAX_PX)}%</output>
                     <input
                       type="range"
@@ -485,16 +503,15 @@ export default function App() {
                     />
                   </label>
                   <p className="field-help">
-                    Lirik selalu Extra Bold, putih, dengan outline hitam. Font,
-                    ukuran, dan outline berlaku untuk semua slide, dengan atau
-                    tanpa tema; tema hanya mengatur latar. Ukuran dan outline
-                    juga bisa diubah langsung di bawah Live Output.
+                    {t(
+                      "Lirik selalu Extra Bold, putih, dengan outline hitam. Font, ukuran, dan outline berlaku untuk semua slide, dengan atau tanpa tema; tema hanya mengatur latar. Ukuran dan outline juga bisa diubah langsung di bawah Live Output.",
+                    )}
                   </p>
                 </fieldset>
               </section>
               <section className="panel settings-panel">
                 <PanelTitle icon={<Palette size={18} />}>
-                  Tema tampilan
+                  {t("Tema tampilan")}
                 </PanelTitle>
                 <fieldset disabled={!loaded || !editable}>
                   <div className="theme-grid">
@@ -524,13 +541,13 @@ export default function App() {
                       paintOrder: "stroke fill",
                     }}
                   >
-                    Persiapkan hati untuk menyembah.
+                    {t("Persiapkan hati untuk menyembah.")}
                   </div>
                 </fieldset>
               </section>
               <section className="panel settings-panel">
                 <PanelTitle icon={<Volume2 size={18} />}>
-                  Preferensi video & audio
+                  {t("Preferensi video & audio")}
                 </PanelTitle>
                 <fieldset disabled={!loaded || !editable}>
                   {(
@@ -540,7 +557,7 @@ export default function App() {
                     ] as const
                   ).map((x) => (
                     <label className="toggle-row" key={x.key}>
-                      {x.title}
+                      {t(x.title)}
                       <input
                         type="checkbox"
                         checked={prefs[x.key]}
@@ -561,12 +578,9 @@ export default function App() {
                     />
                   </label>
                   <p className="field-help">
-                    Video dari tab Media selalu mulai bersuara (Mute LIVE bisa
-                    mematikannya); latar video tema selalu tanpa suara. Default
-                    untuk persiapan video berikutnya. LIVE yang sedang berjalan
-                    tetap menggunakan snapshot. Di atas 100% = penguat volume di
-                    proyektor (maks. 200%); suara bisa pecah jika video sudah
-                    keras.
+                    {t(
+                      "Video dari tab Media selalu mulai bersuara (Mute LIVE bisa mematikannya); latar video tema selalu tanpa suara. Default untuk persiapan video berikutnya. LIVE yang sedang berjalan tetap menggunakan snapshot. Di atas 100% = penguat volume di proyektor (maks. 200%); suara bisa pecah jika video sudah keras.",
+                    )}
                   </p>
                 </fieldset>
               </section>
@@ -577,7 +591,7 @@ export default function App() {
               />
               <section className="panel settings-panel">
                 <PanelTitle icon={<HardDrive size={18} />}>
-                  Data & penyimpanan
+                  {t("Data & penyimpanan")}
                 </PanelTitle>
                 <div className="settings-content">
                   <div className="storage-meter">
@@ -592,19 +606,21 @@ export default function App() {
                     <span />
                     <span />
                   </div>
-                  <p>{usage}</p>
+                  <p>{t(usage)}</p>
                   <p className="field-help">
-                    IndexedDB · Skema v1 · Data disimpan pada browser dan origin
-                    ini.
+                    {t(
+                      "IndexedDB · Skema v1 · Data disimpan pada browser dan origin ini.",
+                    )}
                   </p>
                   <button className="button secondary" onClick={persistent}>
                     <ShieldCheck size={16} />
-                    Minta penyimpanan persisten
+                    {t("Minta penyimpanan persisten")}
                   </button>
                   <div className="settings-rule" />
                   <p className="field-help">
-                    Gunakan panel Backup & Recovery untuk salinan eksternal dan
-                    pemulihan.
+                    {t(
+                      "Gunakan panel Backup & Recovery untuk salinan eksternal dan pemulihan.",
+                    )}
                   </p>
                   <button
                     className="text-button reset"
@@ -612,7 +628,9 @@ export default function App() {
                     onClick={() => {
                       if (
                         window.confirm(
-                          "Kembalikan semua preferensi ke nilai default? Materi tidak dihapus.",
+                          t(
+                            "Kembalikan semua preferensi ke nilai default? Materi tidak dihapus.",
+                          ),
                         )
                       ) {
                         setPrefs({ ...defaults });
@@ -624,7 +642,7 @@ export default function App() {
                     }}
                   >
                     <RotateCcw size={14} />
-                    Reset preferensi
+                    {t("Reset preferensi")}
                   </button>
                 </div>
               </section>
@@ -643,17 +661,18 @@ export default function App() {
                   </div>
                   <div className="spec-row">
                     <span>Projector window</span>
-                    <strong>{presentationState.connection.status}</strong>
+                    <strong>{t(presentationState.connection.status)}</strong>
                   </div>
                   <p className="field-help">
-                    Pemilihan monitor dan fullscreen akan mengikuti dukungan
-                    serta izin browser.
+                    {t(
+                      "Pemilihan monitor dan fullscreen akan mengikuti dukungan serta izin browser.",
+                    )}
                   </p>
                 </div>
               </section>
               <section className="panel settings-panel">
                 <PanelTitle icon={<Keyboard size={18} />}>
-                  Shortcut presentasi
+                  {t("Shortcut presentasi")}
                 </PanelTitle>
                 <div className="settings-content shortcuts">
                   {[
@@ -667,14 +686,14 @@ export default function App() {
                     ["C", "Clear text / Restore"],
                   ].map(([key, label]) => (
                     <div key={key}>
-                      <kbd>{key}</kbd>
-                      <span>{label}</span>
+                      <kbd>{t(key)}</kbd>
+                      <span>{t(label)}</span>
                     </div>
                   ))}
                   <p className="field-help">
-                    Aktif selama LIVE di seluruh jendela operator dan jendela
-                    proyektor, kecuali saat mengetik atau di dalam editor.
-                    Escape mengikuti perilaku fullscreen browser.
+                    {t(
+                      "Aktif selama LIVE di seluruh jendela operator dan jendela proyektor, kecuali saat mengetik atau di dalam editor. Escape mengikuti perilaku fullscreen browser.",
+                    )}
                   </p>
                 </div>
               </section>
@@ -684,7 +703,7 @@ export default function App() {
         <footer>
           <span>
             <i className={loaded ? "dot" : "dot amber"} />
-            {saved}
+            {t(saved)}
           </span>
           {presentationState.checkpoint !== "Belum ada checkpoint" && (
             <span
@@ -695,14 +714,14 @@ export default function App() {
               }
               role="status"
             >
-              {presentationState.checkpoint}
+              {t(presentationState.checkpoint)}
               {presentationState.checkpoint.startsWith("Checkpoint gagal") && (
                 <button
                   className="text-button"
                   disabled={!editable || !presentationState.live}
                   onClick={() => presentation.retryCheckpoint()}
                 >
-                  Coba checkpoint lagi
+                  {t("Coba checkpoint lagi")}
                 </button>
               )}
             </span>
@@ -711,25 +730,27 @@ export default function App() {
             {offline ? (
               <>
                 <Check size={13} />
-                Shell offline siap
+                {t("Shell offline siap")}
               </>
             ) : (
               <>
                 <WifiOff size={13} />
                 Offline shell:{" "}
                 {import.meta.env.DEV
-                  ? "uji pada production build"
-                  : "menyiapkan cache"}
+                  ? t("uji pada production build")
+                  : t("menyiapkan cache")}
               </>
             )}
           </span>
           {presentationState.live && (
             <span data-testid="wake-lock-status" role="status">
               {wakeLock === "active"
-                ? "Layar dijaga tetap menyala"
+                ? t("Layar dijaga tetap menyala")
                 : wakeLock === "idle"
-                  ? "Menyiapkan penjaga layar…"
-                  : "Layar bisa tidur: matikan sleep/screen saver di pengaturan OS"}
+                  ? t("Menyiapkan penjaga layar…")
+                  : t(
+                      "Layar bisa tidur: matikan sleep/screen saver di pengaturan OS",
+                    )}
             </span>
           )}
         </footer>

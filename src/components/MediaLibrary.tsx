@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { DocumentPagePicker } from "./DocumentPagePicker";
 import { useRef, useState, useEffect } from "react";
 import type { useMedia } from "../hooks/useMedia";
@@ -30,7 +31,17 @@ function cardDetail(a: MediaAsset) {
   if (a.kind === "pdf") return `PDF · ${size} · ${a.pages} halaman`;
   if (a.kind === "video")
     return `Video · ${clock(a.original.duration ?? 0)} · ${size}`;
-  return `Gambar · ${a.original.width}×${a.original.height} · ${size}`;
+  return `${t("Gambar")} · ${a.original.width}×${a.original.height} · ${size}`;
+}
+/** Import status "a.mp4: tersimpan offline · b.pdf: …": each message translated. */
+export function mediaStatus(status: string) {
+  return status
+    .split(" · ")
+    .map((part) => {
+      const m = part.match(/^(.+?\.[A-Za-z0-9]{2,5}): (.+)$/s);
+      return m ? `${m[1]}: ${t(m[2])}` : t(part);
+    })
+    .join(" · ");
 }
 export function AssetThumbnail({ refValue }: { refValue: AssetRef }) {
   const [url, setUrl] = useState("");
@@ -53,7 +64,7 @@ export function AssetThumbnail({ refValue }: { refValue: AssetRef }) {
   return url ? (
     <img className="media-thumbnail" src={url} alt="" loading="lazy" />
   ) : (
-    <span className="media-thumbnail">Thumbnail tidak tersedia</span>
+    <span className="media-thumbnail">{t("Thumbnail tidak tersedia")}</span>
   );
 }
 export function MediaLibrary({
@@ -91,7 +102,10 @@ export function MediaLibrary({
       .then((value) => {
         if (active)
           setUsage(
-            `Library ${(value.libraryBytes / 1048576).toFixed(1)} MiB · snapshot/tema tertahan ${(value.retainedBytes / 1048576).toFixed(1)} MiB`,
+            t("Library {lib} MiB · snapshot/tema tertahan {kept} MiB", {
+              lib: (value.libraryBytes / 1048576).toFixed(1),
+              kept: (value.retainedBytes / 1048576).toFixed(1),
+            }),
           );
       })
       .catch((e) => {
@@ -162,11 +176,13 @@ export function MediaLibrary({
       <aside className="lib-side">
         <label className="lib-search">
           <span className="sr-only">
-            {presentations ? "Cari presentasi" : "Cari media"}
+            {presentations ? t("Cari presentasi") : t("Cari media")}
           </span>
           <input
             aria-label={presentations ? "Cari presentasi" : "Cari media"}
-            placeholder={presentations ? "Cari presentasi…" : "Cari media…"}
+            placeholder={
+              presentations ? t("Cari presentasi…") : t("Cari media…")
+            }
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -198,7 +214,7 @@ export function MediaLibrary({
                     setOffset(0);
                   }}
                 >
-                  <span className="side-name">{k.label}</span>
+                  <span className="side-name">{t(k.label)}</span>
                   <span className="side-count">
                     {
                       tabAssets.filter((a) => k.id === "all" || a.kind === k.id)
@@ -215,7 +231,7 @@ export function MediaLibrary({
           disabled={!editable || services.working}
           onClick={() => input.current?.click()}
         >
-          {presentations ? "Impor presentasi" : "Impor media"}
+          {presentations ? t("Impor presentasi") : t("Impor media")}
         </button>
         <input
           className="sr-only"
@@ -239,17 +255,19 @@ export function MediaLibrary({
           }}
         />
         <p role="status" className="exact-text field-help">
-          {services.status}
+          {mediaStatus(services.status)}
         </p>
         {services.working && (
           <button className="button secondary" onClick={services.cancel}>
-            Batalkan impor media
+            {t("Batalkan impor media")}
           </button>
         )}
         <p className="field-help">
           {presentations
-            ? "PDF hasil ekspor PowerPoint, Keynote, atau Google Slides."
-            : "Gambar: JPG · PNG · WebP. Video: MP4 · WebM (paling lancar: MP4 H.264 1080p)."}
+            ? t("PDF hasil ekspor PowerPoint, Keynote, atau Google Slides.")
+            : t(
+                "Gambar: JPG · PNG · WebP. Video: MP4 · WebM (paling lancar: MP4 H.264 1080p).",
+              )}
         </p>
         {watch && (
           <FolderWatchControls
@@ -263,7 +281,7 @@ export function MediaLibrary({
         <div className="lib-head">
           <span>Title</span>
           <span className="lib-count">
-            {assets.length} item · tarik ke Schedule
+            {t("{n} item · tarik ke Schedule", { n: assets.length })}
           </span>
         </div>
         {watch && (
@@ -276,14 +294,18 @@ export function MediaLibrary({
         )}
         {error && (
           <p role="alert" className="error-text">
-            {error}
+            {t(error)}
           </p>
         )}
         {!assets.length && (
           <p className="lib-empty">
             {presentations
-              ? "Belum ada presentasi. Ekspor PowerPoint/Keynote ke PDF, lalu impor di sini."
-              : "Belum ada gambar atau video. Klik Impor media (JPG, PNG, WebP, MP4, WebM). PDF presentasi diimpor di tab Presentations."}
+              ? t(
+                  "Belum ada presentasi. Ekspor PowerPoint/Keynote ke PDF, lalu impor di sini.",
+                )
+              : t(
+                  "Belum ada gambar atau video. Klik Impor media (JPG, PNG, WebP, MP4, WebM). PDF presentasi diimpor di tab Presentations.",
+                )}
           </p>
         )}
         <ul className="media-grid" aria-label="Daftar media">
@@ -326,13 +348,13 @@ export function MediaLibrary({
               disabled={!offset}
               onClick={() => setOffset(Math.max(0, offset - 24))}
             >
-              Media sebelumnya
+              {t("Media sebelumnya")}
             </button>
             <button
               disabled={offset + 24 >= assets.length}
               onClick={() => setOffset(offset + 24)}
             >
-              Media berikutnya
+              {t("Media berikutnya")}
             </button>
           </div>
         )}
@@ -344,21 +366,24 @@ export function MediaLibrary({
               <p>
                 {selected.original.width} × {selected.original.height}
                 {selected.original.duration
-                  ? ` · ${selected.original.duration.toFixed(1)} detik`
+                  ? ` · ${t("{n} detik", { n: selected.original.duration.toFixed(1) })}`
                   : ""}{" "}
                 · {selected.original.mime}
               </p>
-              <p>{selected.compatibility}</p>
-              <p className="checksum">Integritas: {selected.original.digest}</p>
+              <p>{t(selected.compatibility)}</p>
+              <p className="checksum">
+                {t("Integritas")}: {selected.original.digest}
+              </p>
               {selected.kind === "pdf" && !editable && (
                 <p className="field-help">
-                  Tab hanya baca dapat menelusuri halaman; persiapan PDF
-                  membutuhkan penulis untuk menyimpan raster offline.
+                  {t(
+                    "Tab hanya baca dapat menelusuri halaman; persiapan PDF membutuhkan penulis untuk menyimpan raster offline.",
+                  )}
                 </p>
               )}
               {selected.kind === "pdf" && (
                 <label>
-                  Halaman PDF (contoh 1-3,5)
+                  {t("Halaman PDF (contoh 1-3,5)")}
                   <input
                     aria-label="Halaman PDF"
                     value={pages}
@@ -398,7 +423,7 @@ export function MediaLibrary({
                   disabled={selected.kind === "pdf" && !editable}
                   onClick={() => action(() => onPreview(selection()))}
                 >
-                  Preview media
+                  {t("Preview media")}
                 </button>
                 <button
                   className="button secondary"
@@ -407,7 +432,10 @@ export function MediaLibrary({
                     action(async () => {
                       if (
                         !window.confirm(
-                          `Hapus “${selected.title}” dan item jadwal terkait? LIVE/checkpoint tetap menyimpan aset yang dibutuhkan; ruang mungkin belum dibebaskan.`,
+                          t(
+                            "Hapus “{title}” dan item jadwal terkait? LIVE/checkpoint tetap menyimpan aset yang dibutuhkan; ruang mungkin belum dibebaskan.",
+                            { title: selected.title },
+                          ),
                         )
                       )
                         return;
@@ -420,21 +448,21 @@ export function MediaLibrary({
                     })
                   }
                 >
-                  Hapus media
+                  {t("Hapus media")}
                 </button>
               </div>
             </section>
           )}
         <p className="field-help">
           {selected?.kind === "pdf"
-            ? "Halaman yang dipilih ikut saat kartu ini ditarik ke Schedule. "
+            ? `${t("Halaman yang dipilih ikut saat kartu ini ditarik ke Schedule.")} `
             : ""}
-          {usage} · belum termasuk payload yatim dan overhead browser.
+          {t(usage)} · {t("belum termasuk payload yatim dan overhead browser.")}
         </p>
         <p className="field-help">
-          Simpan file sumber. Aset yang masih dibutuhkan Preview, LIVE, atau
-          checkpoint tidak dihapus oleh cleanup. Tidak ada backup media
-          otomatis.
+          {t(
+            "Simpan file sumber. Aset yang masih dibutuhkan Preview, LIVE, atau checkpoint tidak dihapus oleh cleanup. Tidak ada backup media otomatis.",
+          )}
         </p>
         <button
           className="button secondary"
@@ -443,16 +471,20 @@ export function MediaLibrary({
             action(async () => {
               if (
                 !window.confirm(
-                  "Bersihkan hanya payload tanpa referensi? Pin sesi lama tetap dipertahankan.",
+                  t(
+                    "Bersihkan hanya payload tanpa referensi? Pin sesi lama tetap dipertahankan.",
+                  ),
                 )
               )
                 return;
               const count = await services.repo.collect();
-              setError(`${count} payload tanpa referensi dibersihkan.`);
+              setError(
+                t("{n} payload tanpa referensi dibersihkan.", { n: count }),
+              );
             })
           }
         >
-          Bersihkan media tanpa referensi
+          {t("Bersihkan media tanpa referensi")}
         </button>
       </div>
     </div>

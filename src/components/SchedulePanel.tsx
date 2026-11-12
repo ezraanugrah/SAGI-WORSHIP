@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { revealInPane } from "./revealInPane";
 import {
@@ -105,7 +106,7 @@ export function SchedulePanel({
         direction: to - from,
       };
     onReorder(schedule, ids);
-    setAnnouncement(`Item dipindahkan ke posisi ${to + 1}.`);
+    setAnnouncement(t("Item dipindahkan ke posisi {n}.", { n: to + 1 }));
   }
   const openSlide = useRef<HTMLButtonElement>(null);
   useLayoutEffect(() => {
@@ -136,16 +137,16 @@ export function SchedulePanel({
         e.preventDefault();
         if (song) {
           onAddSong(schedule ?? null, song);
-          setAnnouncement("Lagu ditambahkan ke Week.");
+          setAnnouncement(t("Lagu ditambahkan ke Week."));
         } else {
           onAddMedia(schedule ?? null, media);
-          setAnnouncement("Media ditambahkan ke Week.");
+          setAnnouncement(t("Media ditambahkan ke Week."));
         }
       }}
     >
       <div className="pane-head">
         <h2 className="pane-title">
-          Jadwal Ibadah
+          {t("Jadwal Ibadah")}
           <span className="pane-subject">
             {` - ${schedule?.name ?? weekName(1)}`}
           </span>
@@ -154,7 +155,7 @@ export function SchedulePanel({
           <button
             className="pane-icon danger"
             aria-label="Kosongkan jadwal"
-            title="Kosongkan jadwal (lagu di Musik tidak dihapus)"
+            title={t("Kosongkan jadwal (lagu di Musik tidak dihapus)")}
             disabled={
               !editable || busy || !schedule || schedule.itemIds.length === 0
             }
@@ -166,15 +167,19 @@ export function SchedulePanel({
       </div>
       <div className="pane-body schedule-list" data-testid="week-drop-zone">
         <div className="drop-hint" aria-hidden="true">
-          Lepas di sini → {schedule?.name ?? weekName(1)}
+          {t("Lepas di sini")} → {schedule?.name ?? weekName(1)}
         </div>
         {!schedule || schedule.itemIds.length === 0 ? (
           <div className="empty-schedule">
             <span className="empty-icon">
               <ListMusic size={24} />
             </span>
-            <h3>Tarik lagu dari Musik ke sini</h3>
-            <p>Pilih Week 1–4 di tab Songs · media dari tab Media juga bisa</p>
+            <h3>{t("Tarik lagu dari Musik ke sini")}</h3>
+            <p>
+              {t(
+                "Pilih Week 1–4 di tab Songs · media dari tab Media juga bisa",
+              )}
+            </p>
           </div>
         ) : (
           <ol
@@ -205,14 +210,18 @@ export function SchedulePanel({
               const open = itemId === openItemId;
               const detail =
                 item?.type === "media"
-                  ? `Media · ${item.media.pages.length} halaman/frame`
+                  ? t("Media · {n} halaman/frame", {
+                      n: item.media.pages.length,
+                    })
                   : item?.type === "scripture"
-                    ? `Scripture · ${item.selection.verseIds.length} ayat`
+                    ? t("Scripture · {n} ayat", {
+                        n: item.selection.verseIds.length,
+                      })
                     : song
                       ? slideCounts?.[itemId] !== undefined
-                        ? `Lagu · ${slideCounts[itemId]} slide`
-                        : `Lagu · ${song.order.length} bagian`
-                      : "Sumber tidak tersedia";
+                        ? t("Lagu · {n} slide", { n: slideCounts[itemId] })
+                        : t("Lagu · {n} bagian", { n: song.order.length })
+                      : t("Sumber tidak tersedia");
               return (
                 <li
                   key={itemId}
@@ -259,7 +268,7 @@ export function SchedulePanel({
                       </span>
                       <span className="sched-text">
                         <strong>
-                          {index + 1}. {title ?? "Sumber tidak tersedia"}
+                          {index + 1}. {title ?? t("Sumber tidak tersedia")}
                         </strong>
                         <small>{detail}</small>
                       </span>
@@ -333,8 +342,10 @@ export function SchedulePanel({
       </div>
       <div className="pane-foot">
         {schedule
-          ? `${schedule.itemIds.length} item · tarik dari Musik/Media · seret untuk urutkan`
-          : "0 item · tarik lagu dari Musik ke sini"}
+          ? t("{n} item · tarik dari Musik/Media · seret untuk urutkan", {
+              n: schedule.itemIds.length,
+            })
+          : t("0 item · tarik lagu dari Musik ke sini")}
       </div>
       {footer}
     </section>

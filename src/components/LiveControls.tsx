@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
 import { frameText } from "../presentation/models";
@@ -133,12 +134,12 @@ export function LiveControls({
   // Projector playback in the footer, like "Slide 1 of 1" under Preview.
   const playbackStatus = live?.playback
     ? state.playbackFeedback?.frameId === live.playback.frameId
-      ? `${state.playbackFeedback.paused ? "Paused" : "Playing"} · ${clock(state.playbackFeedback.position)}${duration ? ` / ${clock(duration)}` : ""}${state.playbackFeedback.error ? ` · ${state.playbackFeedback.error}` : ""}`
-      : "Menunggu status playback proyektor"
+      ? `${state.playbackFeedback.paused ? "Paused" : "Playing"} · ${clock(state.playbackFeedback.position)}${duration ? ` / ${clock(duration)}` : ""}${state.playbackFeedback.error ? ` · ${t(state.playbackFeedback.error)}` : ""}`
+      : t("Menunggu status playback proyektor")
     : live?.backgroundPlayback
       ? state.backgroundFeedback?.frameId === live.backgroundPlayback.frameId
-        ? `Background ${state.backgroundFeedback.paused ? "Paused" : "Playing"} · ${clock(state.backgroundFeedback.position)}${state.backgroundFeedback.error ? ` · ${state.backgroundFeedback.error}` : ""}`
-        : `Background ${live.backgroundPlayback.paused ? "Paused" : "Play diminta"}`
+        ? `Background ${state.backgroundFeedback.paused ? "Paused" : "Playing"} · ${clock(state.backgroundFeedback.position)}${state.backgroundFeedback.error ? ` · ${t(state.backgroundFeedback.error)}` : ""}`
+        : `Background ${live.backgroundPlayback.paused ? "Paused" : t("Play diminta")}`
       : "";
   return (
     <section
@@ -160,9 +161,11 @@ export function LiveControls({
             <span
               className="staged-badge"
               data-testid="staged-badge"
-              title="Belum tampil di proyektor. Klik Go Live untuk menampilkannya."
+              title={t(
+                "Belum tampil di proyektor. Klik Go Live untuk menampilkannya.",
+              )}
             >
-              Belum tayang · klik Go Live
+              {t("Belum tayang · klik Go Live")}
             </span>
           )}
         </h2>
@@ -172,9 +175,17 @@ export function LiveControls({
             state.connection.status === "Tersinkron" ? "true" : undefined
           }
           data-testid="connection-status"
-          title={`Fullscreen: ${state.connection.fullscreen ? "aktif" : "tidak aktif"} · Mode: ${live?.mode ?? "black"} · Dikirim ${state.sequence} · Dirender ${state.connection.ack < 0 ? "—" : state.connection.ack} · Shortcut ← → PgUp PgDn Space B C`}
+          title={t(
+            "Fullscreen: {fs} · Mode: {mode} · Dikirim {sent} · Dirender {shown} · Shortcut ← → PgUp PgDn Space B C",
+            {
+              fs: state.connection.fullscreen ? t("aktif") : t("tidak aktif"),
+              mode: live?.mode ?? "black",
+              sent: state.sequence,
+              shown: state.connection.ack < 0 ? "—" : state.connection.ack,
+            },
+          )}
         >
-          {state.connection.status}
+          {t(state.connection.status)}
         </span>
       </div>
       {/* Live Output: the monitor, then one row with slide steps, lyric
@@ -239,8 +250,11 @@ export function LiveControls({
               <ChevronRight size={15} />
             </button>
           </div>
-          <label className="foot-range" title="Ukuran font lirik (semua slide)">
-            Ukuran
+          <label
+            className="foot-range"
+            title={t("Ukuran font lirik (semua slide)")}
+          >
+            {t("Ukuran")}
             <input
               type="range"
               aria-label="Ukuran font LIVE"
@@ -256,7 +270,7 @@ export function LiveControls({
             />
             <output>{size}%</output>
           </label>
-          <label className="foot-range" title="Tebal outline hitam lirik">
+          <label className="foot-range" title={t("Tebal outline hitam lirik")}>
             Outline
             <input
               type="range"
@@ -278,19 +292,19 @@ export function LiveControls({
             aria-haspopup="dialog"
             title={
               !frame
-                ? "Pilih lagu atau slide dulu"
+                ? t("Pilih lagu atau slide dulu")
                 : frame.kind === "media"
-                  ? "Slide media tidak punya teks"
+                  ? t("Slide media tidak punya teks")
                   : frame.kind === "scripture"
-                    ? "Teks Scripture baca-saja"
+                    ? t("Teks Scripture baca-saja")
                     : staged
-                      ? "Ubah teks slide ini sebelum Go Live"
-                      : "Ubah teks slide yang sedang LIVE"
+                      ? t("Ubah teks slide ini sebelum Go Live")
+                      : t("Ubah teks slide yang sedang LIVE")
             }
             disabled={!editable || !textFrame}
             onClick={openEditor}
           >
-            <Pencil size={13} /> Edit teks
+            <Pencil size={13} /> {t("Edit teks")}
           </button>
         </div>
         {/* Same slot as under Preview Output, so both monitors keep the
@@ -314,7 +328,9 @@ export function LiveControls({
               <button
                 className="button secondary"
                 disabled={live.mode === "black"}
-                title="Background video tanpa suara. Setelah refresh/recovery perlu Play lagi."
+                title={t(
+                  "Background video tanpa suara. Setelah refresh/recovery perlu Play lagi.",
+                )}
                 onClick={() => run(() => controller.background(false))}
               >
                 Play background LIVE
@@ -325,7 +341,7 @@ export function LiveControls({
               >
                 Pause background LIVE
               </button>
-              <span className="field-help">silent</span>
+              <span className="field-help">{t("silent")}</span>
             </fieldset>
           )}
           {live?.playback && (
@@ -376,7 +392,9 @@ export function LiveControls({
                   min="0"
                   max="200"
                   step="5"
-                  title="Volume LIVE. Di atas 100% = penguat volume (suara bisa pecah jika video sudah keras)"
+                  title={t(
+                    "Volume LIVE. Di atas 100% = penguat volume (suara bisa pecah jika video sudah keras)",
+                  )}
                   value={live.playback.volume * 100}
                   onChange={(e) =>
                     run(() =>
@@ -393,7 +411,7 @@ export function LiveControls({
         </div>
         {state.connection.error && (
           <p className="save-message live-error" role="status">
-            {state.connection.error}
+            {t(state.connection.error)}
           </p>
         )}
       </div>
@@ -412,7 +430,7 @@ export function LiveControls({
           >
             <div className="pane-head">
               <h3 className="pane-title">
-                Edit teks LIVE
+                {t("Edit teks LIVE")}
                 <span className="pane-subject">
                   {` - ${frame.title} · ${frame.label}`}
                 </span>
@@ -438,7 +456,7 @@ export function LiveControls({
                 <span className="edit-spacer" />
                 <button
                   className="button secondary"
-                  title="Kembalikan teks sumber"
+                  title={t("Kembalikan teks sumber")}
                   onClick={() =>
                     void applyEdit(shown.deck.pages[frame.page].text)
                   }
@@ -450,13 +468,17 @@ export function LiveControls({
                   disabled={text === frameText(shown.deck, shown.index)}
                   onClick={() => void applyEdit(text)}
                 >
-                  {staged ? "Terapkan" : "Terapkan ke Live"}
+                  {staged ? t("Terapkan") : t("Terapkan ke Live")}
                 </button>
               </div>
               <p className="field-help edit-note">
                 {staged
-                  ? "Belum tayang: tampil di proyektor setelah Go Live. Hanya slide ini; lagu di Musik tidak berubah."
-                  : "Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik tidak berubah."}
+                  ? t(
+                      "Belum tayang: tampil di proyektor setelah Go Live. Hanya slide ini; lagu di Musik tidak berubah.",
+                    )
+                  : t(
+                      "Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik tidak berubah.",
+                    )}
               </p>
             </fieldset>
           </div>

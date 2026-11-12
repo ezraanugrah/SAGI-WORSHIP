@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { Expand, MonitorCog, RefreshCw } from "lucide-react";
 import { PresentationController } from "../presentation/controller";
@@ -63,14 +64,14 @@ export function ProjectorBar({
         type="button"
         className="tool-button"
         aria-label="Pilih layar"
-        title="Pilih layar proyektor (opsional)"
+        title={t("Pilih layar proyektor (opsional)")}
         disabled={!editable}
         onClick={pickScreens}
       >
         <span className="tool-icon" aria-hidden="true">
           <MonitorCog size={18} />
         </span>
-        <span className="tool-label">Layar</span>
+        <span className="tool-label">{t("Layar")}</span>
       </button>
       {screens.length > 0 && (
         <label className="projector-screen">
@@ -80,7 +81,7 @@ export function ProjectorBar({
             value={screen}
             onChange={(e) => choose(e.target.value)}
           >
-            <option value="">Manual / layar default</option>
+            <option value="">{t("Manual / layar default")}</option>
             {screens.map((s, index) => (
               <option key={index} value={index}>
                 {s.label}
@@ -93,7 +94,7 @@ export function ProjectorBar({
         type="button"
         className="tool-button"
         aria-label="Fullscreen Projector"
-        title="Jadikan jendela proyektor layar penuh"
+        title={t("Jadikan jendela proyektor layar penuh")}
         disabled={!editable}
         onClick={() => run(() => controller.windows.fullscreen())}
       >
@@ -106,7 +107,7 @@ export function ProjectorBar({
         type="button"
         className="tool-button"
         aria-label="Reconnect"
-        title="Sambungkan ulang jendela proyektor"
+        title={t("Sambungkan ulang jendela proyektor")}
         disabled={!editable}
         onClick={() => run(() => controller.windows.reconnect())}
       >

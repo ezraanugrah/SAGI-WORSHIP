@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { WriterGate } from "../data/writer";
 import { BackupRepository, type Stage } from "../data/backupRepository";
@@ -145,18 +146,19 @@ export function BackupRecovery({
       </div>
       <div className="settings-content backup-recovery">
         <p>
-          Semua proses lokal dan offline. Backup berisi data pribadi; simpan
-          file di tempat aman. Tidak dienkripsi.
+          {t(
+            "Semua proses lokal dan offline. Backup berisi data pribadi; simpan file di tempat aman. Tidak dienkripsi.",
+          )}
         </p>
         <button
           className="button secondary"
           disabled={busy}
           onClick={exportBackup}
         >
-          Buat backup .sagibak
+          {t("Buat backup .sagibak")}
         </button>
         <label>
-          File backup
+          {t("File backup")}
           <input
             aria-label="File backup"
             type="file"
@@ -180,7 +182,7 @@ export function BackupRecovery({
             })
           }
         >
-          Verifikasi file
+          {t("Verifikasi file")}
         </button>
         <button
           className="button secondary"
@@ -194,14 +196,16 @@ export function BackupRecovery({
             })
           }
         >
-          Siapkan restore
+          {t("Siapkan restore")}
         </button>
         {stage && (
           <>
             <p>
               {stage.manifest.complete
-                ? "Arsip lengkap menurut manifest tervalidasi."
-                : "BACKUP PARSIAL — konten berikut tidak tersedia dalam restore:"}
+                ? t("Arsip lengkap menurut manifest tervalidasi.")
+                : t(
+                    "BACKUP PARSIAL — konten berikut tidak tersedia dalam restore:",
+                  )}
             </p>
             {!stage.manifest.complete && (
               <ul>
@@ -211,7 +215,7 @@ export function BackupRecovery({
               </ul>
             )}
             <label>
-              Mode restore
+              {t("Mode restore")}
               <select
                 aria-label="Mode restore"
                 disabled={busy}
@@ -222,11 +226,13 @@ export function BackupRecovery({
                   setConfirmed(false);
                 }}
               >
-                <option value="fresh">Workspace kosong</option>
+                <option value="fresh">{t("Workspace kosong")}</option>
                 <option value="existing">
-                  Merge · pertahankan data tujuan
+                  {t("Merge · pertahankan data tujuan")}
                 </option>
-                <option value="both">Merge · simpan keduanya jika aman</option>
+                <option value="both">
+                  {t("Merge · simpan keduanya jika aman")}
+                </option>
               </select>
             </label>
             <button
@@ -241,17 +247,16 @@ export function BackupRecovery({
                 })
               }
             >
-              Tinjau konflik restore
+              {t("Tinjau konflik restore")}
             </button>
           </>
         )}
         {plan && (
           <>
             <p className="field-help">
-              Konfirmasi menyatakan Anda berhak menyimpan, memproyeksikan dan
-              memulihkan konten ini pada profil tujuan sesuai lisensinya. Merge
-              mempertahankan pengaturan tujuan yang sudah ada. Perubahan tujuan
-              atau End Session mewajibkan preview ulang.
+              {t(
+                "Konfirmasi menyatakan Anda berhak menyimpan, memproyeksikan dan memulihkan konten ini pada profil tujuan sesuai lisensinya. Merge mempertahankan pengaturan tujuan yang sudah ada. Perubahan tujuan atau End Session mewajibkan preview ulang.",
+              )}
             </p>
             <div className="backup-impact" aria-label="Dampak restore">
               <ul>
@@ -266,7 +271,7 @@ export function BackupRecovery({
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />
-              Saya memahami dampak restore dan pilihan konflik
+              {t("Saya memahami dampak restore dan pilihan konflik")}
             </label>
             <button
               className="button primary"
@@ -281,7 +286,7 @@ export function BackupRecovery({
                 })
               }
             >
-              Publikasikan restore
+              {t("Publikasikan restore")}
             </button>
           </>
         )}
@@ -292,7 +297,9 @@ export function BackupRecovery({
             void run(async () => {
               if (
                 !window.confirm(
-                  "End Session: Black, tutup projector milik sesi ini, dan hentikan LIVE. Checkpoint tetap dipertahankan.",
+                  t(
+                    "End Session: Black, tutup projector milik sesi ini, dan hentikan LIVE. Checkpoint tetap dipertahankan.",
+                  ),
                 )
               )
                 return "End Session dibatalkan.";
@@ -303,15 +310,18 @@ export function BackupRecovery({
             })
           }
         >
-          End Session untuk restore / repair
+          {t("End Session untuk restore / repair")}
         </button>
         <p className="field-help">
-          Black bukan End Session. Restore tidak mengaktifkan LIVE. Tutup juga
-          jendela output lama yang tidak dimiliki sesi ini.
+          {t(
+            "Black bukan End Session. Restore tidak mengaktifkan LIVE. Tutup juga jendela output lama yang tidak dimiliki sesi ini.",
+          )}
         </p>
         {candidates.map((c) => (
           <div key={c.id}>
-            <p>Kandidat recovery {c.createdAt}</p>
+            <p>
+              {t("Kandidat recovery")} {c.createdAt}
+            </p>
             <button
               className="button secondary"
               disabled={busy || !editable}
@@ -319,7 +329,9 @@ export function BackupRecovery({
                 void run(async (signal) => {
                   if (
                     !window.confirm(
-                      "Pilih checkpoint ini untuk tawaran Resume? Checkpoint sebelumnya dipertahankan sebagai kandidat lain; tidak ada Go Live otomatis.",
+                      t(
+                        "Pilih checkpoint ini untuk tawaran Resume? Checkpoint sebelumnya dipertahankan sebagai kandidat lain; tidak ada Go Live otomatis.",
+                      ),
                     )
                   )
                     return "Pemilihan dibatalkan";
@@ -329,7 +341,7 @@ export function BackupRecovery({
                 })
               }
             >
-              Pilih kandidat recovery
+              {t("Pilih kandidat recovery")}
             </button>
           </div>
         ))}
@@ -345,7 +357,7 @@ export function BackupRecovery({
             })
           }
         >
-          Scan metadata
+          {t("Scan metadata")}
         </button>
         <button
           className="button secondary"
@@ -357,13 +369,13 @@ export function BackupRecovery({
             })
           }
         >
-          Scan integritas penuh
+          {t("Scan integritas penuh")}
         </button>
         {health && (
           <>
             <p>
               {(health.bytes / 1048576).toFixed(1)} MiB payload ·{" "}
-              {health.full ? "hash diperiksa" : "metadata saja"}
+              {health.full ? t("hash diperiksa") : t("metadata saja")}
             </p>
             <div className="backup-impact">
               {health.findings.map((f) => (
@@ -379,7 +391,10 @@ export function BackupRecovery({
                         void run(async (signal) => {
                           if (
                             !window.confirm(
-                              `Bangun ulang hanya pin ${f.id}? Tidak ada bytes dihapus.`,
+                              t(
+                                "Bangun ulang hanya pin {id}? Tidak ada bytes dihapus.",
+                                { id: f.id },
+                              ),
                             )
                           )
                             return "Repair dibatalkan";
@@ -394,7 +409,7 @@ export function BackupRecovery({
                         })
                       }
                     >
-                      Tinjau & konfirmasi repair pin
+                      {t("Tinjau & konfirmasi repair pin")}
                     </button>
                   )}
                 </div>
@@ -404,10 +419,11 @@ export function BackupRecovery({
         )}
         {stages.length > 0 && (
           <>
-            <h3>Staging tersimpan</h3>
+            <h3>{t("Staging tersimpan")}</h3>
             <p>
-              Gangguan tidak memublikasikan data parsial. Verifikasi ulang file
-              untuk melanjutkan; penghapusan staging selalu eksplisit.
+              {t(
+                "Gangguan tidak memublikasikan data parsial. Verifikasi ulang file untuk melanjutkan; penghapusan staging selalu eksplisit.",
+              )}
             </p>
             {stages.map((s) => (
               <div key={s.id}>
@@ -419,7 +435,9 @@ export function BackupRecovery({
                     void run(async () => {
                       if (
                         !window.confirm(
-                          "Hapus hanya database staging ini? Workspace tidak dihapus.",
+                          t(
+                            "Hapus hanya database staging ini? Workspace tidak dihapus.",
+                          ),
                         )
                       )
                         return "Dibatalkan";
@@ -432,19 +450,19 @@ export function BackupRecovery({
                     })
                   }
                 >
-                  Hapus staging
+                  {t("Hapus staging")}
                 </button>
               </div>
             ))}
           </>
         )}
-        <p role="status">{status}</p>
+        <p role="status">{t(status)}</p>
         {busy && (
           <button
             className="button secondary"
             onClick={() => abort.current?.abort()}
           >
-            Batalkan operasi
+            {t("Batalkan operasi")}
           </button>
         )}
       </div>

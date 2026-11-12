@@ -4603,3 +4603,23 @@ footer > span:last-child {
   outline: 2px dashed var(--sg-orange);
   outline-offset: 2px;
 }
+
+/* Language switch (top bar). */
+.sagi-ui .lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--sg-edge);
+  border-radius: 999px;
+  background: var(--sg-raised);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.sagi-ui .lang-toggle:hover {
+  background: var(--sg-raised-hover);
+}

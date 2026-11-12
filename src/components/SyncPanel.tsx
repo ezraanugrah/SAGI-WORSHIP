@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import type { useSongSync } from "../hooks/useSongSync";
@@ -15,12 +16,13 @@ export function SyncPanel({
   return (
     <section className="sync-panel" aria-labelledby="sync-title">
       <h3 id="sync-title" className="side-title">
-        <RefreshCw size={13} aria-hidden="true" /> Sinkron antar laptop
+        <RefreshCw size={13} aria-hidden="true" /> {t("Sinkron antar laptop")}
       </h3>
       {!sync.configured ? (
         <p className="field-help">
-          Belum disiapkan. Admin perlu mengisi alamat server sinkron
-          (docs/SYNC.md).
+          {t(
+            "Belum disiapkan. Admin perlu mengisi alamat server sinkron (docs/SYNC.md).",
+          )}
         </p>
       ) : !sync.email ? (
         <form
@@ -31,7 +33,9 @@ export function SyncPanel({
           }}
         >
           <p className="field-help">
-            Masuk dengan akun gereja agar lagu di Musik sama di semua laptop.
+            {t(
+              "Masuk dengan akun gereja agar lagu di Musik sama di semua laptop.",
+            )}
           </p>
           <input
             aria-label="Email sinkron"
@@ -55,7 +59,7 @@ export function SyncPanel({
               !address.trim() || !password || status.phase === "syncing"
             }
           >
-            Masuk
+            {t("Masuk")}
           </button>
         </form>
       ) : (
@@ -64,7 +68,7 @@ export function SyncPanel({
             {sync.email}
           </p>
           {!editable && (
-            <p className="field-help">Sinkron berjalan di tab edit.</p>
+            <p className="field-help">{t("Sinkron berjalan di tab edit.")}</p>
           )}
           <div className="sync-actions">
             <button
@@ -72,10 +76,10 @@ export function SyncPanel({
               disabled={!editable || status.phase === "syncing"}
               onClick={() => void sync.syncNow()}
             >
-              Sinkron sekarang
+              {t("Sinkron sekarang")}
             </button>
             <button className="text-button" onClick={sync.signOut}>
-              Keluar
+              {t("Keluar")}
             </button>
           </div>
         </>
@@ -85,7 +89,10 @@ export function SyncPanel({
           className={`sync-status sync-${status.phase}`}
           role={status.phase === "error" ? "alert" : "status"}
         >
-          {status.message}
+          {status.message
+            .split(" · ")
+            .map((part) => t(part))
+            .join(" · ")}
         </p>
       )}
     </section>

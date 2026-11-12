@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Plus, X, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { SongAutosave, type SaveState } from "../data/autosave";
@@ -97,7 +98,7 @@ export function SongEditor({
     if (order === value.order) return;
     if (keepFocus) movedFocus.current = to;
     update({ ...value, order });
-    setAnnouncement(`Bagian dipindahkan ke posisi ${to + 1}.`);
+    setAnnouncement(t("Bagian dipindahkan ke posisi {n}.", { n: to + 1 }));
   }
   async function close() {
     await saver.flush();
@@ -126,7 +127,7 @@ export function SongEditor({
       <div className="editor-title">
         <div>
           <span className="tiny-label">SONG EDITOR · AUTOSAVE</span>
-          <h2>{value.title || "Lagu baru"}</h2>
+          <h2>{value.title || t("Lagu baru")}</h2>
         </div>
         <button
           className="icon-button"
@@ -140,7 +141,7 @@ export function SongEditor({
         <fieldset disabled={!editable}>
           <div className="song-fields">
             <label>
-              Judul lagu
+              {t("Judul lagu")}
               <input
                 autoFocus
                 maxLength={200}
@@ -149,7 +150,7 @@ export function SongEditor({
               />
             </label>
             <label>
-              Penyanyi / pencipta
+              {t("Penyanyi / pencipta")}
               <input
                 maxLength={200}
                 value={value.author}
@@ -160,7 +161,7 @@ export function SongEditor({
                 stay in the data (backups, sync) unchanged. */}
           </div>
           <div className="section-heading">
-            <h3>Bagian lagu</h3>
+            <h3>{t("Bagian lagu")}</h3>
             <button
               className="button secondary"
               disabled={value.sections.length >= 200}
@@ -184,14 +185,14 @@ export function SongEditor({
               }}
             >
               <Plus size={14} />
-              Tambah bagian
+              {t("Tambah bagian")}
             </button>
           </div>
           {value.sections.map((section, index) => (
             <div className="song-section" key={section.id}>
               <div className="section-fields">
                 <label>
-                  Jenis bagian {index + 1}
+                  {t("Jenis bagian {n}", { n: index + 1 })}
                   <select
                     aria-label={`Jenis bagian ${index + 1}`}
                     value={sectionName(section)}
@@ -241,7 +242,7 @@ export function SongEditor({
                 </button>
               </div>
               <label>
-                Lirik bagian {index + 1}
+                {t("Lirik bagian {n}", { n: index + 1 })}
                 <textarea
                   aria-label={`Lirik bagian ${index + 1}`}
                   rows={4}
@@ -263,8 +264,10 @@ export function SongEditor({
           ))}
           <div className="section-heading">
             <div>
-              <h3>Urutan presentasi</h3>
-              <p>Bagian dapat diulang. Seret atau gunakan tombol naik/turun.</p>
+              <h3>{t("Urutan presentasi")}</h3>
+              <p>
+                {t("Seret atau gunakan tombol naik/turun untuk mengurutkan.")}
+              </p>
             </div>
           </div>
           <ol
@@ -336,7 +339,7 @@ export function SongEditor({
           className={status.error ? "save-message error-text" : "save-message"}
           role="status"
         >
-          {status.message}
+          {t(status.message)}
         </p>
         <span className="sr-only" aria-live="polite">
           {announcement}
@@ -347,7 +350,7 @@ export function SongEditor({
             disabled={!editable || status.pending}
             onClick={() => void saveNow()}
           >
-            {status.error ? "Coba simpan lagi" : "Simpan sekarang"}
+            {status.error ? t("Coba simpan lagi") : t("Simpan sekarang")}
           </button>
           {status.error && (
             <button
@@ -355,7 +358,9 @@ export function SongEditor({
               onClick={() => {
                 if (
                   window.confirm(
-                    "Tutup tanpa menyimpan perubahan terakhir? Draft yang sudah tersimpan tetap dipertahankan.",
+                    t(
+                      "Tutup tanpa menyimpan perubahan terakhir? Draft yang sudah tersimpan tetap dipertahankan.",
+                    ),
                   )
                 ) {
                   saver.stop();
@@ -363,13 +368,14 @@ export function SongEditor({
                 }
               }}
             >
-              Tutup tanpa menyimpan
+              {t("Tutup tanpa menyimpan")}
             </button>
           )}
         </div>
         <p className="field-help">
-          Draft yang belum lengkap dipisahkan dari lagu tersimpan. Perubahan ini
-          tidak mengirim materi ke LIVE.
+          {t(
+            "Draft yang belum lengkap dipisahkan dari lagu tersimpan. Perubahan ini tidak mengirim materi ke LIVE.",
+          )}
         </p>
       </div>
     </section>

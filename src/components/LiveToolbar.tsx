@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   BellRing,
   Cast,
@@ -65,20 +66,20 @@ export function LiveToolbar({
   };
   const projectorOn = state.connection.status === "Tersinkron";
   // Hover text: what the button does, or why it is not available yet.
-  const readOnlyHint = "Tab ini hanya baca";
+  const readOnlyHint = t("Tab ini hanya baca");
   const goLiveHint = !editable
     ? readOnlyHint
     : state.recovery
-      ? "Pilih Resume atau Discard checkpoint dulu"
+      ? t("Pilih Resume atau Discard checkpoint dulu")
       : state.preparing
-        ? "Menyiapkan slide…"
+        ? t("Menyiapkan slide…")
         : !state.preview
-          ? "Klik lagu atau item jadwal untuk Preview dulu"
+          ? t("Klik lagu atau item jadwal untuk Preview dulu")
           : dirty
-            ? "Apply Preview atau buang perubahan dulu"
-            : "Tampilkan slide Preview ke jemaat";
+            ? t("Apply Preview atau buang perubahan dulu")
+            : t("Tampilkan slide Preview ke jemaat");
   const liveHint = (action: string) =>
-    !editable ? readOnlyHint : !live ? "Go Live dulu" : action;
+    !editable ? readOnlyHint : !live ? t("Go Live dulu") : t(action);
   return (
     <div className="live-toolbar" role="toolbar" aria-label="Kontrol LIVE">
       <ToolButton
@@ -118,7 +119,7 @@ export function LiveToolbar({
             }}
           >
             <label>
-              Pesan alert
+              {t("Pesan alert")}
               <textarea
                 aria-label="Pesan alert"
                 rows={2}
@@ -126,7 +127,9 @@ export function LiveToolbar({
                 autoFocus
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Contoh: Orang tua dari Budi harap ke ruang anak"
+                placeholder={t(
+                  "Contoh: Orang tua dari Budi harap ke ruang anak",
+                )}
               />
             </label>
             <div className="tool-popover-actions">
@@ -138,7 +141,7 @@ export function LiveToolbar({
                     if (run(() => controller.alert(null))) setAlertOpen(false);
                   }}
                 >
-                  Hentikan alert
+                  {t("Hentikan alert")}
                 </button>
               )}
               <button
@@ -149,7 +152,7 @@ export function LiveToolbar({
                   if (run(() => controller.alert(message))) setAlertOpen(false);
                 }}
               >
-                Tampilkan alert
+                {t("Tampilkan alert")}
               </button>
             </div>
           </div>
@@ -175,7 +178,7 @@ export function LiveToolbar({
       <span className="toolbar-divider" aria-hidden="true" />
       <ToolButton
         label="Live"
-        title={editable ? "Buka jendela proyektor" : readOnlyHint}
+        title={editable ? t("Buka jendela proyektor") : readOnlyHint}
         icon={<Cast size={20} />}
         pressed={projectorOn}
         disabled={!editable}

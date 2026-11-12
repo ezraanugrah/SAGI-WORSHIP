@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { frameText, type Preview, type Style } from "../presentation/models";
 import { fontStack } from "../presentation/fonts";
 import type { LyricStyle } from "../presentation/appearance";
@@ -62,7 +63,7 @@ export function ThemesLibrary({
       try {
         done.push(await onImportMedia(file));
       } catch (e) {
-        failed.push(`${file.name}: ${(e as Error).message}`);
+        failed.push(`${file.name}: ${t((e as Error).message)}`);
       }
     }
     setBusy(false);
@@ -94,7 +95,7 @@ export function ThemesLibrary({
         for (const asset of done)
           await services.repo.save(
             `theme:${crypto.randomUUID()}`,
-            asset.title.replace(/\.[^.]+$/, "").slice(0, 80) || "Tema",
+            asset.title.replace(/\.[^.]+$/, "").slice(0, 80) || t("Tema"),
             mediaBackground(
               {
                 background: { kind: "solid", color: "#08090b" },
@@ -106,7 +107,9 @@ export function ThemesLibrary({
           );
         await services.reload();
         onChanged();
-        setStatus(`${done.length} tema dibuat dari media yang diimpor.`);
+        setStatus(
+          t("{n} tema dibuat dari media yang diimpor.", { n: done.length }),
+        );
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -127,7 +130,7 @@ export function ThemesLibrary({
                 onClick={() => upload.current?.click()}
               >
                 <ImagePlus size={14} />{" "}
-                {importing ? "Mengimpor…" : "Impor media"}
+                {importing ? t("Mengimpor…") : t("Impor media")}
               </button>
               <input
                 ref={upload}
@@ -147,11 +150,11 @@ export function ThemesLibrary({
           )}
         </div>
       </div>
-      {services.error && <p role="alert">{services.error}</p>}
-      {error && <p role="alert">{error}</p>}
+      {services.error && <p role="alert">{t(services.error)}</p>}
+      {error && <p role="alert">{t(error)}</p>}
       {status && (
         <p role="status" className="field-help">
-          {status}
+          {t(status)}
         </p>
       )}
       {editor ? (
@@ -185,41 +188,41 @@ export function ThemesLibrary({
       ) : (
         <>
           <ul className="theme-library-grid" aria-label="Daftar tema">
-            {services.themes.map((t) => (
-              <li key={t.id}>
+            {services.themes.map((th) => (
+              <li key={th.id}>
                 <button
                   className="theme-card"
-                  aria-label={`Pilih tema ${t.name}`}
-                  aria-pressed={selected === t.id}
-                  onClick={() => setSelected(t.id)}
+                  aria-label={`Pilih tema ${th.name}`}
+                  aria-pressed={selected === th.id}
+                  onClick={() => setSelected(th.id)}
                 >
                   <span
                     className="theme-card-swatch"
                     style={{
-                      background: cssBackground(t.spec.background),
-                      color: t.spec.type.color,
+                      background: cssBackground(th.spec.background),
+                      color: th.spec.type.color,
                     }}
                   >
-                    {t.spec.background.kind === "image" ||
-                    t.spec.background.kind === "video" ? (
-                      <AssetThumbnail refValue={t.spec.background.poster} />
+                    {th.spec.background.kind === "image" ||
+                    th.spec.background.kind === "video" ? (
+                      <AssetThumbnail refValue={th.spec.background.poster} />
                     ) : (
                       <span
                         style={{
-                          fontFamily: fontStack(t.spec.type.font),
-                          fontWeight: t.spec.type.weight,
+                          fontFamily: fontStack(th.spec.type.font),
+                          fontWeight: th.spec.type.weight,
                         }}
                       >
                         Aa
                       </span>
                     )}
                   </span>
-                  <strong>{t.name}</strong>
+                  <strong>{th.name}</strong>
                   <small>
-                    {t.id.startsWith("builtin:") ? "Built-in" : "Custom"} ·{" "}
-                    {t.spec.background.kind}
-                    {services.settings.defaultThemeId === t.id
-                      ? " · Dipakai"
+                    {th.id.startsWith("builtin:") ? "Built-in" : "Custom"} ·{" "}
+                    {th.spec.background.kind}
+                    {services.settings.defaultThemeId === th.id
+                      ? ` · ${t("Dipakai")}`
                       : ""}
                   </small>
                 </button>
@@ -235,14 +238,13 @@ export function ThemesLibrary({
                   disabled={!editable || busy}
                   onClick={() => void onApply(theme.id)}
                 >
-                  Terapkan ke item Live Output
+                  {t("Terapkan ke item Live Output")}
                 </button>
               </div>
               <p className="field-help">
-                Tema langsung tampil di Live Output dan tetap dipakai untuk
-                lagu, ayat, atau item jadwal apa pun yang ditampilkan
-                berikutnya, sampai tema lain dipilih. Black / Clear Text tetap
-                seperti semula.
+                {t(
+                  "Tema langsung tampil di Live Output dan tetap dipakai untuk lagu, ayat, atau item jadwal apa pun yang ditampilkan berikutnya, sampai tema lain dipilih. Black / Clear Text tetap seperti semula.",
+                )}
               </p>
             </section>
           )}
