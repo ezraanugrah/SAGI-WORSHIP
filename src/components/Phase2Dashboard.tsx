@@ -161,7 +161,7 @@ export function Phase2Dashboard({
     }
     if (request !== preparationRequest.current || abort.signal.aborted) return;
     lastSelection.current = selection;
-    void presentation.prepare(
+    return presentation.prepare(
       resolved,
       selection,
       {
@@ -520,7 +520,7 @@ export function Phase2Dashboard({
                 data={data}
                 editable={editable}
                 onChanged={() => void reload()}
-                onApply={(id, scope) => {
+                onApply={async (id) => {
                   if (!lastSelection.current) {
                     presentation.report(
                       new Error(
@@ -534,17 +534,24 @@ export function Phase2Dashboard({
                     currentItem = preview?.deck.frames[preview.index].itemId;
                   if (selection.kind === "schedule" && currentItem)
                     selection = { ...selection, itemId: currentItem };
-                  if (
-                    selection.kind === "schedule" &&
-                    !selection.itemId &&
-                    scope === "item"
-                  ) {
+                  if (selection.kind === "schedule" && !selection.itemId) {
                     presentation.report(
                       new Error("Pilih item teks di Preview terlebih dahulu."),
                     );
                     return;
                   }
-                  void prepare(selection, { id, scope });
+                  // The theme goes on the Preview item and, once that is
+                  // ready, straight to Live Output (Black/Clear stay as is).
+                  const ready = await prepare(selection, {
+                    id,
+                    scope: "item",
+                  });
+                  if (!ready) return;
+                  try {
+                    await presentation.goLive(true);
+                  } catch (e) {
+                    presentation.report(e);
+                  }
                 }}
               />
             ) : null}

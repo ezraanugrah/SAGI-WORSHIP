@@ -1,6 +1,6 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import { previewReady } from "./previewHelpers";
-import { imageFile } from "./mediaFixtures";
+import { APPLY_THEME, createTheme } from "./themeHelpers";
 
 // v0.7.1 regression tests for the dual-display audit (H1–H4).
 // Three slides, so a key applied twice would visibly skip a slide.
@@ -179,31 +179,10 @@ test("H3: a background image is verified once by the projector, not on every sli
       return get.apply(this, args);
     };
   });
-  await page.getByRole("tab", { name: /Media/ }).click();
-  await page
-    .getByLabel("File media", { exact: true })
-    .setInputFiles(await imageFile(page));
-  await expect(
-    page.getByRole("button", {
-      name: "Pilih media synthetic.png",
-      exact: true,
-    }),
-  ).toBeVisible();
   await song(page);
   await prepare(page);
-  await page.getByRole("tab", { name: /Themes/ }).click();
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
-  await page.getByLabel("Nama tema", { exact: true }).fill("Stability image");
-  await page
-    .getByLabel("Jenis background", { exact: true })
-    .selectOption("image");
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Pilih tema Stability image", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Terapkan ke item Preview", exact: true })
-    .click();
+  await createTheme(page, "Stability image", "image");
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
   const output = await openOutput(page);
   await goLive(page);
   const themed = output.locator(".themed-lines");

@@ -20,6 +20,7 @@ export function MediaCanvas({
   silent = false,
   fit = "contain",
   position = { x: 50, y: 50 },
+  follow,
 }: {
   asset: AssetRef;
   allowed: AssetRef[];
@@ -33,6 +34,8 @@ export function MediaCanvas({
   silent?: boolean;
   fit?: "contain" | "cover";
   position?: { x: number; y: number };
+  /** Monitor only: the projector's playback report, to stay in step with it. */
+  follow?: PlaybackFeedback;
 }) {
   const [loaded, setLoaded] = useState<{ asset: AssetRef; url: string } | null>(
       null,
@@ -183,12 +186,14 @@ export function MediaCanvas({
             Math.max(0, (v.duration || 0) - 0.01),
           );
         positioned.current = { element: v, frameId };
-        if (
-          mode === "black" ||
-          role === "monitor" ||
-          p?.paused !== false ||
-          p.target !== nonce
-        ) {
+        // The operator's Live Output monitor plays along (always muted) so
+        // it shows what the projector shows; only the targeted projector
+        // window plays the real output.
+        const play =
+          mode !== "black" &&
+          p?.paused === false &&
+          (role === "monitor" || p.target === nonce);
+        if (!play) {
           v.pause();
           report();
         } else await v.play();
@@ -218,6 +223,38 @@ export function MediaCanvas({
       v.removeEventListener("ended", ended);
     };
   }, [loaded, active, playback?.revision, mode, nonce, role, frameId, silent]);
+  // Monitor: follow the projector's reported position and pause state, so
+  // the Live Output never drifts more than about a second from the screen.
+  useEffect(() => {
+    const v = video.current;
+    if (
+      role !== "monitor" ||
+      !v ||
+      !active ||
+      !follow ||
+      follow.frameId !== frameId ||
+      mode === "black" ||
+      v.readyState < 1
+    )
+      return;
+    if (Math.abs(v.currentTime - follow.position) > 1)
+      v.currentTime = Math.min(
+        follow.position,
+        Math.max(0, (v.duration || 0) - 0.01),
+      );
+    if (follow.paused && !v.paused) v.pause();
+    else if (!follow.paused && v.paused && playback?.paused === false)
+      void v.play().catch(() => {});
+  }, [
+    follow?.position,
+    follow?.paused,
+    follow?.frameId,
+    active,
+    frameId,
+    mode,
+    role,
+    playback?.paused,
+  ]);
   return (
     <div
       className="media-canvas"

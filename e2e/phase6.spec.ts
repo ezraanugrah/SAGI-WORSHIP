@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { previewReady } from "./previewHelpers";
 import { dragToWeek, openWeek } from "./dragHelpers";
 import { imageFile, videoFile } from "./mediaFixtures";
+import { APPLY_THEME, createTheme } from "./themeHelpers";
 const lyric =
   "Original synthetic theme song.\nA clear second line for testing.";
 async function song(page: Page) {
@@ -22,33 +23,9 @@ async function song(page: Page) {
 async function themes(page: Page) {
   await page.getByRole("tab", { name: /Themes/ }).click();
 }
-async function create(
-  page: Page,
-  name: string,
-  kind: "solid" | "gradient" | "image" | "video" = "solid",
-) {
-  await themes(page);
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
-  await page.getByLabel("Nama tema", { exact: true }).fill(name);
-  if (kind !== "solid")
-    await page
-      .getByLabel("Jenis background", { exact: true })
-      .selectOption(kind);
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Editor tema" })).toHaveCount(
-    0,
-  );
-  await expect(
-    page.getByRole("button", { name: `Pilih tema ${name}`, exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: `Pilih tema ${name}`, exact: true })
-    .click();
-}
+const create = createTheme;
 async function apply(page: Page) {
-  await page
-    .getByRole("button", { name: "Terapkan ke item Preview", exact: true })
-    .click();
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
   await expect(
     page
       .getByRole("region", { name: "Preview workspace" })
@@ -73,7 +50,7 @@ test.beforeEach(async ({ page }) => {
     page.getByRole("button", { name: "Tambah lagu", exact: true }),
   ).toBeEnabled();
 });
-test("theme CRUD, rename, duplicate, search, offline persistence and read-only secondary tab", async ({
+test("themes come from Impor media, persist offline and are read-only in a secondary tab", async ({
   page,
   context,
 }) => {
@@ -85,72 +62,32 @@ test("theme CRUD, rename, duplicate, search, offline persistence and read-only s
   await create(page, "Amber service");
   await page.reload();
   await themes(page);
-  await page.getByLabel("Cari tema", { exact: true }).fill("Amber");
-  await expect(
-    page.getByRole("list", { name: "Daftar tema" }).locator("li"),
-  ).toHaveCount(1);
+  // No search, filter or "Buat tema": Impor media is the only way in.
+  await expect(page.getByLabel("Cari tema")).toHaveCount(0);
+  await expect(page.getByLabel("Filter tema")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Buat tema" })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Pilih tema Amber service", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Edit / rename tema", exact: true })
-    .click();
-  await page.getByLabel("Nama tema", { exact: true }).fill("Evening service");
-  await page.getByLabel("Bobot teks", { exact: true }).selectOption("700");
-  await page.getByLabel("Jarak baris", { exact: true }).fill("1.5");
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await page.getByLabel("Cari tema", { exact: true }).fill("");
-  await page
-    .getByRole("button", { name: "Pilih tema Evening service", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Duplikasi tema", exact: true })
-    .click();
-  await page
-    .getByRole("button", {
-      name: "Pilih tema Evening service (salinan)",
-      exact: true,
-    })
-    .click();
-  await page.getByRole("button", { name: "Hapus tema", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Konfirmasi hapus tema", exact: true })
-    .click();
   await expect(
-    page.getByRole("button", {
-      name: "Pilih tema Evening service (salinan)",
-      exact: true,
-    }),
-  ).toHaveCount(0);
+    page.getByRole("region", { name: "Detail tema" }).getByRole("button"),
+  ).toHaveText([APPLY_THEME]);
   const reader = await context.newPage();
   await reader.goto("/");
   await themes(reader);
   await expect(
-    reader.getByRole("button", { name: "Buat tema", exact: true }),
+    reader.getByRole("button", { name: "Impor media", exact: true }),
   ).toBeDisabled();
   await reader
-    .getByRole("button", { name: "Pilih tema Evening service", exact: true })
+    .getByRole("button", { name: "Pilih tema Amber service", exact: true })
     .click();
   await expect(
-    reader.getByRole("button", { name: "Edit / rename tema", exact: true }),
-  ).toBeDisabled();
-  await expect(
-    reader.getByRole("button", { name: "Hapus tema", exact: true }),
+    reader.getByRole("button", { name: APPLY_THEME, exact: true }),
   ).toBeDisabled();
 });
-test("image theme retains frozen LIVE/checkpoint through source and theme deletion, refresh and recovery", async ({
+test("image theme retains frozen LIVE/checkpoint through source deletion, refresh and recovery", async ({
   page,
 }) => {
-  await page.getByRole("tab", { name: /Media/ }).click();
-  await page
-    .getByLabel("File media", { exact: true })
-    .setInputFiles(await imageFile(page));
-  await expect(
-    page.getByRole("button", {
-      name: "Pilih media synthetic.png",
-      exact: true,
-    }),
-  ).toBeVisible();
   await song(page);
   await create(page, "Image background", "image");
   await apply(page);
@@ -158,33 +95,12 @@ test("image theme retains frozen LIVE/checkpoint through source and theme deleti
   await live(page, p);
   await expect(p.locator(".themed-lines")).toHaveText(lyric);
   await expect(p.locator(".theme-background img")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Edit / rename tema", exact: true })
-    .click();
-  await page.getByLabel("Warna teks", { exact: true }).fill("#ff0000");
-  await expect(p.locator(".themed-lines")).toHaveCSS(
-    "color",
-    "rgb(255, 255, 255)",
-  );
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await expect(p.locator(".themed-lines")).toHaveCSS(
-    "color",
-    "rgb(255, 255, 255)",
-  );
   await page.getByRole("tab", { name: /Media/ }).click();
   await page
     .getByRole("button", { name: "Pilih media synthetic.png", exact: true })
     .click();
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Hapus media", exact: true }).click();
-  await themes(page);
-  await page
-    .getByRole("button", { name: "Pilih tema Image background", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Hapus tema", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Konfirmasi hapus tema", exact: true })
-    .click();
   await p.reload();
   await expect(p.locator(".themed-lines")).toHaveText(lyric);
   await expect(p.locator(".theme-background img")).toBeVisible();
@@ -205,16 +121,6 @@ test("video backgrounds are silent, independently controlled and paused after Bl
   page,
   context,
 }) => {
-  await page.getByRole("tab", { name: /Media/ }).click();
-  await page
-    .getByLabel("File media", { exact: true })
-    .setInputFiles(await videoFile(page));
-  await expect(
-    page.getByRole("button", {
-      name: "Pilih media synthetic.webm",
-      exact: true,
-    }),
-  ).toBeVisible();
   await song(page);
   await create(page, "Silent background", "video");
   await apply(page);
@@ -303,41 +209,62 @@ test("video backgrounds are silent, independently controlled and paused after Bl
     )
     .toBe(true);
 });
-test("theme assignment deletion discloses affected records and requires explicit replacement", async ({
+test("one Themes action themes the Preview item and Live Output together and keeps Black", async ({
   page,
 }) => {
-  await openWeek(page, 1);
   await song(page);
-  await dragToWeek(page.getByTestId("song-row").first());
-  await create(page, "Assigned theme", "gradient");
+  const p = await output(page);
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(p.locator(".slide-lines")).toHaveText(lyric);
+  await themes(page);
+  for (const gone of [
+    "Edit / rename tema",
+    "Duplikasi tema",
+    "Terapkan ke semua teks Preview",
+    "Jadikan default persiapan",
+    "Hapus tema",
+    "Simpan tema pada item",
+  ])
+    await expect(page.getByRole("button", { name: gone })).toHaveCount(0);
   await page
-    .getByLabel("Item jadwal untuk tema", { exact: true })
-    .selectOption({ index: 1 });
-  await page
-    .getByRole("button", { name: "Simpan tema pada item", exact: true })
+    .getByRole("button", { name: "Pilih tema Sunset", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Jadikan default persiapan", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Hapus tema", exact: true }).click();
-  await expect(
-    page.getByRole("region", { name: "Konfirmasi hapus tema" }),
-  ).toContainText("1 assignment jadwal");
-  await expect(
-    page.getByRole("button", { name: "Konfirmasi hapus tema", exact: true }),
-  ).toBeDisabled();
-  await page
-    .getByLabel("Tema pengganti", { exact: true })
-    .selectOption("builtin:black");
-  await page
-    .getByRole("button", { name: "Konfirmasi hapus tema", exact: true })
-    .click();
-  await page.getByTestId("schedule-item").locator(".item-inspect").click();
+  await expect(page.getByLabel("Item jadwal untuk tema")).toHaveCount(0);
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
   await expect(
     page
       .getByRole("region", { name: "Preview workspace" })
       .locator(".themed-lines"),
-  ).toBeVisible();
+  ).toHaveText(lyric);
+  // Live Output and the projector follow without pressing Go Live.
+  await expect(
+    page
+      .getByRole("region", { name: "LIVE projector control" })
+      .locator(".themed-lines"),
+  ).toHaveText(lyric);
+  await expect(p.locator(".themed-lines")).toHaveText(lyric);
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  // While Black, the new theme is prepared underneath and stays dark.
+  await page.getByRole("button", { name: "Black", exact: true }).click();
+  await expect(p.getByTestId("slide-canvas")).toHaveAttribute(
+    "data-mode",
+    "black",
+  );
+  await page
+    .getByRole("button", { name: "Pilih tema Ocean", exact: true })
+    .click();
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  await expect(p.getByTestId("slide-canvas")).toHaveAttribute(
+    "data-mode",
+    "black",
+  );
+  await page.getByRole("button", { name: "Black", exact: true }).click();
+  await expect(p.locator(".theme-background")).toHaveCSS(
+    "background-image",
+    /rgb\(16, 42, 50\)/,
+  );
+  await expect(p.locator(".themed-lines")).toHaveText(lyric);
 });
 test("advanced resolution/scaling affects preparation only and the theme editor previews the current text", async ({
   page,
@@ -379,11 +306,8 @@ test("advanced resolution/scaling affects preparation only and the theme editor 
   );
   await page.getByRole("tab", { name: /Themes/ }).click();
   await page
-    .getByRole("button", { name: "Pilih tema Typography", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Edit / rename tema", exact: true })
-    .click();
+    .getByLabel("File media tema", { exact: true })
+    .setInputFiles(await imageFile(page, "sample.png", "#334155"));
   await page
     .getByLabel("Gunakan teks Preview saat ini", { exact: true })
     .check();
@@ -413,18 +337,14 @@ test("corrupt backgrounds cannot replace valid output and emergency Black surviv
   const p = await output(page);
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(p.locator(".slide-lines")).toHaveText(lyric);
-  await page.getByRole("tab", { name: /Media/ }).click();
-  await page
-    .getByLabel("File media", { exact: true })
-    .setInputFiles(await imageFile(page, "bad-background.png"));
-  await expect(
-    page.getByRole("button", {
-      name: "Pilih media bad-background.png",
-      exact: true,
-    }),
-  ).toBeVisible();
-  await create(page, "Corruption fixture", "image");
-  await apply(page);
+  await create(
+    page,
+    "Corruption fixture",
+    "image",
+    await imageFile(page, "bad-background.png"),
+  );
+  // The payload is corrupted before the theme is applied (which now goes
+  // straight to Live Output).
   await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve) => {
       const r = indexedDB.open("sagi-worship", 1);
@@ -448,8 +368,15 @@ test("corrupt backgrounds cannot replace valid output and emergency Black surviv
     });
     db.close();
   });
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
-  await expect(page.getByTestId("connection-status")).toHaveText("Error");
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  // Refused either by the projector (Error) or already by the operator.
+  await expect(
+    page
+      .getByTestId("connection-status")
+      .filter({ hasText: "Error" })
+      .or(page.getByRole("alert").filter({ hasText: /rusak|Integritas/ }))
+      .first(),
+  ).toBeVisible();
   await expect(p.locator(".slide-lines")).toHaveText(lyric);
   await expect(p.locator(".themed-lines")).toHaveCount(0);
   await page.evaluate(() => {
@@ -507,7 +434,9 @@ test("unsaved edits warn, failed theme writes rollback, and stale protocol canno
       c.close();
     }, message);
   await expect(p.locator(".themed-lines")).toHaveText(lyric);
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
+  await page
+    .getByLabel("File media tema", { exact: true })
+    .setInputFiles(await imageFile(page, "draft.png", "#0f766e"));
   await page.getByLabel("Nama tema", { exact: true }).fill("Uncommitted theme");
   page.once("dialog", (d) => d.dismiss());
   await page.getByRole("tab", { name: /Songs/ }).click();

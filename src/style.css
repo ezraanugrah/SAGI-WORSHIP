@@ -4450,3 +4450,53 @@ footer > span:last-child {
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+
+/* Preview Output and Live Output share one footer and one control slot of
+   fixed height, so both monitors have the same size and position whether a
+   song, picture or video is on screen. */
+.sagi-ui .output-fill .output-foot {
+  min-height: 26px;
+  flex-wrap: nowrap;
+}
+.sagi-ui .output-status {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--sg-muted);
+  font-size: 10px;
+}
+.sagi-ui .output-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  min-height: 26px;
+  margin-top: 4px;
+}
+.sagi-ui .slot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 10px;
+}
+.sagi-ui .slot-controls .button {
+  min-height: 22px;
+  padding: 2px 8px;
+  font-size: 10px;
+}
+.sagi-ui .slot-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sagi-ui .slot-volume input[type="range"] {
+  width: 90px;
+}

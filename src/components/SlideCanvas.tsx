@@ -20,6 +20,8 @@ export function SlideCanvas({
   onFeedback,
   backgroundPlayback,
   alert,
+  follow,
+  backgroundFollow,
 }: {
   deck: Deck | null;
   index?: number;
@@ -32,6 +34,9 @@ export function SlideCanvas({
   nonce?: string;
   onFeedback?: (f: PlaybackFeedback) => void;
   backgroundPlayback?: Playback;
+  /** Live Output monitor: projector reports for the video / background video. */
+  follow?: PlaybackFeedback;
+  backgroundFollow?: PlaybackFeedback;
 }) {
   const container = useRef<HTMLDivElement>(null),
     lines = useRef<HTMLDivElement>(null),
@@ -113,6 +118,7 @@ export function SlideCanvas({
             nonce={nonce}
             onRendered={onRendered}
             onFeedback={onFeedback}
+            follow={backgroundFollow}
           />
         )}
         {deck && frame?.kind === "media" && (
@@ -126,6 +132,7 @@ export function SlideCanvas({
             nonce={nonce}
             onFeedback={onFeedback}
             onRendered={onRendered}
+            follow={follow}
           />
         )}
         {deck && !theme && frame?.kind !== "media" && (

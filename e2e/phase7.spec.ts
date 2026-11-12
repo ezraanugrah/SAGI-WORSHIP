@@ -11,6 +11,7 @@ import {
   videoFile,
   syntheticPDF,
 } from "./mediaFixtures";
+import { createTheme } from "./themeHelpers";
 const BufferNode = (globalThis as any).Buffer;
 async function settings(page: Page) {
   await page.getByRole("link", { name: "Pengaturan", exact: true }).click();
@@ -158,16 +159,13 @@ test("offline portable backup restores mixed image, theme, song and settings int
     .getByRole("button", { name: "Preview media", exact: true })
     .click();
   await expect(previewPosition(page)).toHaveText(/ of 2$/);
-  await page.getByRole("tab", { name: /Themes/ }).click();
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
-  await page.getByLabel("Nama tema", { exact: true }).fill("Portable theme");
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await expect(
-    page.getByRole("button", {
-      name: "Pilih tema Portable theme",
-      exact: true,
-    }),
-  ).toBeVisible();
+  // Themes are made through Impor media (backup.png is reused from Media).
+  await createTheme(
+    page,
+    "Portable theme",
+    "solid",
+    await imageFile(page, "backup.png"),
+  );
   await expect(page.getByTestId("schedule-item")).toHaveCount(3);
   await settings(page);
   await offline(context, page);
@@ -586,21 +584,12 @@ test("Storage Health repairs only a verified missing theme pin after explicit re
   await expect(
     page.getByRole("button", { name: "Pilih media repair.png", exact: true }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: /Themes/ }).click();
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
-  await page
-    .getByLabel("Nama tema", { exact: true })
-    .fill("Verified retained theme");
-  await page
-    .getByLabel("Jenis background", { exact: true })
-    .selectOption("image");
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await expect(
-    page.getByRole("button", {
-      name: "Pilih tema Verified retained theme",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await createTheme(
+    page,
+    "Verified retained theme",
+    "image",
+    await imageFile(page, "repair.png"),
+  );
   await page.evaluate(
     async () =>
       new Promise<void>((resolve) => {

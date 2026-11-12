@@ -277,10 +277,12 @@ export class PresentationController {
         sourceChanged: false,
         error: saved.issues.join(" "),
       });
+      return true;
     } catch (e) {
       if (generation === this.generation)
         this.update({ preparing: false, error: (e as Error).message });
     }
+    return false;
   }
   async calibration(settings: AdvancedSettings = advancedDefaults) {
     const generation = ++this.generation;
@@ -512,7 +514,12 @@ export class PresentationController {
       throw new Error("Preview berubah saat Apply");
     this.update({ preview: captured });
   }
-  goLive() {
+  /**
+   * Show the Preview on the projector. `keepMode` keeps Black / Clear Text
+   * as they are (used when a theme is applied to Preview and Live at once,
+   * so the audience screen never lights up by surprise).
+   */
+  goLive(keepMode = false) {
     this.authorize();
     if (this.state.recovery)
       throw new Error("Pilih Resume atau Discard checkpoint terlebih dahulu.");
@@ -520,14 +527,16 @@ export class PresentationController {
       throw new Error("Pemeriksaan pemulihan belum selesai.");
     if (!this.state.preview || this.state.preparing)
       throw new Error("Preview belum siap.");
-    const preview = clone(this.state.preview);
-    if (mediaRefs(preview.deck).length) return this.mediaGoLive(preview);
+    const preview = clone(this.state.preview),
+      mode: Live["mode"] =
+        keepMode && this.state.live ? this.state.live.mode : "normal";
+    if (mediaRefs(preview.deck).length) return this.mediaGoLive(preview, mode);
     this.intent++;
     this.transition(
       this.withPausedVideo({
         deck: preview.deck,
         index: preview.index,
-        mode: "normal",
+        mode,
         ...this.keptAlert(),
       }),
     );
@@ -537,7 +546,7 @@ export class PresentationController {
     const alert = this.state.live?.alert;
     return alert ? { alert: { text: alert.text } } : {};
   }
-  private async mediaGoLive(preview: Preview) {
+  private async mediaGoLive(preview: Preview, mode: Live["mode"] = "normal") {
     const intent = ++this.intent;
     this.authorize();
     await this.repo
@@ -552,7 +561,7 @@ export class PresentationController {
       this.withPausedVideo({
         deck: preview.deck,
         index: preview.index,
-        mode: "normal",
+        mode,
         ...this.keptAlert(),
       }),
     );

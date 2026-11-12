@@ -150,6 +150,16 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Kotak **Label bagian** dihapus. **Jenis bagian** dipilih dari: Intro, Verse 1, Verse 2, Pre Chorus, Chorus, Bridge; nama itu yang tampil di urutan dan slide. **Tambah bagian** memilih bagian berikutnya yang belum dipakai. Lagu lama dengan nama lain (mis. "Ending", "Reff") tetap tampil dengan namanya sampai diganti. Format data tidak berubah (Pre Chorus disimpan dengan jenis Chorus), jadi backup dan sinkron dengan laptop versi lama tetap jalan.
 - Tes: unit test label kosong, pesan draft, dan pilihan bagian; E2E editor dua kolom dan pilihan bagian.
 
+### Live Output sama dengan Preview Output; tab Themes disederhanakan
+
+- **Live Output kini sama persis dengan Preview Output**: ukuran dan posisi monitor sama (sebelumnya monitor Live bergeser karena kotak kontrol video yang tinggi), footer sama ("Slide X of N" + ‹ ›), dan kontrol video LIVE dipadatkan dalam satu baris (Play LIVE · Pause LIVE · Loop · Mute · Volume). Status pemutaran tampil di footer, mis. "Playing · 0:12 / 0:40".
+- **Video di Live Output ikut berjalan** (tanpa suara) bersama proyektor dan menyesuaikan posisinya dengan laporan proyektor (selisih paling banyak ±1 detik), tidak lagi diam di frame pertama. Diukur dengan video 1080p60 228 MB: proyektor tetap 0–1 frame drop dari ±585 frame.
+- **Tab Themes**: Cari tema, Filter tema, Buat tema, dan bagian detail lama (Edit / rename, Duplikasi, Terapkan ke item Preview, Terapkan ke semua teks Preview, Jadikan default persiapan, Hapus tema, Item jadwal untuk tema) dihapus. Tema dibuat lewat **Impor media**: satu file membuka editor tema, beberapa file langsung menjadi tema masing-masing (nama dari nama file).
+- Detail tema kini hanya punya satu tombol: **Terapkan ke item Preview + Live Output**. Tema dipasang pada item Preview lalu Live Output langsung ikut berganti tanpa klik Go Live. Bila layar sedang Black atau Clear Text, mode itu dipertahankan (tema baru tampil setelah Black/Clear dimatikan).
+- Background video tema juga diverifikasi sekali per jendela (sebelumnya di-hash ulang pada setiap Preview lagu bertema).
+- Data tema lama, tema pada item jadwal, dan tema default tetap tersimpan dan tetap dipakai; hanya tombol pengelolaannya yang dihapus dari tampilan.
+- Tes: unit test Go Live yang mempertahankan Black/Clear; E2E Live Output = Preview Output, video Live ikut berjalan, satu tombol tema ke Preview + Live (termasuk saat Black), dan semua tes tema kini membuat tema lewat Impor media.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

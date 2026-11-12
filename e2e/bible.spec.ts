@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { previewPosition } from "./previewHelpers";
+import { APPLY_THEME, createTheme } from "./themeHelpers";
 // Scriptures tab: the two-language Bible (AYT left, KJV right) installed
 // from public/scriptures, picked by book / chapter / verse range.
 const bible = (page: Page) =>
@@ -231,16 +232,8 @@ test("a theme keeps the two columns and both references", async ({ page }) => {
   await bible(page)
     .getByRole("button", { name: "Preview", exact: true })
     .click();
-  await page.getByRole("tab", { name: /Themes/ }).click();
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
-  await page.getByLabel("Nama tema", { exact: true }).fill("Ibadah");
-  await page.getByRole("button", { name: "Simpan tema", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Pilih tema Ibadah", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Terapkan ke item Preview", exact: true })
-    .click();
+  await createTheme(page, "Ibadah");
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
   const preview = page.getByRole("region", { name: "Preview workspace" });
   await expect(preview.locator(".themed-lines.slide-columns")).toBeVisible();
   await expect(

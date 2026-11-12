@@ -2,7 +2,7 @@ import { canonicalJSON } from "../scriptures/importFormat";
 import { openDatabase } from "../db";
 import { WriterGate } from "./writer";
 import { putPin, changed } from "./mediaRepository";
-import { readAsset } from "../media/assetReader";
+import { readAsset, readVerifiedAsset } from "../media/assetReader";
 import { builtins, signature } from "../themes/builtins";
 import {
   validTheme,
@@ -86,7 +86,9 @@ export class ThemeRepository {
     if (!value)
       throw new Error("Tema hilang/rusak; tidak ada penggantian otomatis.");
     const refs = backgroundRefs(value.spec);
-    for (const ref of refs) await readAsset(ref, refs, this.name);
+    // Verified once per window: a large video background must not be
+    // re-hashed on every Preview while the projector may be playing.
+    for (const ref of refs) await readVerifiedAsset(ref, refs, this.name);
     return structuredClone(value);
   }
   private async checked(id: string) {

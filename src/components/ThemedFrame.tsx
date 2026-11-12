@@ -19,6 +19,7 @@ export function ThemedFrame({
   nonce,
   onRendered,
   onFeedback,
+  follow,
 }: {
   deck: Deck;
   index: number;
@@ -28,6 +29,8 @@ export function ThemedFrame({
   nonce?: string;
   onRendered?: (error?: string) => void;
   onFeedback?: (v: PlaybackFeedback) => void;
+  /** Live Output monitor: the projector's report for this background. */
+  follow?: PlaybackFeedback;
 }) {
   const theme = themeFor(deck, index)!,
     type = effectiveType(deck, index)!,
@@ -113,6 +116,7 @@ export function ThemedFrame({
             fit={bg.fit}
             position={{ x: bg.x, y: bg.y }}
             onFeedback={onFeedback}
+            follow={follow}
             onRendered={(error) => {
               if (error) render.current?.(error);
               else setReady(assetKey);

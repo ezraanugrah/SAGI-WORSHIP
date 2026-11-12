@@ -177,6 +177,26 @@ describe("generation, authorization, immutable LIVE and recovery", () => {
     controller.mode("normal");
     expect(controller.snapshot().live?.mode).toBe("normal");
   });
+  it("Go Live for a theme change keeps Black/Clear Text, a normal Go Live does not", async () => {
+    await seed();
+    const ready = await controller.prepare(
+      await repo.load(),
+      { kind: "song", songId: "song" },
+      style,
+    );
+    expect(ready).toBe(true);
+    // Nothing LIVE yet: a kept mode means a normal output.
+    controller.goLive(true);
+    expect(controller.snapshot().live?.mode).toBe("normal");
+    controller.toggle("black");
+    controller.goLive(true);
+    expect(controller.snapshot().live?.mode).toBe("black");
+    controller.mode("clearText");
+    controller.goLive(true);
+    expect(controller.snapshot().live?.mode).toBe("clearText");
+    controller.goLive();
+    expect(controller.snapshot().live?.mode).toBe("normal");
+  });
   it("requires authorization for Go Live, navigation, modes, Apply, Resume, Discard and checkpoint writes", async () => {
     await seed();
     await controller.prepare(

@@ -512,7 +512,8 @@ test("Themes Library imports media (image or video) like the Media tab", async (
   page,
 }) => {
   await page.getByRole("tab", { name: "Themes", exact: true }).click();
-  // "Impor media" next to "Buat tema": one image opens a new theme with it.
+  // "Impor media" is the only way to add a theme: one image opens a new
+  // theme with it.
   await page
     .getByLabel("File media tema", { exact: true })
     .setInputFiles(await imageFile(page, "altar.png", "#3b82f6"));
@@ -537,7 +538,9 @@ test("Themes Library imports media (image or video) like the Media tab", async (
   ).toBeVisible();
   // Inside the editor: a video becomes a (silent) video background; the same
   // image imported again is reused from Media.
-  await page.getByRole("button", { name: "Buat tema", exact: true }).click();
+  await page
+    .getByLabel("File media tema", { exact: true })
+    .setInputFiles(await imageFile(page, "altar.png", "#3b82f6"));
   await page.getByLabel("Nama tema", { exact: true }).fill("Altar video");
   await page
     .getByLabel("File media background", { exact: true })
@@ -556,7 +559,7 @@ test("Themes Library imports media (image or video) like the Media tab", async (
   await expect(
     page.getByRole("button", { name: "Pilih tema Altar video", exact: true }),
   ).toBeVisible();
-  // Several files at once are only imported, ready under Media background.
+  // Several files at once: each becomes its own theme, named after the file.
   await page
     .getByLabel("File media tema", { exact: true })
     .setInputFiles([
@@ -564,8 +567,12 @@ test("Themes Library imports media (image or video) like the Media tab", async (
       await imageFile(page, "malam.png", "#7c3aed"),
     ]);
   await expect(
-    page.getByRole("status").filter({ hasText: "2 media diimpor" }),
+    page.getByRole("status").filter({ hasText: "2 tema dibuat" }),
   ).toBeVisible();
+  for (const name of ["pagi", "malam"])
+    await expect(
+      page.getByRole("button", { name: `Pilih tema ${name}`, exact: true }),
+    ).toBeVisible();
   await expect(page.getByRole("region", { name: "Editor tema" })).toHaveCount(
     0,
   );
@@ -668,4 +675,54 @@ test("song editor asks only title and author, and each part is picked from six c
   await expect(page.getByLabel("Jenis bagian 2", { exact: true })).toHaveValue(
     "Pre Chorus",
   );
+});
+
+test("Live Output matches Preview Output and its video plays along with the projector", async ({
+  page,
+}) => {
+  await page.getByRole("tab", { name: "Media", exact: true }).click();
+  await page
+    .getByLabel("File media", { exact: true })
+    .setInputFiles(await videoFile(page));
+  await page
+    .getByRole("button", { name: "Pilih media synthetic.webm", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Preview media", exact: true })
+    .click();
+  await previewReady(page);
+  const pending = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Live", exact: true }).click();
+  const projector = await pending;
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
+  const preview = page.getByRole("region", { name: "Preview workspace" });
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  // Same monitor size and height on screen, with the LIVE video controls.
+  await expect(live.getByRole("button", { name: "Play LIVE" })).toBeVisible();
+  const box = async (region: typeof live) => {
+    const b = (await region.locator(".presentation-canvas").boundingBox())!;
+    return [Math.round(b.y), Math.round(b.width), Math.round(b.height)];
+  };
+  expect(await box(live)).toEqual(await box(preview));
+  const monitor = live.locator("video");
+  await page.getByRole("button", { name: "Play LIVE", exact: true }).click();
+  await expect
+    .poll(() =>
+      projector
+        .getByLabel("Video LIVE", { exact: true })
+        .evaluate((v: HTMLVideoElement) => v.paused),
+    )
+    .toBe(false);
+  await expect
+    .poll(() => monitor.evaluate((v: HTMLVideoElement) => v.paused))
+    .toBe(false);
+  expect(await monitor.evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
+  await expect(live.locator(".output-status")).toContainText("Playing");
+  await page.getByRole("button", { name: "Pause LIVE", exact: true }).click();
+  await expect
+    .poll(() => monitor.evaluate((v: HTMLVideoElement) => v.paused))
+    .toBe(true);
+  expect(await box(live)).toEqual(await box(preview));
 });

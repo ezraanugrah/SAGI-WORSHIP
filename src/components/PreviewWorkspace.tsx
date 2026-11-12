@@ -286,36 +286,40 @@ export function PreviewWorkspace({
             <Pencil size={13} /> Edit teks
           </button>
         </div>
-        {backgroundPlayback && (
-          <div className="output-extra">
-            <button
-              className="button secondary"
-              disabled={backgroundMotion}
-              onClick={() => setBackgroundMotion(true)}
-            >
-              Play background Preview
-            </button>
-            <button
-              className="button secondary"
-              disabled={!backgroundMotion}
-              onClick={() => setBackgroundMotion(false)}
-            >
-              Pause background Preview
-            </button>
-            <span className="field-help">silent · terpisah dari LIVE</span>
-          </div>
-        )}
-        {previewPlayback && (
-          <label className="output-extra field-help">
-            <input
-              type="checkbox"
-              aria-label="Loop Preview"
-              checked={previewLoop}
-              onChange={(e) => setPreviewLoop(e.target.checked)}
-            />{" "}
-            Loop Preview · kontrol video ini terpisah dari LIVE
-          </label>
-        )}
+        {/* Same slot as under Live Output, so both monitors keep the same
+            size and position whatever is on screen. */}
+        <div className="output-slot">
+          {backgroundPlayback && (
+            <div className="slot-controls">
+              <button
+                className="button secondary"
+                disabled={backgroundMotion}
+                onClick={() => setBackgroundMotion(true)}
+              >
+                Play background Preview
+              </button>
+              <button
+                className="button secondary"
+                disabled={!backgroundMotion}
+                onClick={() => setBackgroundMotion(false)}
+              >
+                Pause background Preview
+              </button>
+              <span className="field-help">silent · terpisah dari LIVE</span>
+            </div>
+          )}
+          {previewPlayback && (
+            <label className="slot-controls field-help">
+              <input
+                type="checkbox"
+                aria-label="Loop Preview"
+                checked={previewLoop}
+                onChange={(e) => setPreviewLoop(e.target.checked)}
+              />{" "}
+              Loop Preview · kontrol video ini terpisah dari LIVE
+            </label>
+          )}
+        </div>
         {state.sourceChanged && (
           <p className="save-message">
             Sumber berubah/dihapus. Preview dan LIVE tidak diperbarui otomatis.
