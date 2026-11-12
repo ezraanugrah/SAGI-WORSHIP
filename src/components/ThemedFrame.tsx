@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { fontStack } from "../presentation/fonts";
 import { cssBackground } from "../themes/builtins";
 import { backgroundRefs } from "../themes/models";
 import {
@@ -113,8 +114,11 @@ export function ThemedFrame({
             }
             nonce={nonce}
             silent
-            fit={bg.fit}
-            position={{ x: bg.x, y: bg.y }}
+            // A background always fills the 16:9 output, centred; the
+            // picture or video keeps its own proportions (cropped, never
+            // stretched), whatever its size.
+            fit="cover"
+            position={{ x: 50, y: 50 }}
             onFeedback={onFeedback}
             follow={follow}
             onRendered={(error) => {
@@ -151,7 +155,7 @@ export function ThemedFrame({
           ref={body}
           className={`slide-lines themed-lines${parallel !== undefined ? " slide-columns" : ""}`}
           style={{
-            fontFamily: type.font,
+            fontFamily: fontStack(type.font),
             fontSize: type.size * scale,
             fontWeight: type.weight,
             fontStyle: type.italic ? "italic" : "normal",
@@ -181,7 +185,7 @@ export function ThemedFrame({
             right: `${Math.max(3, type.margins.right)}%`,
             bottom: `${type.margins.bottom}%`,
             height: 150 * scale,
-            fontFamily: type.font,
+            fontFamily: fontStack(type.font),
             visibility: mode === "normal" ? "visible" : "hidden",
             background: "#000",
             color: "#fff",

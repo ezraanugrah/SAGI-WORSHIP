@@ -8,11 +8,44 @@ import { columnMeasure, type Measure } from "./layout";
 import type { Workspace } from "../domain/models";
 import type { Selection } from "./generateSlides";
 import type { ThemeRepository } from "../data/themeRepository";
+import { signature } from "../themes/builtins";
+import { lyricFont } from "./fonts";
 export type AppearanceContext = {
   settings: AdvancedSettings;
   defaultTheme?: ThemeSnapshot;
   byItem: Record<string, ThemeSnapshot>;
 };
+/**
+ * Lyrics and backgrounds are separate: whatever the theme, the lyric font,
+ * size, margin and line count come from the global text style (Pengaturan ›
+ * Tipografi lirik). The theme keeps its background and the text's colour,
+ * weight, alignment, outline and shadow.
+ */
+export function lyricSpec(
+  spec: ThemeSpec,
+  style: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">,
+): ThemeSpec {
+  const m = style.safeMargin;
+  return {
+    ...spec,
+    type: {
+      ...spec.type,
+      font: lyricFont(style.font),
+      size: style.fontSize,
+      minSize: Math.min(spec.type.minSize, style.fontSize),
+      margins: { top: m, right: m, bottom: m, left: m },
+      lines: style.lines,
+    },
+  };
+}
+/** A theme snapshot with the global lyric style, signed for its new content. */
+export async function lyricTheme(
+  theme: ThemeSnapshot,
+  style: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">,
+): Promise<ThemeSnapshot> {
+  const spec = lyricSpec(theme.spec, style);
+  return { ...theme, spec, signature: await signature(spec) };
+}
 export function themeFor(deck: Deck, index: number) {
   const key = deck.render?.frames[deck.frames[index]?.id];
   return key ? deck.render?.themes[key] : undefined;

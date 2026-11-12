@@ -1,4 +1,5 @@
 import { preflight } from "./preflight";
+import { loadLyricFonts } from "../presentation/fonts";
 import { fitsFrame } from "../presentation/scriptureAdapter";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SlideCanvas } from "../components/SlideCanvas";
@@ -65,10 +66,13 @@ export default function ProjectorApp() {
   useEffect(() => {
     let active = true,
       ready = false;
-    void document.fonts.ready.then(() => {
-      ready = true;
-      if (active) send("HELLO");
-    });
+    // The bundled lyric fonts must be loaded before slides are measured.
+    void loadLyricFonts()
+      .then(() => document.fonts.ready)
+      .then(() => {
+        ready = true;
+        if (active) send("HELLO");
+      });
     const endpoint = new Transport(
       pairing,
       () => window.opener as Window | null,

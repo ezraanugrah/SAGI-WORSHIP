@@ -160,6 +160,14 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Data tema lama, tema pada item jadwal, dan tema default tetap tersimpan dan tetap dipakai; hanya tombol pengelolaannya yang dihapus dari tampilan.
 - Tes: unit test Go Live yang mempertahankan Black/Clear; E2E Live Output = Preview Output, video Live ikut berjalan, satu tombol tema ke Preview + Live (termasuk saat Black), dan semua tes tema kini membuat tema lewat Impor media.
 
+### Lirik terpisah dari latar tema, 5 font lirik, latar selalu memenuhi 16:9
+
+- **Lirik dan latar tema tidak lagi disatukan.** Font, ukuran, safe margin, dan jumlah baris lirik selalu diambil dari **Pengaturan › Tipografi lirik** (sebelumnya "Tipografi default"), untuk semua slide dengan atau tanpa tema. Jadi ukuran lirik bisa dibuat besar (sampai 120 px) di tema apa pun. Tema hanya mengatur latar serta tampilan teks di atasnya (warna, tebal, rata, outline, bayangan). Editor tema tidak lagi punya Font tema, Ukuran tema, Ukuran minimum, Text fitting, Maksimum baris, dan Margin.
+- **Font lirik hanya lima: Montserrat, Poppins, Bebas Neue, Georgia, Times New Roman.** Montserrat, Poppins, dan Bebas Neue dibundel di aplikasi (lisensi OFL, paket @fontsource) dan ikut tersimpan offline, jadi tampil sama di proyektor tanpa internet. Georgia dan Times New Roman memakai font bawaan macOS/Windows. Font lama (Arial, Verdana) di data/backup tetap terbaca dan digambar sebagai Montserrat; default baru Montserrat. Font dimuat sebelum teks diukur agar pembagian slide tepat. Montserrat lebih lebar daripada Arial, jadi rentang ayat panjang bisa butuh satu slide lagi (mis. Kejadian 1:3–10 dua bahasa kini 2 slide; Bilangan 4:4–7 tetap 1 slide); pilih Times New Roman atau Georgia bila ingin lebih padat.
+- **Latar gambar/video tema selalu memenuhi output 16:9**, di tengah, tanpa pengaturan: gambar atau video dengan ukuran apa pun (mis. 862×485 atau 1200×719) dipotong seperlunya, tidak pernah gepeng atau berbingkai hitam. Kontrol Background fit dan Fokus x/y dihapus (Dim background tetap).
+- Slider Ukuran teks dan Safe margin di Pengaturan kini punya label untuk pembaca layar.
+- Tes: unit test gaya lirik global pada tema (ukuran, font, margin, tanda tangan tema) dan daftar font; E2E Poppins 100 px tetap dipakai di Preview dan Live Output bertema, latar `object-fit: cover`, dan editor tema tanpa kolom font/ukuran/fit.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

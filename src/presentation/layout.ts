@@ -1,4 +1,5 @@
 import type { Style } from "./models";
+import { fontStack } from "./fonts";
 export type Measure = (
   text: string,
   style: Style & { weight?: 400 | 700; italic?: boolean },
@@ -7,7 +8,7 @@ let context: CanvasRenderingContext2D | null = null;
 export const browserMeasure: Measure = (text, style) => {
   context ??= document.createElement("canvas").getContext("2d");
   if (!context) throw new Error("Pengukuran teks tidak tersedia.");
-  context.font = `${style.italic ? "italic " : ""}${style.weight ?? 400} ${style.fontSize}px ${style.font}`;
+  context.font = `${style.italic ? "italic " : ""}${style.weight ?? 400} ${style.fontSize}px ${fontStack(style.font)}`;
   return context.measureText(text).width;
 };
 export function lineCapacity(style: Style) {

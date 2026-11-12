@@ -1,4 +1,5 @@
-import { frameText, type Preview } from "../presentation/models";
+import { frameText, type Preview, type Style } from "../presentation/models";
+import { fontStack } from "../presentation/fonts";
 import { useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import type { MediaAsset } from "../media/models";
@@ -17,7 +18,10 @@ export function ThemesLibrary({
   onChanged,
   preview,
   onImportMedia,
+  lyricStyle,
 }: {
+  /** Global lyric style, shown in the theme editor preview. */
+  lyricStyle?: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">;
   /** Import an image/video file into Media and return it (backgrounds). */
   onImportMedia?: (file: File) => Promise<MediaAsset>;
   services: ReturnType<typeof useThemes>;
@@ -155,6 +159,7 @@ export function ThemesLibrary({
           initial={editor.initial}
           assets={data.mediaAssets ?? []}
           onImportMedia={onImportMedia}
+          lyricStyle={lyricStyle}
           editable={editable && !busy}
           reducedMotion={services.settings.reducedMotion}
           contrastWarnings={services.settings.contrastWarnings}
@@ -200,7 +205,7 @@ export function ThemesLibrary({
                     ) : (
                       <span
                         style={{
-                          fontFamily: t.spec.type.font,
+                          fontFamily: fontStack(t.spec.type.font),
                           fontWeight: t.spec.type.weight,
                         }}
                       >

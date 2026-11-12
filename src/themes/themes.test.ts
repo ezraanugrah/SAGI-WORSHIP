@@ -27,6 +27,7 @@ import { readAsset } from "../media/assetReader";
 import { ScriptureRepository } from "../data/scriptureRepository";
 import { preparedFixture } from "../scriptures/testFixtures";
 import { resolveReference } from "../scriptures/references";
+import { LYRIC_FONTS, fontStack, lyricFont } from "../presentation/fonts";
 let name: string,
   writer: ReturnType<typeof writerFixture>,
   repo: ThemeRepository,
@@ -480,4 +481,74 @@ it("cleanup blocks missing theme pins rather than deleting a referenced backgrou
   ).rejects.toThrow("Pin dependensi");
   expect(await db.get("media_assets", p.id)).toBeDefined();
   db.close();
+});
+it("lyrics use the global text style on every theme; the theme keeps its background and text look", async () => {
+  await songs.createSong("song", songFixture("song", "Theme free lyric"));
+  const t = await create("Small lyric theme", {
+      background: { kind: "solid", color: "#224466" },
+      type: {
+        ...structuredClone(defaultType),
+        font: "Arial",
+        size: 40,
+        minSize: 32,
+        color: "#ffee00",
+        margins: { top: 18, right: 18, bottom: 18, left: 18 },
+        lines: 2,
+      },
+    }),
+    data = await songs.load(),
+    ctx = await resolveAppearance(
+      repo,
+      data,
+      { kind: "song", songId: "song" },
+      { id: t.id, scope: "item" },
+    ),
+    big: Style = { ...style, font: "Bebas Neue", fontSize: 110, safeMargin: 4 },
+    { deck } = await generateSlides(
+      data,
+      { kind: "song", songId: "song" },
+      big,
+      measure,
+      () => false,
+      ctx,
+    );
+  expect(validDeck(deck)).toBe(true);
+  const snapshot = Object.values(deck.render!.themes)[0];
+  expect(snapshot.spec.type).toMatchObject({
+    font: "Bebas Neue",
+    size: 110,
+    color: "#ffee00",
+    margins: { top: 4, right: 4, bottom: 4, left: 4 },
+    lines: 6,
+  });
+  expect(snapshot.spec.background).toEqual({
+    kind: "solid",
+    color: "#224466",
+  });
+  // Re-signed for the content it now carries.
+  expect(snapshot.signature).toBe(await signature(snapshot.spec));
+  expect(Object.values(deck.render!.sizes)).toEqual([110]);
+});
+it("offers five lyric fonts and draws fonts of older versions as Montserrat", () => {
+  expect(LYRIC_FONTS).toEqual([
+    "Montserrat",
+    "Poppins",
+    "Bebas Neue",
+    "Georgia",
+    "Times New Roman",
+  ]);
+  expect(lyricFont("Arial")).toBe("Montserrat");
+  expect(lyricFont("Times New Roman")).toBe("Times New Roman");
+  expect(fontStack("Bebas Neue")).toBe('"Bebas Neue", sans-serif');
+  expect(fontStack("Georgia")).toBe('"Georgia", serif');
+  // Stored data from earlier versions stays valid.
+  expect(
+    validSpec({ ...spec(), type: { ...defaultType, font: "Verdana" } }),
+  ).toBe(true);
+  expect(
+    validSpec({
+      ...spec(),
+      type: { ...defaultType, font: "Comic Sans" as never },
+    }),
+  ).toBe(false);
 });

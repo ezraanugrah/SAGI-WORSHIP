@@ -1,4 +1,5 @@
 import { ThemedFrame } from "./ThemedFrame";
+import { fontStack } from "../presentation/fonts";
 import { themeFor } from "../presentation/appearance";
 import { MediaCanvas } from "./MediaCanvas";
 import {
@@ -151,7 +152,7 @@ export function SlideCanvas({
               className={`slide-lines${parallel !== undefined ? " slide-columns" : ""}`}
               ref={lines}
               style={{
-                fontFamily: deck.style.font,
+                fontFamily: fontStack(deck.style.font),
                 fontSize: pageFontSize ?? deck.style.fontSize,
                 lineHeight: 1.3,
               }}
@@ -169,7 +170,7 @@ export function SlideCanvas({
               right: `${deck.style.safeMargin}%`,
               bottom: `${deck.style.safeMargin}%`,
               visibility: mode === "normal" ? "visible" : "hidden",
-              fontFamily: deck.style.font,
+              fontFamily: fontStack(deck.style.font),
             }}
           >
             <CaptionText caption={caption} />

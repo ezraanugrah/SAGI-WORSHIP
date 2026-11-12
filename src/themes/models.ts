@@ -1,4 +1,5 @@
 import { validRef, type AssetRef } from "../media/models";
+import { FONT_VALUES, type FontName } from "../presentation/fonts";
 export type Background =
   | { kind: "solid"; color: string }
   | { kind: "gradient"; angle: number; stops: { color: string; at: number }[] }
@@ -14,7 +15,8 @@ export type Background =
       fallback: string;
     };
 export type Typography = {
-  font: "Arial" | "Georgia" | "Verdana";
+  /** Lyrics use the global text font; kept for stored data. */
+  font: FontName;
   size: number;
   weight: 400 | 700;
   italic: boolean;
@@ -136,7 +138,7 @@ export function validTypography(v: unknown): v is Typography {
   )
     return false;
   return (
-    ["Arial", "Georgia", "Verdana"].includes(v.font as string) &&
+    FONT_VALUES.includes(v.font as string) &&
     number(v.size, 24, 120) &&
     [400, 700].includes(v.weight as number) &&
     typeof v.italic === "boolean" &&
@@ -277,7 +279,7 @@ export function backgroundRefs(spec: ThemeSpec): AssetRef[] {
     : [];
 }
 export const defaultType: Typography = {
-  font: "Arial",
+  font: "Montserrat",
   size: 64,
   weight: 400,
   italic: false,

@@ -305,7 +305,7 @@ export class PresentationController {
         label: "Kalibrasi Preview · 16:9",
         createdAt: new Date().toISOString(),
         style: {
-          font: "Arial",
+          font: "Montserrat",
           fontSize: 64,
           safeMargin: 8,
           theme: "black",

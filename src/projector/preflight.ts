@@ -1,3 +1,4 @@
+import { loadLyricFonts } from "../presentation/fonts";
 import { mediaRefs } from "../media/models";
 import { readVerifiedAsset } from "../media/assetReader";
 import { themeFor } from "../presentation/appearance";
@@ -15,6 +16,7 @@ export async function preflight(live: Live | null) {
           ? [bg.asset, bg.poster]
           : [];
   const allowed = mediaRefs(live.deck);
+  await loadLyricFonts();
   await document.fonts.ready;
   for (const ref of refs) {
     // Integrity is verified once per asset in this window (see readVerifiedAsset).

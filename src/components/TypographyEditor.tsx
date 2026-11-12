@@ -9,7 +9,7 @@ export function TypographyEditor({
   const set = (patch: Partial<Typography>) => onChange({ ...value, ...patch });
   const numeric = (
     label: string,
-    key: "size" | "lineHeight" | "lines" | "minSize",
+    key: "lineHeight",
     min: number,
     max: number,
     step = 1,
@@ -23,34 +23,16 @@ export function TypographyEditor({
         max={max}
         step={step}
         value={value[key]}
-        onChange={(e) =>
-          set(
-            key === "size"
-              ? {
-                  size: Number(e.target.value),
-                  minSize: Math.min(value.minSize, Number(e.target.value)),
-                }
-              : { [key]: Number(e.target.value) },
-          )
-        }
+        onChange={(e) => set({ [key]: Number(e.target.value) })}
       />
     </label>
   );
   return (
     <div className="typography-editor">
-      <label>
-        Font tema
-        <select
-          aria-label="Font tema"
-          value={value.font}
-          onChange={(e) => set({ font: e.target.value as Typography["font"] })}
-        >
-          {["Arial", "Georgia", "Verdana"].map((f) => (
-            <option key={f}>{f}</option>
-          ))}
-        </select>
-      </label>
-      {numeric("Ukuran tema", "size", 24, 120)}
+      <p className="field-help typography-note">
+        Font dan ukuran lirik diatur di Pengaturan › Tipografi lirik dan berlaku
+        untuk semua tema. Di sini hanya tampilan teks di atas latar ini.
+      </p>
       <label>
         Bobot teks
         <select
@@ -118,36 +100,6 @@ export function TypographyEditor({
         </select>
       </label>
       {numeric("Jarak baris", "lineHeight", 1, 2, 0.05)}
-      {numeric("Maksimum baris", "lines", 1, 12)}
-      <label>
-        Text fitting
-        <select
-          aria-label="Text fitting"
-          value={value.fit}
-          onChange={(e) => set({ fit: e.target.value as Typography["fit"] })}
-        >
-          <option value="paginate">Paginasi</option>
-          <option value="shrink">Shrink terbatas lalu paginasi</option>
-        </select>
-      </label>
-      {numeric("Ukuran minimum", "minSize", 24, value.size)}
-      {(["top", "right", "bottom", "left"] as const).map((side) => (
-        <label key={side}>
-          Margin {side}
-          <input
-            aria-label={`Margin ${side}`}
-            type="number"
-            min={0}
-            max={20}
-            value={value.margins[side]}
-            onChange={(e) =>
-              set({
-                margins: { ...value.margins, [side]: Number(e.target.value) },
-              })
-            }
-          />
-        </label>
-      ))}
       <label>
         Outline width
         <input

@@ -64,9 +64,11 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   await bible(page)
     .getByRole("button", { name: "Preview", exact: true })
     .click();
-  // All eight verses of Kejadian 1:3–10 share one slide, each numbered.
+  // The eight verses of Kejadian 1:3–10 share as few slides as possible,
+  // each numbered: two with the bundled default font Montserrat (it is wider
+  // than the old Arial; the bundled font measures the same on every laptop).
   const preview = page.getByRole("region", { name: "Preview workspace" });
-  await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
   await expect(
     preview.locator('.slide-column[data-column="left"]').first(),
   ).toContainText(
@@ -90,8 +92,9 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
     projector.locator('.slide-column[data-column="right"]'),
   ).toContainText(/³\s?And God said, Let there be light/);
   const footer = projector.locator(".scripture-footer");
-  await expect(footer).toContainText("Kejadian 1:3–10 · AYT · 2024");
-  await expect(footer).toContainText("Genesis 1:3–10 · KJV · 1769");
+  // Slide 1 of 2 holds verses 3–6 (the range is split evenly).
+  await expect(footer).toContainText("Kejadian 1:3–6 · AYT · 2024");
+  await expect(footer).toContainText("Genesis 1:3–6 · KJV · 1769");
   await expect(footer).toContainText(
     "AYT © YLSA · CC BY-NC-SA · Public Domain",
   );

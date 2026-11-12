@@ -6,6 +6,7 @@ import {
 } from "./previewHelpers";
 import { imageFile, syntheticPDF, videoFile } from "./mediaFixtures";
 import { activeSchedule, dragToWeek, mediaCard, openWeek } from "./dragHelpers";
+import { APPLY_THEME, createTheme } from "./themeHelpers";
 
 // SagiWorship workspace: Schedule | Preview | Live, one LIVE toolbar on top,
 // library tabs below.
@@ -725,4 +726,65 @@ test("Live Output matches Preview Output and its video plays along with the proj
     .poll(() => monitor.evaluate((v: HTMLVideoElement) => v.paused))
     .toBe(true);
   expect(await box(live)).toEqual(await box(preview));
+});
+
+test("lyrics keep the Pengaturan font and size on any theme, and the background fills the 16:9 output", async ({
+  page,
+}) => {
+  await page.getByRole("link", { name: "Pengaturan", exact: true }).click();
+  const font = page.getByLabel("Font", { exact: true });
+  await expect(font.locator("option")).toHaveText([
+    "Montserrat",
+    "Poppins",
+    "Bebas Neue",
+    "Georgia",
+    "Times New Roman",
+  ]);
+  await font.selectOption("Poppins");
+  await page
+    .getByRole("slider", { name: "Ukuran teks", exact: true })
+    .fill("100");
+  await page.getByRole("link", { name: "Dashboard", exact: true }).click();
+  await song(page, "Ladang", ["Synthetic harvest line."]);
+  await songRow(page, "Ladang")
+    .getByRole("button", { name: /^Ladang/ })
+    .click();
+  await previewReady(page);
+  await createTheme(
+    page,
+    "Latar ladang",
+    "image",
+    await imageFile(page, "ladang.png", "#c2410c"),
+  );
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  for (const region of ["Preview workspace", "LIVE projector control"]) {
+    const lines = page
+      .getByRole("region", { name: region })
+      .locator(".themed-lines");
+    await expect(lines).toHaveText("Synthetic harvest line.");
+    await expect(lines).toHaveCSS("font-size", "100px");
+    await expect(lines).toHaveCSS("font-family", /Poppins/);
+    await expect(
+      page
+        .getByRole("region", { name: region })
+        .locator(".theme-background img"),
+    ).toHaveCSS("object-fit", "cover");
+  }
+  // The theme editor no longer sets lyric font/size or background fit.
+  await page
+    .getByLabel("File media tema", { exact: true })
+    .setInputFiles(await imageFile(page, "ladang.png", "#c2410c"));
+  const editor = page.getByRole("region", { name: "Editor tema" });
+  await expect(editor).toBeVisible();
+  for (const gone of [
+    "Font tema",
+    "Ukuran tema",
+    "Ukuran minimum",
+    "Text fitting",
+    "Background fit",
+    "Fokus x",
+    "Margin top",
+  ])
+    await expect(editor.getByLabel(gone, { exact: true })).toHaveCount(0);
+  await expect(editor).toContainText("Pengaturan › Tipografi lirik");
 });

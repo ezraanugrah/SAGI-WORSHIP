@@ -1,4 +1,5 @@
 import { themeFor } from "../presentation/appearance";
+import { LYRIC_FONTS, lyricFont } from "../presentation/fonts";
 import { backgroundIdentity } from "../themes/models";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
@@ -147,12 +148,12 @@ export function PreviewWorkspace({
             <select
               aria-label="Font Preview"
               title="Font"
-              value={style?.font}
+              value={style ? lyricFont(style.font) : undefined}
               onChange={(e) =>
                 setStyle({ ...style!, font: e.target.value as Style["font"] })
               }
             >
-              {["Arial", "Georgia", "Verdana"].map((font) => (
+              {LYRIC_FONTS.map((font) => (
                 <option key={font}>{font}</option>
               ))}
             </select>

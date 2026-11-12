@@ -1,4 +1,5 @@
 import { ThemesLibrary } from "./ThemesLibrary";
+import { loadLyricFonts, lyricFont } from "../presentation/fonts";
 import { resolveAppearance } from "../presentation/appearance";
 import type { useThemes } from "../hooks/useThemes";
 import { MediaLibrary } from "./MediaLibrary";
@@ -122,6 +123,8 @@ export function Phase2Dashboard({
       !window.confirm("Buang perubahan Preview yang belum diterapkan?")
     )
       return;
+    // Measure with the real lyric fonts, not a fallback.
+    await loadLyricFonts();
     await document.fonts.ready;
     let resolved = data;
     try {
@@ -165,7 +168,7 @@ export function Phase2Dashboard({
       resolved,
       selection,
       {
-        font: prefs.font as Style["font"],
+        font: lyricFont(prefs.font),
         fontSize: prefs.fontSize,
         safeMargin: prefs.safeMargin,
         theme: prefs.theme as Style["theme"],
@@ -516,6 +519,12 @@ export function Phase2Dashboard({
                   return asset;
                 }}
                 services={themeServices}
+                lyricStyle={{
+                  font: lyricFont(prefs.font),
+                  fontSize: prefs.fontSize,
+                  safeMargin: prefs.safeMargin,
+                  lines: 6,
+                }}
                 preview={presentationState.preview}
                 data={data}
                 editable={editable}

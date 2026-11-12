@@ -10,9 +10,15 @@ import {
   type Background,
 } from "../themes/models";
 import { cssBackground, contrast } from "../themes/builtins";
-import { layoutText } from "../presentation/appearance";
+import { layoutText, lyricSpec } from "../presentation/appearance";
+import { loadLyricFonts, lyricFont } from "../presentation/fonts";
 import { browserMeasure } from "../presentation/layout";
-import type { Deck, Frame, ScriptureCaption } from "../presentation/models";
+import type {
+  Deck,
+  Frame,
+  ScriptureCaption,
+  Style,
+} from "../presentation/models";
 import type { MediaAsset } from "../media/models";
 /** Theme spec with `a` (image or video) as the full-screen background. */
 export function mediaBackground(spec: ThemeSpec, a: MediaAsset): ThemeSpec {
@@ -41,7 +47,10 @@ export function ThemeEditor({
   contrastWarnings = true,
   sample,
   onImportMedia,
+  lyricStyle,
 }: {
+  /** Global lyric style (font, size, margin, lines) shown in the preview. */
+  lyricStyle?: Pick<Style, "font" | "fontSize" | "safeMargin" | "lines">;
   /** Import an image/video file (Themes "Impor media") and return it. */
   onImportMedia?: (file: File) => Promise<MediaAsset>;
   initial?: ThemeSnapshot;
@@ -71,90 +80,103 @@ export function ThemeEditor({
   const upload = useRef<HTMLInputElement>(null);
   useEffect(() => {
     let active = true;
-    void document.fonts.ready.then(() => {
-      if (!active) return;
-      try {
-        if (!validSpec(spec)) throw new Error("Nilai tema belum valid");
-        const text =
-            useSource && sample
-              ? sample.text
-              : "Original theme preview.\nSiapkan teks dengan jelas dan terbaca.",
-          layout = layoutText(
-            text,
-            spec,
-            browserMeasure,
-            useSource && !!sample?.caption,
-          ),
-          snapshot = {
-            id: "theme:editor",
-            revision: 1,
-            name: "Local sample",
-            signature: "0".repeat(64),
-            spec: structuredClone(spec),
-          },
-          key = `${snapshot.id}@${snapshot.signature}`;
-        const base = {
-          id: "sample",
-          page: 0,
-          itemId: null,
-          title: "Preview lokal",
-          label: "Sample",
-          occurrence: 0,
-        };
-        const sampleFrame: Frame =
-          useSource && sample?.caption
-            ? {
-                ...base,
-                kind: "scripture",
-                scripture: {
-                  ...sample.caption,
-                  originalText: text,
-                  part: 1,
-                  total: layout.pages.length,
-                },
-              }
-            : { ...base, songId: "sample" };
-        setDeck({
-          id: "theme-editor-preview",
-          label: "Local preview",
-          createdAt: new Date().toISOString(),
-          style: {
-            font: "Arial",
-            fontSize: 64,
-            safeMargin: 8,
-            theme: "black",
-            lines: 6,
-          },
-          pages: [
-            {
-              text: layout.pages[0],
-              themed: true,
-              ...(useSource && sample?.caption
-                ? { scripture: true as const }
-                : {}),
+    void loadLyricFonts()
+      .then(() => document.fonts.ready)
+      .then(() => {
+        if (!active) return;
+        try {
+          if (!validSpec(spec)) throw new Error("Nilai tema belum valid");
+          // Lyrics use the global text style whatever the theme.
+          const shown = lyricStyle ? lyricSpec(spec, lyricStyle) : spec;
+          const text =
+              useSource && sample
+                ? sample.text
+                : "Original theme preview.\nSiapkan teks dengan jelas dan terbaca.",
+            layout = layoutText(
+              text,
+              shown,
+              browserMeasure,
+              useSource && !!sample?.caption,
+            ),
+            snapshot = {
+              id: "theme:editor",
+              revision: 1,
+              name: "Local sample",
+              signature: "0".repeat(64),
+              spec: structuredClone(shown),
             },
-          ],
-          frames: [sampleFrame],
-          sources: [],
-          schedule: null,
-          overrides: [],
-          render: {
-            version: 2,
-            canvas: { width: 1920, height: 1080, scaling: "fit" },
-            themes: { [key]: snapshot },
-            frames: { sample: key },
-            sizes: { sample: layout.size },
-          },
-        });
-        setError("");
-      } catch (e) {
-        setError((e as Error).message);
-      }
-    });
+            key = `${snapshot.id}@${snapshot.signature}`;
+          const base = {
+            id: "sample",
+            page: 0,
+            itemId: null,
+            title: "Preview lokal",
+            label: "Sample",
+            occurrence: 0,
+          };
+          const sampleFrame: Frame =
+            useSource && sample?.caption
+              ? {
+                  ...base,
+                  kind: "scripture",
+                  scripture: {
+                    ...sample.caption,
+                    originalText: text,
+                    part: 1,
+                    total: layout.pages.length,
+                  },
+                }
+              : { ...base, songId: "sample" };
+          setDeck({
+            id: "theme-editor-preview",
+            label: "Local preview",
+            createdAt: new Date().toISOString(),
+            style: {
+              font: lyricFont(lyricStyle?.font ?? "Montserrat"),
+              fontSize: lyricStyle?.fontSize ?? 64,
+              safeMargin: lyricStyle?.safeMargin ?? 8,
+              theme: "black",
+              lines: lyricStyle?.lines ?? 6,
+            },
+            pages: [
+              {
+                text: layout.pages[0],
+                themed: true,
+                ...(useSource && sample?.caption
+                  ? { scripture: true as const }
+                  : {}),
+              },
+            ],
+            frames: [sampleFrame],
+            sources: [],
+            schedule: null,
+            overrides: [],
+            render: {
+              version: 2,
+              canvas: { width: 1920, height: 1080, scaling: "fit" },
+              themes: { [key]: snapshot },
+              frames: { sample: key },
+              sizes: { sample: layout.size },
+            },
+          });
+          setError("");
+        } catch (e) {
+          setError((e as Error).message);
+        }
+      });
     return () => {
       active = false;
     };
-  }, [spec, useSource, sample?.text, sample?.caption]);
+  }, [
+    spec,
+    useSource,
+    sample?.text,
+    sample?.caption,
+    lyricStyle?.font,
+    lyricStyle?.fontSize,
+    lyricStyle?.safeMargin,
+    lyricStyle?.lines,
+  ]);
   const bg = spec.background;
   function backgroundKind(kind: Background["kind"]) {
     setMotion(false);
@@ -441,43 +463,6 @@ export function ThemeEditor({
                       ))}
                   </select>
                 </label>
-                <label>
-                  Background fit
-                  <select
-                    aria-label="Background fit"
-                    value={bg.fit}
-                    onChange={(e) =>
-                      setSpec({
-                        ...spec,
-                        background: {
-                          ...bg,
-                          fit: e.target.value as "cover" | "contain",
-                        },
-                      })
-                    }
-                  >
-                    <option value="contain">Contain</option>
-                    <option value="cover">Cover · crop background saja</option>
-                  </select>
-                </label>
-                {(["x", "y"] as const).map((key) => (
-                  <label key={key}>
-                    Fokus {key}
-                    <input
-                      aria-label={`Fokus ${key}`}
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={bg[key]}
-                      onChange={(e) =>
-                        setSpec({
-                          ...spec,
-                          background: { ...bg, [key]: Number(e.target.value) },
-                        })
-                      }
-                    />
-                  </label>
-                ))}
                 <label>
                   Dim background
                   <input

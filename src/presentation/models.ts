@@ -1,3 +1,4 @@
+import { FONT_VALUES, type FontName } from "./fonts";
 import {
   validRender,
   backgroundIdentity,
@@ -14,7 +15,7 @@ import type { License } from "../scriptures/models";
 export const MAX_FRAMES = 10000,
   MAX_BYTES = 16 * 1024 * 1024;
 export type Style = {
-  font: "Arial" | "Georgia" | "Verdana";
+  font: FontName;
   fontSize: number;
   safeMargin: number;
   theme: "black" | "sunset" | "ocean" | "purple";
@@ -138,7 +139,7 @@ export function integer(v: unknown, min: number, max: number): v is number {
 export function validStyle(v: unknown): v is Style {
   return (
     object(v) &&
-    ["Arial", "Georgia", "Verdana"].includes(v.font as string) &&
+    FONT_VALUES.includes(v.font as string) &&
     integer(v.fontSize, 24, 120) &&
     integer(v.safeMargin, 0, 20) &&
     ["black", "sunset", "ocean", "purple"].includes(v.theme as string) &&

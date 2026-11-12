@@ -1,5 +1,9 @@
-import { layoutText, type AppearanceContext } from "./appearance";
-import { builtins, signature } from "../themes/builtins";
+import {
+  layoutText,
+  lyricTheme,
+  type AppearanceContext,
+} from "./appearance";
+import { builtins } from "../themes/builtins";
 import type { ThemeSnapshot } from "../themes/models";
 import type { MediaSelection } from "../media/models";
 import { appendScripture } from "./scriptureAdapter";
@@ -42,6 +46,23 @@ export async function generateSlides(
       schedule: null,
       overrides: [],
     };
+  // Every theme draws lyrics with the global text style (see lyricSpec):
+  // the theme only brings the background and the text's look.
+  if (appearance)
+    appearance = {
+      ...appearance,
+      defaultTheme:
+        appearance.defaultTheme &&
+        (await lyricTheme(appearance.defaultTheme, style)),
+      byItem: Object.fromEntries(
+        await Promise.all(
+          Object.entries(appearance.byItem).map(
+            async ([key, theme]) =>
+              [key, await lyricTheme(theme, style)] as const,
+          ),
+        ),
+      ),
+    };
   let fallback = appearance?.defaultTheme;
   if (
     appearance &&
@@ -52,21 +73,16 @@ export async function generateSlides(
     const base = (await builtins()).find(
       (t) => t.id === `builtin:${style.theme}`,
     )!;
-    base.spec.type = {
-      ...base.spec.type,
-      font: style.font,
-      size: style.fontSize,
-      minSize: Math.min(32, style.fontSize),
-      margins: {
-        top: style.safeMargin,
-        right: style.safeMargin,
-        bottom: style.safeMargin,
-        left: style.safeMargin,
+    fallback = await lyricTheme(
+      {
+        ...base,
+        spec: {
+          ...base.spec,
+          type: { ...base.spec.type, minSize: Math.min(32, style.fontSize) },
+        },
       },
-      lines: style.lines,
-    };
-    base.signature = await signature(base.spec);
-    fallback = base;
+      style,
+    );
   }
   if (
     appearance &&

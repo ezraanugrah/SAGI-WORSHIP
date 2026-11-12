@@ -1,4 +1,5 @@
 import { BackupRecovery } from "./components/BackupRecovery";
+import { LYRIC_FONTS, fontStack, lyricFont } from "./presentation/fonts";
 import { useThemes } from "./hooks/useThemes";
 import { AdvancedSettings } from "./components/AdvancedSettings";
 import { useMedia } from "./hooks/useMedia";
@@ -395,18 +396,20 @@ export default function App() {
               />
               <section className="panel settings-panel">
                 <PanelTitle icon={<Type size={18} />}>
-                  Tipografi default
+                  Tipografi lirik
                 </PanelTitle>
                 <fieldset disabled={!loaded || !editable}>
                   <label>
                     Font
                     <select
                       aria-label="Font"
-                      value={prefs.font}
+                      value={lyricFont(prefs.font)}
                       onChange={(e) => change("font", e.target.value)}
                     >
-                      {["Arial", "Georgia", "Verdana"].map((f) => (
-                        <option key={f}>{f}</option>
+                      {LYRIC_FONTS.map((f) => (
+                        <option key={f} style={{ fontFamily: fontStack(f) }}>
+                          {f}
+                        </option>
                       ))}
                     </select>
                   </label>
@@ -414,6 +417,7 @@ export default function App() {
                     Ukuran teks <output>{prefs.fontSize} px</output>
                     <input
                       type="range"
+                      aria-label="Ukuran teks"
                       min="24"
                       max="120"
                       value={prefs.fontSize}
@@ -426,6 +430,7 @@ export default function App() {
                     Safe margin <output>{prefs.safeMargin}%</output>
                     <input
                       type="range"
+                      aria-label="Safe margin"
                       min="0"
                       max="20"
                       value={prefs.safeMargin}
@@ -435,8 +440,9 @@ export default function App() {
                     />
                   </label>
                   <p className="field-help">
-                    Preferensi legacy dipakai jika tema default lanjutan belum
-                    dipilih. Tema memiliki tipografi sendiri.
+                    Font dan ukuran lirik untuk semua slide, dengan atau tanpa
+                    tema. Tema hanya mengatur latar serta warna/bayangan teks.
+                    Berlaku saat item disiapkan lagi di Preview.
                   </p>
                 </fieldset>
               </section>
@@ -463,7 +469,7 @@ export default function App() {
                   <div
                     className={`type-sample theme-${prefs.theme}`}
                     style={{
-                      fontFamily: prefs.font,
+                      fontFamily: fontStack(prefs.font),
                       padding: `${prefs.safeMargin}%`,
                       fontSize: `${prefs.fontSize / 3}px`,
                     }}

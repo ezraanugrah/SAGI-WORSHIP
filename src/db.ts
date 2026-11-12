@@ -1,4 +1,5 @@
 import { openDB } from "idb";
+import { FONT_VALUES } from "./presentation/fonts";
 export type Preferences = {
   font: string;
   fontSize: number;
@@ -10,7 +11,7 @@ export type Preferences = {
   theme: string;
 };
 export const defaults: Preferences = {
-  font: "Arial",
+  font: "Montserrat",
   fontSize: 64,
   safeMargin: 8,
   loopPreview: false,
@@ -60,7 +61,7 @@ export function validatePreferences(value: unknown): value is Preferences {
   if (!value || typeof value !== "object") return false;
   const p = value as Preferences;
   return (
-    ["Arial", "Georgia", "Verdana"].includes(p.font) &&
+    FONT_VALUES.includes(p.font) &&
     Number.isFinite(p.fontSize) &&
     p.fontSize >= 24 &&
     p.fontSize <= 120 &&
