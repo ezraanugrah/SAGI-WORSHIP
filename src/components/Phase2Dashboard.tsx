@@ -216,6 +216,19 @@ export function Phase2Dashboard({
     return ready;
   }
   /**
+   * After the first Go Live, what the operator picks in Jadwal Ibadah (and a
+   * theme) goes to the projector at once; before it, it only shows on the
+   * Live Output panel. Black / Clear Text stay as they are.
+   */
+  async function followLive() {
+    if (!presentation.snapshot().live) return;
+    try {
+      await presentation.goLive(true);
+    } catch (e) {
+      presentation.report(e);
+    }
+  }
+  /**
    * New lyric size/outline from the row under Live Output: save it, then
    * show the LIVE item again with it on the same slide. Without a known
    * source (e.g. after a restart) it only applies to the next preparation.
@@ -225,6 +238,27 @@ export function Phase2Dashboard({
     onPrefsChange?.(patch);
     const next = { ...latestPrefs.current, ...patch };
     latestPrefs.current = next;
+    // What waits on the panel (not yet on the projector) gets the new style
+    // too, so the panel shows what Go Live will send.
+    const waiting = presentation.snapshot();
+    if (waiting.staged && waiting.preview) {
+      const id = waiting.preview.deck.id,
+        source = requests.current.get(id),
+        input = source && (await inputs(source.selection, source.override));
+      if (source && input)
+        try {
+          const built = await presentation.build(
+            input.resolved,
+            source.selection,
+            lyricStyle(next),
+            videoDefaults(next),
+            input.appearance,
+          );
+          if (presentation.restage(built, id)) remember(built.deck.id, source);
+        } catch (e) {
+          presentation.report(e);
+        }
+    }
     const token = ++reliveRun.current,
       start = presentation.snapshot().live,
       source = start && requests.current.get(start.deck.id);
@@ -320,7 +354,13 @@ export function Phase2Dashboard({
                 index,
                 label: frame.label,
                 text: slideSummary(scheduleDeck.deck, index),
-                current: index === scheduleDeck.index,
+                // The slide shown on the Live Output panel.
+                current:
+                  index ===
+                  (!presentationState.staged &&
+                  presentationState.live?.deck.id === scheduleDeck.deck.id
+                    ? presentationState.live.index
+                    : scheduleDeck.index),
               },
             ]
           : [],
@@ -422,7 +462,7 @@ export function Phase2Dashboard({
             }}
             openItemId={openItemId}
             slides={openSlides}
-            onSlide={(index) => {
+            onSlide={async (index) => {
               if (
                 previewDirty &&
                 !window.confirm(
@@ -430,7 +470,10 @@ export function Phase2Dashboard({
                 )
               )
                 return;
+              // A slide picked in Jadwal Ibadah shows on the Live Output
+              // panel; once LIVE, it goes to the projector too.
               presentation.select(index);
+              await followLive();
             }}
             onAddSong={(s, songId) =>
               act(
@@ -455,13 +498,14 @@ export function Phase2Dashboard({
                 "Urutan jadwal disimpan.",
               )
             }
-            onInspect={(itemId) => {
-              if (data.activeId)
-                void prepare({
-                  kind: "schedule",
-                  scheduleId: data.activeId,
-                  itemId,
-                });
+            onInspect={async (itemId) => {
+              if (!data.activeId) return;
+              const ready = await prepare({
+                kind: "schedule",
+                scheduleId: data.activeId,
+                itemId,
+              });
+              if (ready) await followLive();
             }}
             footer={
               <PreviewWorkspace state={presentationState} onDirty={markDirty} />
@@ -597,11 +641,24 @@ export function Phase2Dashboard({
                 editable={editable}
                 onChanged={() => void reload()}
                 onApply={async (id) => {
+                  // The chosen theme stays on: it becomes the theme of every
+                  // song, verse or schedule item shown next, until another
+                  // theme is chosen.
+                  try {
+                    if (themeServices.settings.defaultThemeId !== id) {
+                      await themeServices.repo.saveSettings(
+                        { ...themeServices.settings, defaultThemeId: id },
+                        themeServices.settings.revision,
+                      );
+                      await themeServices.reload();
+                    }
+                  } catch (e) {
+                    presentation.report(e);
+                    return;
+                  }
                   if (!lastSelection.current) {
-                    presentation.report(
-                      new Error(
-                        "Pilih lagu/Scripture atau item jadwal untuk Preview terlebih dahulu.",
-                      ),
+                    setMessage(
+                      "Tema dipilih. Lagu yang ditampilkan berikutnya memakai tema ini.",
                     );
                     return;
                   }
@@ -616,18 +673,10 @@ export function Phase2Dashboard({
                     );
                     return;
                   }
-                  // The theme goes on the Preview item and, once that is
-                  // ready, straight to Live Output (Black/Clear stay as is).
-                  const ready = await prepare(selection, {
-                    id,
-                    scope: "item",
-                  });
-                  if (!ready) return;
-                  try {
-                    await presentation.goLive(true);
-                  } catch (e) {
-                    presentation.report(e);
-                  }
+                  // The item gets the theme on the Live Output panel; once
+                  // LIVE, on the projector too.
+                  if (await prepare(selection, { id, scope: "item" }))
+                    await followLive();
                 }}
               />
             ) : null}

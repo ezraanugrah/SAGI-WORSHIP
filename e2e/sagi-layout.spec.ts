@@ -247,7 +247,7 @@ test("one LIVE toolbar drives Go Live, Alerts, Black, Clear and the projector wi
   await expect(status).toHaveText(/CLEAR TEXT/);
 });
 
-test("Jadwal Ibadah expands the open item into slides and Live Output steps slides", async ({
+test("Jadwal Ibadah slides: before Go Live a pick shows on the panel only; after Go Live it reaches the projector at once", async ({
   page,
 }) => {
   await openWeek(page, 1);
@@ -261,33 +261,70 @@ test("Jadwal Ibadah expands the open item into slides and Live Output steps slid
   await schedule.getByTestId("schedule-item").locator(".item-inspect").click();
   const slides = schedule.getByRole("list", { name: "Slide Expand song" });
   await expect(slides.getByRole("button")).toHaveCount(3);
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  // Picking Verse 1 / Verse 2 / … shows it on the Live Output panel at
+  // once, marked "Belum tayang" until Go Live.
   await slides.getByRole("button").nth(2).click();
+  await expect(live).toContainText("Slide 3 of 3");
+  await expect(live.locator(".slide-lines")).toHaveText("Expand line three.");
+  await expect(live.getByTestId("staged-badge")).toBeVisible();
   await expect(slides.getByRole("button").nth(2)).toHaveAttribute(
     "aria-current",
     "true",
   );
-  await expect(
-    page.getByRole("region", { name: "Preview workspace" }),
-  ).toContainText("Slide 3 of 3");
   await slides.getByRole("button").nth(1).click();
-  await expect(previewPosition(page)).toHaveText("Slide 2 of 3");
-  await expect(slides.getByRole("button").nth(1)).toHaveAttribute(
-    "aria-current",
-    "true",
-  );
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
-  const live = page.getByRole("region", { name: "LIVE projector control" });
   await expect(live).toContainText("Slide 2 of 3");
-  // The Live column is Live Output only: no second slide list.
+  await expect(live.locator(".slide-lines")).toHaveText("Expand line two.");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(live.getByTestId("staged-badge")).toHaveCount(0);
+  await expect(page.getByTestId("app-status")).toHaveText(/LIVE/);
+  // Once LIVE, a slide picked in Jadwal Ibadah goes to the projector at once.
+  await slides.getByRole("button").nth(0).click();
+  await expect(live).toContainText("Slide 1 of 3");
+  await expect(live.locator(".slide-lines")).toHaveText("Expand line one.");
+  await expect(live.getByTestId("staged-badge")).toHaveCount(0);
+  // The Live column has no second slide list; its arrows drive the
+  // projector and move the highlight in Jadwal Ibadah too.
   await expect(live.getByRole("list")).toHaveCount(0);
   await live
     .getByRole("button", { name: "Slide berikutnya LIVE", exact: true })
     .click();
-  await expect(live).toContainText("Slide 3 of 3");
+  await expect(live).toContainText("Slide 2 of 3");
+  await expect(slides.getByRole("button").nth(1)).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
   await live
     .getByRole("button", { name: "Slide sebelumnya LIVE", exact: true })
     .click();
-  await expect(live).toContainText("Slide 2 of 3");
+  await expect(live).toContainText("Slide 1 of 3");
+});
+
+test("a chosen theme shows on Live Output and stays on for any song shown next", async ({
+  page,
+}) => {
+  await song(page, "Tema satu", ["Tema satu line."]);
+  await song(page, "Tema dua", ["Tema dua line."]);
+  await preview(page, "Tema satu");
+  await page.getByRole("tab", { name: "Themes", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Pilih tema Ocean", exact: true })
+    .click();
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  const live = page.getByRole("region", { name: "LIVE projector control" });
+  await expect(live.locator(".themed-lines")).toHaveText("Tema satu line.");
+  await expect(
+    page.getByRole("button", { name: "Pilih tema Ocean", exact: true }),
+  ).toContainText("Dipakai");
+  // Any song picked afterwards keeps the chosen theme.
+  await page.getByRole("tab", { name: "Songs", exact: true }).click();
+  await preview(page, "Tema dua");
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(live.locator(".themed-lines")).toHaveText("Tema dua line.");
+  await expect(live.locator(".theme-background")).toHaveCSS(
+    "background-image",
+    /rgb\(16, 42, 50\)/,
+  );
 });
 
 test("Presentations tab lists only PDF presentations and drags them into the Week", async ({
@@ -461,7 +498,9 @@ test("Jadwal Ibadah | Live Output: Siap tayang says what comes next; the row und
   await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
   const live = page.getByRole("region", { name: "LIVE projector control" });
   const edit = live.getByRole("button", { name: "Edit teks", exact: true });
-  await expect(edit).toBeDisabled();
+  // Before Go Live the panel shows the pick ("Belum tayang"), editable too.
+  await expect(live.getByTestId("staged-badge")).toBeVisible();
+  await expect(edit).toBeEnabled();
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   const lines = live.locator(".slide-lines");
   await expect(lines).toHaveText("Window first line.");
@@ -522,7 +561,9 @@ test("Jadwal Ibadah | Live Output: Siap tayang says what comes next; the row und
   ).toHaveValue("50");
 });
 
-test("Live Output changes only when Go Live is clicked", async ({ page }) => {
+test("the projector changes only when Go Live is clicked; the panel shows the pick first", async ({
+  page,
+}) => {
   await song(page, "Go Live song", ["Go Live line one.", "Go Live line two."]);
   await song(page, "Next song", ["Next song line."]);
   await expect(
@@ -530,21 +571,30 @@ test("Live Output changes only when Go Live is clicked", async ({ page }) => {
   ).toHaveCount(0);
   const live = page.getByRole("region", { name: "LIVE projector control" });
   const status = page.getByTestId("app-status");
+  const pending = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Live", exact: true }).click();
+  const projector = await pending;
+  await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await preview(page, "Go Live song");
-  // Preview alone never reaches LIVE.
+  // The pick is on the panel, marked "Belum tayang"; not on the projector.
   await expect(status).toHaveText(/READY/);
-  await expect(live.locator(".slide-lines")).toHaveCount(0);
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(live.locator(".slide-lines")).toHaveText("Go Live line one.");
-  // Preparing the next song (Siap tayang) leaves LIVE as it is.
+  await expect(live.getByTestId("staged-badge")).toBeVisible();
+  await expect(projector.locator(".slide-lines")).toHaveCount(0);
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(projector.locator(".slide-lines")).toHaveText(
+    "Go Live line one.",
+  );
+  await expect(live.getByTestId("staged-badge")).toHaveCount(0);
+  // Picking the next song shows it on the panel; the projector waits.
   await preview(page, "Next song");
-  await expect(
-    page.getByRole("region", { name: "Preview workspace" }),
-  ).toContainText("Next song");
-  await expect(live).toContainText("Slide 1 of 2");
-  await expect(live.locator(".slide-lines")).toHaveText("Go Live line one.");
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(live.locator(".slide-lines")).toHaveText("Next song line.");
+  await expect(live.getByTestId("staged-badge")).toBeVisible();
+  await expect(projector.locator(".slide-lines")).toHaveText(
+    "Go Live line one.",
+  );
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
+  await expect(projector.locator(".slide-lines")).toHaveText("Next song line.");
 });
 
 test("Themes Library imports media (image or video) like the Media tab", async ({

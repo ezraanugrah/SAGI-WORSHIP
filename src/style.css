@@ -4586,3 +4586,20 @@ footer > span:last-child {
     flex-wrap: wrap;
   }
 }
+
+/* Live Output panel showing a pick that is not on the projector yet. */
+.sagi-ui .staged-badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid var(--sg-orange);
+  color: var(--sg-orange);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sagi-ui .live[data-staged] .presentation-canvas {
+  outline: 2px dashed var(--sg-orange);
+  outline-offset: 2px;
+}

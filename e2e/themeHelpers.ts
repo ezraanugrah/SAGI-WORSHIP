@@ -2,7 +2,7 @@ import { expect, type Page } from "@playwright/test";
 import { imageFile, videoFile } from "./mediaFixtures";
 
 /** The single action left in the theme details. */
-export const APPLY_THEME = "Terapkan ke item Preview + Live Output";
+export const APPLY_THEME = "Terapkan ke item Live Output";
 
 type MediaInput = Awaited<ReturnType<typeof imageFile>>;
 

@@ -47,7 +47,11 @@ export function LiveControls({
     }
   };
   const live = state.live;
-  const frame = live?.deck.frames[live.index];
+  // The panel shows what the operator picked (song, slide, theme) until Go
+  // Live sends it to the projector; after that it mirrors the projector.
+  const staged = state.staged && state.preview ? state.preview : null;
+  const shown = staged ?? live;
+  const frame = shown?.deck.frames[shown.index];
   // Size and outline sliders (1–100 %): shown at once, saved after a pause
   // so dragging does not rebuild the LIVE slide on every step.
   const [size, setSize] = useState(() =>
@@ -79,18 +83,32 @@ export function LiveControls({
     if (!textFrame) setEditing(false);
   }, [textFrame]);
   function openEditor() {
-    if (!live) return;
-    setText(frameText(live.deck, live.index));
+    if (!shown) return;
+    setText(frameText(shown.deck, shown.index));
     setEditing(true);
   }
-  function applyEdit(value: string) {
+  async function applyEdit(value: string) {
     try {
-      controller.editLive(value);
+      if (staged) {
+        // Not on the projector yet: the edit goes with the next Go Live.
+        const source = staged.deck.pages[staged.deck.frames[staged.index].page];
+        await controller.apply(
+          value.trim() ? value : source.text,
+          staged.deck.style,
+          !value.trim() || value === source.text,
+        );
+      } else controller.editLive(value);
       setEditing(false);
     } catch (e) {
       controller.report(e);
     }
   }
+  const step = (delta: number) =>
+    run(() =>
+      staged
+        ? controller.select(staged.index + delta)
+        : controller.navigate(delta),
+    );
   const duration =
     frame?.kind === "media" ? (frame.media.duration ?? 0) : undefined;
   // Projector playback in the footer, like "Slide 1 of 1" under Preview.
@@ -107,6 +125,7 @@ export function LiveControls({
     <section
       className="panel live"
       aria-label="LIVE projector control"
+      data-staged={staged ? "true" : undefined}
       ref={region}
       tabIndex={0}
     >
@@ -114,10 +133,19 @@ export function LiveControls({
         <h2 className="pane-title">
           Live Output
           <span className="pane-subject">
-            {live
-              ? ` - ${live.deck.frames[live.index]?.title || live.deck.label}`
+            {shown
+              ? ` - ${shown.deck.frames[shown.index]?.title || shown.deck.label}`
               : ""}
           </span>
+          {staged && (
+            <span
+              className="staged-badge"
+              data-testid="staged-badge"
+              title="Belum tampil di proyektor. Klik Go Live untuk menampilkannya."
+            >
+              Belum tayang · klik Go Live
+            </span>
+          )}
         </h2>
         <span
           className="pane-status"
@@ -135,26 +163,35 @@ export function LiveControls({
       <div className="output-area output-fill">
         <div className="output-frame">
           <div className="presentation-canvas">
-            <SlideCanvas
-              deck={live?.deck ?? null}
-              index={live?.index}
-              mode={live?.mode ?? "black"}
-              role="monitor"
-              playback={live?.playback}
-              backgroundPlayback={live?.backgroundPlayback}
-              alert={live?.alert?.text}
-              follow={state.playbackFeedback}
-              backgroundFollow={state.backgroundFeedback}
-            />
+            {staged ? (
+              <SlideCanvas
+                deck={staged.deck}
+                index={staged.index}
+                mode="normal"
+                nonce="preview"
+              />
+            ) : (
+              <SlideCanvas
+                deck={live?.deck ?? null}
+                index={live?.index}
+                mode={live?.mode ?? "black"}
+                role="monitor"
+                playback={live?.playback}
+                backgroundPlayback={live?.backgroundPlayback}
+                alert={live?.alert?.text}
+                follow={state.playbackFeedback}
+                backgroundFollow={state.backgroundFeedback}
+              />
+            )}
           </div>
         </div>
         <div className="output-foot">
           <span>
-            {live
-              ? `Slide ${live.index + 1} of ${live.deck.frames.length}${
-                  live.mode === "black"
+            {shown
+              ? `Slide ${shown.index + 1} of ${shown.deck.frames.length}${
+                  !staged && live?.mode === "black"
                     ? " · BLACK"
-                    : live.mode === "clearText"
+                    : !staged && live?.mode === "clearText"
                       ? " · CLEAR TEXT"
                       : ""
                 }`
@@ -164,8 +201,8 @@ export function LiveControls({
             <button
               className="step"
               aria-label="Slide sebelumnya LIVE"
-              disabled={!editable || !live || live.index === 0}
-              onClick={() => run(() => controller.navigate(-1))}
+              disabled={!editable || !shown || shown.index === 0}
+              onClick={() => step(-1)}
             >
               <ChevronLeft size={15} />
             </button>
@@ -173,9 +210,11 @@ export function LiveControls({
               className="step"
               aria-label="Slide berikutnya LIVE"
               disabled={
-                !editable || !live || live.index === live.deck.frames.length - 1
+                !editable ||
+                !shown ||
+                shown.index === shown.deck.frames.length - 1
               }
-              onClick={() => run(() => controller.navigate(1))}
+              onClick={() => step(1)}
             >
               <ChevronRight size={15} />
             </button>
@@ -219,12 +258,14 @@ export function LiveControls({
             aria-haspopup="dialog"
             title={
               !frame
-                ? "Go Live dulu"
+                ? "Pilih lagu atau slide dulu"
                 : frame.kind === "media"
                   ? "Slide media tidak punya teks"
                   : frame.kind === "scripture"
                     ? "Teks Scripture baca-saja"
-                    : "Ubah teks slide yang sedang LIVE"
+                    : staged
+                      ? "Ubah teks slide ini sebelum Go Live"
+                      : "Ubah teks slide yang sedang LIVE"
             }
             disabled={!editable || !textFrame}
             onClick={openEditor}
@@ -336,7 +377,7 @@ export function LiveControls({
           </p>
         )}
       </div>
-      {editing && live && frame && (
+      {editing && shown && frame && (
         <div
           className="dialog-backdrop"
           onKeyDown={(e) => {
@@ -378,21 +419,24 @@ export function LiveControls({
                 <button
                   className="button secondary"
                   title="Kembalikan teks sumber"
-                  onClick={() => applyEdit(live.deck.pages[frame.page].text)}
+                  onClick={() =>
+                    void applyEdit(shown.deck.pages[frame.page].text)
+                  }
                 >
                   Reset
                 </button>
                 <button
                   className="button primary"
-                  disabled={text === frameText(live.deck, live.index)}
-                  onClick={() => applyEdit(text)}
+                  disabled={text === frameText(shown.deck, shown.index)}
+                  onClick={() => void applyEdit(text)}
                 >
-                  Terapkan ke Live
+                  {staged ? "Terapkan" : "Terapkan ke Live"}
                 </button>
               </div>
               <p className="field-help edit-note">
-                Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik
-                tidak berubah.
+                {staged
+                  ? "Belum tayang: tampil di proyektor setelah Go Live. Hanya slide ini; lagu di Musik tidak berubah."
+                  : "Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik tidak berubah."}
               </p>
             </fieldset>
           </div>

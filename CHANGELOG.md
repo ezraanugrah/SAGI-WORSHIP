@@ -183,6 +183,14 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Fitur edit teks dan ‹ › di Preview (Apply Preview, font/ukuran per Preview) dihapus bersama Preview Output, agar tidak ada tombol ganda. Data lama tetap terbaca; backup baru menyimpan nilai outline.
 - Tes: unit test tampilan lirik tetap, Edit teks LIVE (termasuk saat Black dan teks yang tidak muat), dan penyusunan ulang LIVE dengan ukuran baru di slide yang sama; E2E baris di bawah Live Output (satu baris, ukuran 75% = 120 px, outline 50% = 6 px, Edit teks + Reset, tersimpan di Pengaturan), Siap tayang tanpa tombol, dan tes lama diubah ke alur Live.
 
+### Go Live sebagai saklar tayang; tema tetap dipakai
+
+- **Sebelum Go Live**: lagu, item, atau slide (Verse 1, Verse 2, …) yang diklik di Jadwal Ibadah langsung tampil di panel **Live Output** dengan tanda **"Belum tayang · klik Go Live"** (bingkai oranye putus-putus). Proyektor belum berubah. Tombol ‹ › dan Edit teks di bawah panel bekerja pada slide yang tampil itu.
+- **Setelah Go Live diklik**: setiap item atau slide yang diklik di Jadwal Ibadah langsung tampil di Live Output **dan** proyektor, tanpa klik Go Live lagi; tombol ‹ › mengendalikan proyektor dan sorotan di Jadwal ikut. Black / Clear Text tetap seperti semula. Lagu yang dipilih dari Musik, Media, atau Alkitab tetap menunggu Go Live.
+- **Tema**: tombol kini **Terapkan ke item Live Output**. Tema tampil di panel Live Output (setelah Go Live juga di proyektor) dan **tetap dipakai** untuk lagu, ayat, atau item jadwal apa pun yang ditampilkan berikutnya, sampai tema lain dipilih (kartu tema bertanda "Dipakai"; sama dengan Default theme di Pengaturan).
+- Mengubah Ukuran/Outline juga memperbarui slide yang menunggu di panel.
+- Tes: unit test status "belum tayang"; E2E klik slide sebelum/sesudah Go Live, proyektor menunggu Go Live, tema tetap dipakai untuk lagu berikutnya, dan tema saat Black.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

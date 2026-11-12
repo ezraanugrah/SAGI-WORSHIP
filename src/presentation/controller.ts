@@ -40,6 +40,11 @@ export type PresentationState = {
   checkpoint: string;
   connection: Connection;
   sourceChanged: boolean;
+  /**
+   * The prepared material (picked song, slide or theme) is shown on the
+   * Live Output panel but not yet on the projector: Go Live sends it.
+   */
+  staged: boolean;
   playbackFeedback?: PlaybackFeedback;
   backgroundFeedback?: PlaybackFeedback;
 };
@@ -47,6 +52,7 @@ export class PresentationController {
   private state: PresentationState = {
     preview: null,
     live: null,
+    staged: false,
     sequence: 0,
     preparing: false,
     error: "",
@@ -150,6 +156,9 @@ export class PresentationController {
   };
   snapshot = () => this.state;
   private update(patch: Partial<PresentationState>) {
+    // A newly prepared or picked Preview waits for Go Live.
+    if (patch.preview && patch.staged === undefined) patch.staged = true;
+    if (patch.preview === null) patch.staged = false;
     this.state = { ...this.state, ...patch };
     this.listeners.forEach((fn) => fn());
   }
@@ -563,6 +572,7 @@ export class PresentationController {
         ...this.keptAlert(),
       }),
     );
+    this.update({ staged: false });
   }
   /** A running alert stays on screen when the operator goes live with new material. */
   private keptAlert() {
@@ -588,6 +598,7 @@ export class PresentationController {
         ...this.keptAlert(),
       }),
     );
+    this.update({ staged: false });
   }
   /**
    * "Edit teks" under Live Output: change the text of the slide on screen.
@@ -663,6 +674,19 @@ export class PresentationController {
         ...this.keptAlert(),
       }),
     );
+    return true;
+  }
+  /**
+   * The material waiting on the Live Output panel, prepared again with a new
+   * lyric style, on the slide holding the same text. Still waits for Go Live.
+   */
+  restage(next: Preview, previewDeckId: string) {
+    const preview = this.state.preview;
+    if (!preview || preview.deck.id !== previewDeckId) return false;
+    this.update({
+      preview: { deck: next.deck, index: matchingFrame(preview, next.deck) },
+      staged: true,
+    });
     return true;
   }
   private withPausedVideo(live: Live): Live {
@@ -846,6 +870,15 @@ export class PresentationController {
     );
     if (index !== live.index)
       this.transition(this.withPausedVideo({ ...live, index }));
+    // Stepping LIVE controls the projector: the panel mirrors it again and
+    // the prepared copy of the same deck follows the slide.
+    const preview = this.state.preview;
+    this.update({
+      staged: false,
+      ...(preview && preview.deck.id === live.deck.id
+        ? { preview: { ...preview, index }, staged: false }
+        : {}),
+    });
   }
   mode(mode: Live["mode"]) {
     this.authorize();
@@ -995,7 +1028,10 @@ export class PresentationController {
  * schedule item and section (or verse), and the page holding the first line
  * now on screen. Falls back to the same position.
  */
-export function matchingFrame(live: Live, deck: Deck): number {
+export function matchingFrame(
+  live: Pick<Live, "deck" | "index">,
+  deck: Deck,
+): number {
   const old = live.deck.frames[live.index],
     firstLine = frameText(live.deck, live.index)
       .split("\n")

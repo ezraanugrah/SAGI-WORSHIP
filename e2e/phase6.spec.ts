@@ -193,13 +193,11 @@ test("video backgrounds are silent, independently controlled and paused after Bl
     )
     .toBe(true);
 });
-test("one Themes action themes the Preview item and Live Output together and keeps Black", async ({
+test("a theme shows on the Live Output panel first; once LIVE it reaches the projector at once and Black stays", async ({
   page,
 }) => {
   await song(page);
   const p = await output(page);
-  await page.getByRole("button", { name: "Go Live", exact: true }).click();
-  await expect(p.locator(".slide-lines")).toHaveText(lyric);
   await themes(page);
   for (const gone of [
     "Edit / rename tema",
@@ -215,15 +213,16 @@ test("one Themes action themes the Preview item and Live Output together and kee
     .click();
   await expect(page.getByLabel("Item jadwal untuk tema")).toHaveCount(0);
   await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
-  // Live Output and the projector follow without pressing Go Live.
-  await expect(
-    page
-      .getByRole("region", { name: "LIVE projector control" })
-      .locator(".themed-lines"),
-  ).toHaveText(lyric);
+  const panel = page.getByRole("region", { name: "LIVE projector control" });
+  // Before the first Go Live: on the panel only, marked "Belum tayang".
+  await expect(panel.locator(".themed-lines")).toHaveText(lyric);
+  await expect(panel.getByTestId("staged-badge")).toBeVisible();
+  await expect(p.locator(".themed-lines")).toHaveCount(0);
+  await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(p.locator(".themed-lines")).toHaveText(lyric);
+  await expect(panel.getByTestId("staged-badge")).toHaveCount(0);
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
-  // While Black, the new theme is prepared underneath and stays dark.
+  // Once LIVE, a theme goes to the projector at once; Black stays dark.
   await page.getByRole("button", { name: "Black", exact: true }).click();
   await expect(p.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",
@@ -233,6 +232,7 @@ test("one Themes action themes the Preview item and Live Output together and kee
     .getByRole("button", { name: "Pilih tema Ocean", exact: true })
     .click();
   await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  await expect(panel.getByTestId("staged-badge")).toHaveCount(0);
   await expect(page.getByTestId("connection-status")).toHaveText("Tersinkron");
   await expect(p.getByTestId("slide-canvas")).toHaveAttribute(
     "data-mode",

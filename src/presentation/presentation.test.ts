@@ -177,6 +177,35 @@ describe("generation, authorization, immutable LIVE and recovery", () => {
     controller.mode("normal");
     expect(controller.snapshot().live?.mode).toBe("normal");
   });
+  it("a picked song or slide waits on the panel until Go Live; stepping LIVE mirrors the projector again", async () => {
+    await seed();
+    await controller.prepare(
+      await repo.load(),
+      { kind: "song", songId: "song" },
+      style,
+    );
+    expect(controller.snapshot().staged).toBe(true);
+    expect(controller.snapshot().live).toBeNull();
+    controller.goLive();
+    expect(controller.snapshot().staged).toBe(false);
+    const sent = controller.snapshot().sequence;
+    // Picking another slide only stages it: nothing is sent.
+    controller.select(1);
+    expect(controller.snapshot()).toMatchObject({
+      staged: true,
+      sequence: sent,
+    });
+    expect(controller.snapshot().live?.index).toBe(0);
+    // Stepping LIVE drives the projector and the panel follows it.
+    controller.navigate(1);
+    expect(controller.snapshot()).toMatchObject({ staged: false });
+    expect(controller.snapshot().live?.index).toBe(1);
+    expect(controller.snapshot().preview?.index).toBe(1);
+    controller.select(0);
+    controller.goLive();
+    expect(controller.snapshot()).toMatchObject({ staged: false });
+    expect(controller.snapshot().live?.index).toBe(0);
+  });
   it("Go Live for a theme change keeps Black/Clear Text, a normal Go Live does not", async () => {
     await seed();
     const ready = await controller.prepare(

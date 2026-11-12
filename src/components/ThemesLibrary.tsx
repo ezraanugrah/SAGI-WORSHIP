@@ -218,6 +218,9 @@ export function ThemesLibrary({
                   <small>
                     {t.id.startsWith("builtin:") ? "Built-in" : "Custom"} ·{" "}
                     {t.spec.background.kind}
+                    {services.settings.defaultThemeId === t.id
+                      ? " · Dipakai"
+                      : ""}
                   </small>
                 </button>
               </li>
@@ -232,12 +235,14 @@ export function ThemesLibrary({
                   disabled={!editable || busy}
                   onClick={() => void onApply(theme.id)}
                 >
-                  Terapkan ke item Preview + Live Output
+                  Terapkan ke item Live Output
                 </button>
               </div>
               <p className="field-help">
-                Tema dipasang pada item yang sedang di Preview, lalu Live Output
-                langsung ikut berganti. Black / Clear Text tetap seperti semula.
+                Tema langsung tampil di Live Output dan tetap dipakai untuk
+                lagu, ayat, atau item jadwal apa pun yang ditampilkan
+                berikutnya, sampai tema lain dipilih. Black / Clear Text tetap
+                seperti semula.
               </p>
             </section>
           )}
