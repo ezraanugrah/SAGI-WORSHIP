@@ -151,6 +151,7 @@ export const EN: Record<string, string> = {
     "Used for non-commercial worship under the",
   "Dipantau · {n} file belum di Media":
     "Watching · {n} file not in Media|Watching · {n} files not in Media",
+  "Dipasang otomatis dalam {n} detik.": "Installs itself in {n} seconds.",
   dipilih: "selected",
   Ditutup: "Closed",
   "Draft dibuang.": "Draft discarded.",
@@ -388,6 +389,8 @@ export const EN: Record<string, string> = {
   "Media ditambahkan ke jadwal.": "Media added to the schedule.",
   "Media ditambahkan ke Week 1.": "Media added to Week 1.",
   "Media ditambahkan ke Week.": "Media added to the Week.",
+  "Media hanya ada di laptop ini sampai Anda masuk di Songs › Sinkron antar laptop.":
+    "Media stays on this laptop until you sign in under Songs › Sync between laptops.",
   "Media ikut tersinkron ke laptop lain setelah masuk di Songs › Sinkron antar laptop.":
     "Media syncs to the other laptops once you sign in under Songs › Sync between laptops.",
   "Media sebelumnya": "Previous media",
@@ -400,12 +403,17 @@ export const EN: Record<string, string> = {
   "Memuat halaman…": "Loading page…",
   "Memuat penyimpanan…": "Loading storage…",
   "Memuat…": "Loading…",
+  "Mengambil media: {title} · {done}/{total} bagian":
+    "Receiving media: {title} · {done}/{total} pieces",
   "Mengambil {what} dari API resmi…": "Fetching {what} from the official API…",
   "Mengimpor…": "Importing…",
+  "Mengirim media: {title} · {done}/{total} bagian":
+    "Sending media: {title} · {done}/{total} pieces",
   "Mengunduh {name}…": "Downloading {name}…",
   "Menunggu render": "Waiting for render",
   "Menunggu status playback proyektor":
     "Waiting for the projector's playback status",
+  "menunggu…": "waiting…",
   MENYIAPKAN: "PREPARING",
   "menyiapkan cache": "preparing cache",
   "Menyiapkan penjaga layar…": "Preparing screen wake lock…",
@@ -432,6 +440,7 @@ export const EN: Record<string, string> = {
   Musik: "Music",
   "Nama tema": "Theme name",
   "Nama/MIME file tidak sesuai.": "File name/MIME type does not match.",
+  Nanti: "Later",
   "Nilai tema belum valid": "Theme values are not valid yet",
   "Offline: perubahan dikirim saat internet tersambung lagi.":
     "Offline: changes are sent when the internet is back.",
@@ -571,6 +580,7 @@ export const EN: Record<string, string> = {
   "Simpan sekarang": "Save now",
   "Simpan TB2": "Save TB2",
   "Simpan tema": "Save theme",
+  Sinkron: "Sync",
   "Sinkron antar laptop": "Sync between laptops",
   "Sinkron berjalan di tab edit.": "Sync runs in the editing tab.",
   "Sinkron sekarang": "Sync now",

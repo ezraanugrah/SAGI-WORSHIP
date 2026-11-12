@@ -12,8 +12,9 @@ export function useScreenWakeLock(active: boolean): WakeLockStatus {
   useEffect(() => {
     const instance = new ScreenWakeLock(
       {
-        wakeLock: (navigator as Navigator & Pick<WakeLockEnvironment, "wakeLock">)
-          .wakeLock,
+        wakeLock: (
+          navigator as Navigator & Pick<WakeLockEnvironment, "wakeLock">
+        ).wakeLock,
         document,
       },
       setStatus,

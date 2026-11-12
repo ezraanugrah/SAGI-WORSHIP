@@ -6,7 +6,7 @@ import {
   type Page,
 } from "@playwright/test";
 import { createFakeSupabase } from "../src/sync/fakeSupabase";
-import { imageFile } from "./mediaFixtures";
+import { imageFile, videoFile } from "./mediaFixtures";
 import { createTheme } from "./themeHelpers";
 // Two laptops (two separate browser profiles) share one mocked Supabase
 // server. A song added on one shows up in Musik on the other, and so on.
@@ -152,8 +152,12 @@ test("media and themes follow the same account to the other laptop", async ({
   await expect(panel(a.page)).toContainText("0 media · 0 tema");
   await expect(panel(b.page)).toContainText("Tersinkron");
 
-  // A picture imported in Media on laptop A…
+  // A picture and a video imported in Media on laptop A…
   await a.page.getByRole("tab", { name: "Media", exact: true }).click();
+  // The Media tab says files go to the other laptops with this account.
+  await expect(a.page.getByTestId("media-sync")).toContainText(
+    "Sinkron (tim@gereja.id): Tersinkron",
+  );
   await a.page
     .getByLabel("File media", { exact: true })
     .setInputFiles(await imageFile(a.page, "altar-sinkron.png", "#3a7bd5"));
@@ -163,6 +167,21 @@ test("media and themes follow the same account to the other laptop", async ({
       exact: true,
     }),
   ).toBeVisible();
+  await a.page
+    .getByLabel("File media", { exact: true })
+    .setInputFiles({
+      ...(await videoFile(a.page)),
+      name: "pujian-sinkron.webm",
+    });
+  await expect(
+    a.page.getByRole("button", {
+      name: "Pilih media pujian-sinkron.webm",
+      exact: true,
+    }),
+  ).toBeVisible({ timeout: 60000 });
+  await expect(a.page.getByTestId("media-sync")).toContainText(/2 media/, {
+    timeout: 30000,
+  });
   // …and a theme with its own picture background.
   await createTheme(
     a.page,
@@ -181,6 +200,13 @@ test("media and themes follow the same account to the other laptop", async ({
       exact: true,
     }),
   ).toBeVisible({ timeout: 30000 });
+  await expect(
+    b.page.getByRole("button", {
+      name: "Pilih media pujian-sinkron.webm",
+      exact: true,
+    }),
+  ).toBeVisible({ timeout: 30000 });
+  await expect(b.page.getByTestId("media-sync")).toContainText(/\d+ media/);
   await b.page.getByRole("tab", { name: /Themes/ }).click();
   const theme = b.page.getByRole("button", {
     name: "Pilih tema Tema Sinkron",
@@ -192,6 +218,15 @@ test("media and themes follow the same account to the other laptop", async ({
 
   await b.page.getByRole("tab", { name: "Songs", exact: true }).click();
   await expect(panel(b.page)).toContainText(/\d+ media · 1 tema/);
+  // Signed out: the Media tab says files stay on this laptop.
+  await a.page.getByRole("tab", { name: "Songs", exact: true }).click();
+  await panel(a.page)
+    .getByRole("button", { name: "Keluar", exact: true })
+    .click();
+  await a.page.getByRole("tab", { name: "Media", exact: true }).click();
+  await expect(a.page.getByTestId("media-sync")).toHaveText(
+    "Media hanya ada di laptop ini sampai Anda masuk di Songs › Sinkron antar laptop.",
+  );
   // The copy on B is a real, readable picture (checked chunk by chunk).
   await b.page.getByRole("tab", { name: "Media", exact: true }).click();
   await expect

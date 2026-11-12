@@ -249,6 +249,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Sisa data file dari media yang sudah dihapus kini dibersihkan otomatis (saat media dihapus dan saat tab Media dibuka), jadi tombol "Bersihkan media tanpa referensi" tidak diperlukan lagi. Media di library, serta yang masih dipakai LIVE, checkpoint, atau tema, tidak pernah ikut terhapus.
 - Ukuran di kartu media memakai MB.
 
+### Media sampai ke semua laptop: progres terlihat, versi baru terpasang sendiri
+
+- Tab **Media** (dan Presentations) menampilkan baris sinkron: "Sinkron (email): Tersinkron … · 12 media", saat berjalan "Mengirim media: video.mp4 · 3/9 bagian" atau "Mengambil media: …", dan bila belum masuk: "Media hanya ada di laptop ini sampai Anda masuk …". Panel Sinkron di Songs menampilkan progres yang sama.
+- Pengiriman dan pengambilan file berjalan 3 bagian sekaligus (lebih cepat); media terbaru dikirim lebih dulu; bila koneksi putus atau SAGI ditutup, pengiriman lanjut dari bagian yang belum terkirim.
+- **Versi baru SAGI terpasang sendiri di setiap laptop**: diperiksa tiap 5 menit dan saat jendela difokuskan; dipasang otomatis setelah pemberitahuan 15 detik bila tidak ada yang LIVE, tidak ada pemulihan yang menunggu, dan jendela proyektor tertutup ("Nanti" untuk menunda). Sebelumnya perlu klik "Muat versi baru" dan pemeriksaan hanya tiap jam, sehingga laptop lain bisa tertinggal versi lama tanpa sinkron media.
+- Tes: unit test (terbaru dulu, progres, lanjut setelah putus) dan E2E (gambar + video ke laptop kedua, baris sinkron di Media, pemasangan versi baru otomatis/Nanti/menunggu proyektor). Diuji juga dengan video MP4 1080p 31 MB.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

@@ -1,6 +1,6 @@
 import { t } from "../i18n";
 import { DocumentPagePicker } from "./DocumentPagePicker";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import type { useMedia } from "../hooks/useMedia";
 import type { Workspace } from "../domain/models";
 import type { AssetRef, MediaAsset, MediaSelection } from "../media/models";
@@ -75,7 +75,10 @@ export function MediaLibrary({
   onChanged,
   mode = "media",
   watch,
+  syncLine,
 }: {
+  /** Whether files reach the other laptops, and transfer progress. */
+  syncLine?: ReactNode;
   services: ReturnType<typeof useMedia>;
   /** Watched laptop folder (Media tab); kept by the dashboard so it runs on every tab. */
   watch?: ReturnType<typeof useFolderWatch>;
@@ -484,11 +487,13 @@ export function MediaLibrary({
             {usage}
           </p>
         )}
-        <p className="field-help">
-          {t(
-            "Media ikut tersinkron ke laptop lain setelah masuk di Songs › Sinkron antar laptop.",
-          )}
-        </p>
+        {syncLine ?? (
+          <p className="field-help">
+            {t(
+              "Media ikut tersinkron ke laptop lain setelah masuk di Songs › Sinkron antar laptop.",
+            )}
+          </p>
+        )}
       </div>
     </div>
   );

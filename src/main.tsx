@@ -23,14 +23,16 @@ const updateSW = registerSW({
     );
   },
   onRegisteredSW(_url, registration) {
-    // Operators keep SAGI open for hours: look for a new version every hour.
-    if (registration)
-      setInterval(
-        () => {
-          if (navigator.onLine) void registration.update().catch(() => {});
-        },
-        60 * 60 * 1000,
-      );
+    // Operators keep SAGI open for hours: look for a new version every few
+    // minutes and when the window comes back to the front, so every laptop
+    // gets it soon (it installs itself when nothing is LIVE, see App).
+    if (!registration) return;
+    const check = () => {
+      if (navigator.onLine) void registration.update().catch(() => {});
+    };
+    setInterval(check, 5 * 60 * 1000);
+    window.addEventListener("focus", check);
+    window.addEventListener("online", check);
   },
   onRegisterError() {
     window.dispatchEvent(new Event("sagi-offline-error"));

@@ -92,7 +92,10 @@ export default function App() {
   const [previewDirty, setPreviewDirty] = useState(false);
   // A newer SAGI version is downloaded and waiting (service worker).
   const [update, setUpdate] = useState<(() => Promise<void>) | null>(null),
-    [updating, setUpdating] = useState(false);
+    [updating, setUpdating] = useState(false),
+    // Seconds until the new version installs itself; "Nanti" stops it.
+    [autoIn, setAutoIn] = useState<number | null>(null),
+    [later, setLater] = useState(false);
   // Screen picked in the top bar; the toolbar's Live button opens there.
   const [screen, setScreen] = useState<ScreenChoice | undefined>();
   const pending = useRef(Promise.resolve());
@@ -196,6 +199,43 @@ export default function App() {
       setNotice("Permintaan penyimpanan tidak tersedia pada browser ini.");
     }
   }
+  function applyUpdate() {
+    if (!update) return;
+    setUpdating(true);
+    void update().catch(() => {
+      setUpdating(false);
+      setNotice(
+        "Versi baru belum bisa dipasang. Tutup semua jendela SAGI lalu buka kembali.",
+      );
+    });
+  }
+  // A new version installs itself after a short notice, but only while
+  // nothing is LIVE, no recovery waits and the projector window is closed;
+  // otherwise the banner waits for the operator.
+  const quiet =
+    !presentationState.live &&
+    !presentationState.recovery &&
+    ["Belum dibuka", "Ditutup"].includes(presentationState.connection.status);
+  const autoUpdate = !!update && quiet && !later && !updating;
+  useEffect(() => {
+    if (!autoUpdate) {
+      setAutoIn(null);
+      return;
+    }
+    let left = 15;
+    setAutoIn(left);
+    const timer = setInterval(() => {
+      left--;
+      if (left > 0) setAutoIn(left);
+      else {
+        clearInterval(timer);
+        setAutoIn(0);
+        applyUpdate();
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoUpdate]);
   const live = presentationState.live;
   const appStatus = readOnly
     ? { state: "readonly", label: "HANYA BACA" }
@@ -369,8 +409,15 @@ export default function App() {
                 {t("Versi baru SAGI tersedia.")}
                 {presentationState.live
                   ? ` ${t("LIVE sedang berjalan: muat versi baru setelah ibadah selesai.")}`
-                  : ""}
+                  : autoIn !== null
+                    ? ` ${t("Dipasang otomatis dalam {n} detik.", { n: autoIn })}`
+                    : ""}
               </span>
+              {autoIn !== null && (
+                <button className="text-button" onClick={() => setLater(true)}>
+                  {t("Nanti")}
+                </button>
+              )}
               <button
                 className="button primary"
                 disabled={updating}
@@ -384,13 +431,7 @@ export default function App() {
                     )
                   )
                     return;
-                  setUpdating(true);
-                  void update().catch(() => {
-                    setUpdating(false);
-                    setNotice(
-                      "Versi baru belum bisa dipasang. Tutup semua jendela SAGI lalu buka kembali.",
-                    );
-                  });
+                  applyUpdate();
                 }}
               >
                 {updating ? t("Memuat…") : t("Muat versi baru")}

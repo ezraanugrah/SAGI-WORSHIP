@@ -194,20 +194,63 @@ const goodRow = (row: Row) =>
   Number.isInteger(row.version) &&
   typeof row.updated_at === "string";
 
+/** A file on its way, for the progress line ("Mengirim media: … 3/8"). */
+export type Transfer = {
+  direction: "up" | "down";
+  title: string;
+  done: number;
+  total: number;
+};
+export type MediaHooks = {
+  progress?: (transfer: Transfer) => void;
+  /** Keep what is already uploaded, so a closed tab resumes there. */
+  persist?: () => void;
+};
+/** Chunks sent or fetched at the same time (4 MiB each). */
+const LANES = 3;
+/**
+ * Runs work over the items, a few at a time. The first error stops new work;
+ * pieces already on their way finish first (so what they sent is counted),
+ * then that error is thrown.
+ */
+async function lanes<T>(
+  items: T[],
+  work: (item: T, i: number) => Promise<void>,
+) {
+  let next = 0,
+    error: unknown = null;
+  const lane = async () => {
+    while (error === null && next < items.length) {
+      const i = next++;
+      try {
+        await work(items[i], i);
+      } catch (e) {
+        error ??= e;
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(LANES, items.length) }, lane),
+  );
+  if (error !== null) throw error;
+}
+
 /** Download one payload chunk by chunk, checking every chunk's hash. */
 async function fetchPayload(
   api: SyncApi,
   ref: AssetRef,
   files: FileList,
+  tick: () => void = () => {},
 ): Promise<Payload> {
-  const parts: Blob[] = [];
-  for (const hash of files.chunks) {
+  const parts: Blob[] = new Array(files.chunks.length);
+  await lanes(files.chunks, async (hash, i) => {
     const blob = await api.download(`chunks/${hash}`);
     if (!blob) throw new Error("Potongan file media belum ada di server.");
     if ((await sha(new Uint8Array(await blob.arrayBuffer()))) !== hash)
       throw new Error("Potongan file media rusak di server.");
-    parts.push(blob);
-  }
+    parts[i] = blob;
+    tick();
+  });
   return {
     id: ref.id,
     format: 1,
@@ -224,6 +267,7 @@ export async function syncMedia(
   repo: MediaSyncRepo,
   state: LibraryState,
   result: LibraryResult,
+  hooks: MediaHooks = {},
 ) {
   // Pull: new files from other laptops, and deletions.
   let local = await repo.list();
@@ -266,9 +310,22 @@ export async function syncMedia(
         };
       } else {
         try {
+          const total =
+              files.original.chunks.length + files.thumbnail.chunks.length,
+            transfer: Transfer = {
+              direction: "down",
+              title: asset.title,
+              done: 0,
+              total,
+            },
+            tick = () => {
+              transfer.done++;
+              hooks.progress?.({ ...transfer });
+            };
+          hooks.progress?.({ ...transfer });
           const payloads = [
-            await fetchPayload(api, asset.original, files.original),
-            await fetchPayload(api, asset.thumbnail, files.thumbnail),
+            await fetchPayload(api, asset.original, files.original, tick),
+            await fetchPayload(api, asset.thumbnail, files.thumbnail, tick),
           ];
           await repo.importRemote(asset, payloads);
           local = [...local, asset];
@@ -292,35 +349,57 @@ export async function syncMedia(
       .map(([id, k]) => k.local ?? id),
   );
   const uploaded = new Set(state.uploaded ?? []);
+  const keep = () => {
+    state.uploaded = [...uploaded].slice(-20000);
+    hooks.persist?.();
+  };
   let stale = false;
+  // Newest first: a video added just now does not wait behind the rest.
+  const outgoing = local
+    .filter((a) => !onServer.has(a.id))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   try {
-    for (const asset of local) {
-      if (onServer.has(asset.id)) continue;
+    for (const asset of outgoing) {
       const files = {} as MediaData["files"];
       try {
-        for (const key of ["original", "thumbnail"] as const) {
-          const ref = asset[key],
-            p = await repo.payload(ref);
-          for (let i = 0; i < p.chunks.length; i++) {
-            const hash = p.chunks[i];
-            if (uploaded.has(hash)) continue;
-            // Each chunk is hashed once, right before it is sent: a damaged
-            // copy here never reaches the server under a good name.
-            const part = p.blob.slice(i * CHUNK, (i + 1) * CHUNK);
-            if ((await sha(new Uint8Array(await part.arrayBuffer()))) !== hash)
-              throw new LocalDamaged();
-            const answer = await api.upload(`chunks/${hash}`, part);
-            if (answer === "missing") throw new LibraryNotReady();
-            if (answer === "full") throw new StorageFull();
-            uploaded.add(hash);
-          }
-          files[key] = {
-            chunks: [...p.chunks],
-            size: ref.size,
-            mime: ref.mime,
-            digest: ref.digest,
+        const payloads = {
+          original: await repo.payload(asset.original),
+          thumbnail: await repo.payload(asset.thumbnail),
+        };
+        const pending = (["original", "thumbnail"] as const).flatMap((key) =>
+            payloads[key].chunks
+              .map((hash, i) => ({ key, hash, i }))
+              .filter((c) => !uploaded.has(c.hash)),
+          ),
+          transfer: Transfer = {
+            direction: "up",
+            title: asset.title,
+            done: 0,
+            total: pending.length,
           };
-        }
+        if (pending.length) hooks.progress?.({ ...transfer });
+        await lanes(pending, async ({ key, hash, i }) => {
+          if (uploaded.has(hash)) return; // same chunk twice in this file
+          // Each chunk is hashed once, right before it is sent: a damaged
+          // copy here never reaches the server under a good name.
+          const part = payloads[key].blob.slice(i * CHUNK, (i + 1) * CHUNK);
+          if ((await sha(new Uint8Array(await part.arrayBuffer()))) !== hash)
+            throw new LocalDamaged();
+          const answer = await api.upload(`chunks/${hash}`, part);
+          if (answer === "missing") throw new LibraryNotReady();
+          if (answer === "full") throw new StorageFull();
+          uploaded.add(hash);
+          transfer.done++;
+          hooks.progress?.({ ...transfer });
+          keep();
+        });
+        for (const key of ["original", "thumbnail"] as const)
+          files[key] = {
+            chunks: [...payloads[key].chunks],
+            size: asset[key].size,
+            mime: asset[key].mime,
+            digest: asset[key].digest,
+          };
       } catch (e) {
         if (
           !(e instanceof LocalDamaged) &&
@@ -344,6 +423,7 @@ export async function syncMedia(
           hash: await mediaHash(asset),
         };
         result.pushed++;
+        keep();
       } else stale = true;
     }
   } finally {

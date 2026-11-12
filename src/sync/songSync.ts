@@ -30,7 +30,9 @@ import {
   type LibraryRepos,
   type LibraryResult,
   type LibraryState,
+  type MediaHooks,
   type SyncApi,
+  type Transfer,
 } from "./librarySync";
 
 export type SyncConfig = { url: string; key: string };
@@ -148,6 +150,8 @@ export const songHash = (s: { id: string } & SongInput) =>
 export class SongSync {
   /** Media and themes to sync too (set by the app; songs always sync). */
   library: LibraryRepos = {};
+  /** A media file on its way (null when none): the panel shows progress. */
+  onProgress?: (transfer: Transfer | null) => void;
   constructor(
     private config: SyncConfig,
     private repo: SyncRepo,
@@ -340,11 +344,23 @@ export class SongSync {
     if (media) {
       const state = this.libraryState(MEDIA_STATE, email),
         r: LibraryResult = { pulled: 0, pushed: 0, skipped: 0, count: 0 };
+      let saved = 0;
+      const hooks: MediaHooks = {
+        progress: (t) => this.onProgress?.(t),
+        // Uploaded chunks are kept as they go (at most every 2 s), so a
+        // closed tab or a lost connection resumes where it stopped.
+        persist: () => {
+          if (this.now() - saved < 2000) return;
+          saved = this.now();
+          this.write(MEDIA_STATE, state);
+        },
+      };
       try {
-        if (await syncMedia(api, media, state, r))
-          await syncMedia(api, media, state, r);
+        if (await syncMedia(api, media, state, r, hooks))
+          await syncMedia(api, media, state, r, hooks);
       } finally {
         this.write(MEDIA_STATE, state);
+        this.onProgress?.(null);
       }
       result.media = r;
       if (r.problem) result.notes.push(`Media/Tema: ${r.problem}`);

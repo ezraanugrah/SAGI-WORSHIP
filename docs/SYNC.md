@@ -34,6 +34,20 @@ Sinkron berjalan sendiri: saat dibuka, setiap 15 detik, 2 detik setelah lagu, me
 
 Sinkron hanya berjalan di tab yang sedang mengedit (bukan tab "hanya baca").
 
+## Media belum muncul di laptop lain?
+
+1. **Lihat tab Media di kedua laptop.** Di bawah daftar media ada baris "Sinkron (email): …".
+   - "Mengirim media: video.mp4 · 3/9 bagian" (laptop pengirim) atau "Mengambil media: … " (laptop penerima): file sedang dalam perjalanan. Video besar butuh waktu sesuai kecepatan internet (±1 menit per 30 MB pada upload 5 Mbps). Biarkan SAGI tetap terbuka; bila terputus, pengiriman lanjut dari bagian terakhir.
+   - "Tersinkron 10.42 · … · 12 media": selesai; laptop lain mengambilnya dalam ±15 detik.
+   - "Media hanya ada di laptop ini sampai Anda masuk …": laptop itu belum masuk akun gereja (tab Songs › Sinkron antar laptop).
+   - "Media/Tema: …" atau "Media & Tema belum aktif …": baca pesannya; untuk yang kedua, admin menjalankan `supabase/library-sync.sql`.
+   - Tidak ada baris "Sinkron" sama sekali: laptop itu masih memakai versi lama SAGI. Versi baru kini terpasang sendiri (lihat di bawah); bisa juga klik **Muat versi baru** atau muat ulang halaman.
+2. File yang paling baru ditambahkan dikirim lebih dulu.
+
+## Versi baru SAGI
+
+Setiap laptop memeriksa versi baru tiap 5 menit dan saat jendela SAGI dibuka kembali. Bila ada, muncul "Versi baru SAGI tersedia. Dipasang otomatis dalam 15 detik." lalu halaman dimuat ulang sendiri, **hanya** bila tidak ada yang LIVE dan jendela proyektor tertutup. Klik **Nanti** untuk menunda; **Muat versi baru** memasangnya kapan saja. Saat LIVE atau proyektor terbuka, SAGI menunggu sampai ibadah selesai.
+
 ## Tidak bisa masuk?
 
 Setiap akun yang sudah masuk melihat **pustaka lagu yang sama** (boleh satu akun bersama atau satu akun per operator). Lagu dari laptop A baru muncul di laptop B setelah laptop A juga masuk dan statusnya "Tersinkron".

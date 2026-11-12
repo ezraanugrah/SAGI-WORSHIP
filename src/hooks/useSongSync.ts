@@ -6,7 +6,7 @@ import {
   syncConfig,
   type SyncRepo,
 } from "../sync/songSync";
-import type { LibraryRepos } from "../sync/librarySync";
+import type { LibraryRepos, Transfer } from "../sync/librarySync";
 
 export const SYNC_INTERVAL_MS = 15000;
 export type SyncStatus = {
@@ -44,6 +44,15 @@ export function useSongSync(
           ? { phase: "syncing", message: "Menyiapkan sinkron…" }
           : { phase: "signed-out", message: "" },
     );
+  // A media file on its way ("Mengirim media: … 3/8 bagian").
+  const [transfer, setTransfer] = useState<Transfer | null>(null);
+  useEffect(() => {
+    if (!engine) return;
+    engine.onProgress = setTransfer;
+    return () => {
+      engine.onProgress = undefined;
+    };
+  }, [engine]);
   const running = useRef(false),
     again = useRef(false);
   const syncNow = useCallback(async () => {
@@ -138,6 +147,7 @@ export function useSongSync(
     configured: !!engine,
     email,
     status,
+    transfer,
     signIn,
     signOut,
     syncNow,

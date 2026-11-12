@@ -40,13 +40,13 @@ afterEach(async () => {
   await Promise.all(names.map((n) => deleteDB(n)));
 });
 /** One laptop: its own IndexedDB and browser storage, the shared server. */
-async function laptop() {
+async function laptop(fetcher: typeof fetch = server.fetch) {
   const name = `library-${crypto.randomUUID()}`;
   names.push(name);
   const songs = new Repository(writer.gate, name),
     media = new MediaRepository(writer.gate, name),
     themes = new ThemeRepository(writer.gate, name),
-    sync = new SongSync(config, songs, memory(), server.fetch);
+    sync = new SongSync(config, songs, memory(), fetcher);
   sync.library = libraryRepos(media, themes);
   await sync.signIn("tim@gereja.id", "rahasia");
   return { name, songs, media, themes, sync };
@@ -68,6 +68,7 @@ async function file(
   title: string,
   bytes: BlobPart,
   kind: "image" | "video" = "image",
+  createdAt = new Date().toISOString(),
 ) {
   const original = await payload(
       new Blob([bytes], {
@@ -88,7 +89,7 @@ async function file(
       original: ref(original, kind, kind === "video" ? 12 : undefined),
       thumbnail: ref(poster, "image"),
       pages: 1,
-      createdAt: new Date().toISOString(),
+      createdAt,
       compatibility: "synthetic test",
     } satisfies MediaAsset,
     payloads: [original, poster],
@@ -216,6 +217,58 @@ describe("media and themes sync with the same account as the songs", () => {
         (x) => (x.data as { asset: MediaAsset }).asset.title,
       ),
     ).toEqual(["baik.png"]);
+  });
+  it("sends the newest file first, reports progress, and resumes after the connection drops", async () => {
+    let posts = 0,
+      dropAfter = Infinity;
+    const flaky: typeof fetch = async (url, init) => {
+      if (String(url).includes("/storage/") && init?.method === "POST")
+        if (++posts > dropAfter) throw new TypeError("Failed to fetch");
+      return server.fetch(url, init);
+    };
+    const a = await laptop(flaky),
+      b = await laptop();
+    const big = new Uint8Array(9 * 1024 * 1024).map((_, i) => (i * 7) % 253);
+    await file(
+      a.media,
+      "lama.png",
+      "old pixels",
+      "image",
+      "2026-01-01T00:00:00.000Z",
+    );
+    await file(a.media, "baru.webm", big, "video", "2026-11-12T09:00:00.000Z");
+    const seen: string[] = [];
+    a.sync.onProgress = (t) => {
+      if (t) seen.push(`${t.direction} ${t.title} ${t.done}/${t.total}`);
+      else seen.push("idle");
+    };
+    // The connection drops after two pieces of the video.
+    dropAfter = 2;
+    await expect(a.sync.run()).rejects.toThrow(/Offline/);
+    expect(seen[0]).toBe("up baru.webm 0/4"); // 3 video pieces + its thumbnail
+    expect(seen.at(-1)).toBe("idle");
+    const sent = server.objects.size;
+    expect(sent).toBeGreaterThanOrEqual(2);
+    // Back online: only the missing pieces go, then the older picture.
+    posts = 0;
+    dropAfter = Infinity;
+    seen.length = 0;
+    expect((await a.sync.run()).media).toMatchObject({ pushed: 2, count: 2 });
+    expect(posts).toBe(4 - sent + 2); // rest of the video + picture & thumbnail
+    expect(seen.filter((x) => x.startsWith("up")).at(-1)).toBe(
+      "up lama.png 2/2",
+    );
+    // The other laptop gets both and reports what it receives.
+    const got: string[] = [];
+    b.sync.onProgress = (t) => t && got.push(`${t.direction} ${t.title}`);
+    expect((await b.sync.run()).media).toMatchObject({ pulled: 2, count: 2 });
+    expect(new Set(got)).toEqual(new Set(["down lama.png", "down baru.webm"]));
+    const video = (await b.media.list()).assets.find(
+      (x) => x.title === "baru.webm",
+    )!;
+    expect(
+      (await readAsset(video.original, [video.original], b.name)).size,
+    ).toBe(big.length);
   });
   it("keeps syncing songs and says what the admin must do when the server is not ready or full", async () => {
     const a = await laptop();

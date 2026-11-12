@@ -37,6 +37,7 @@ import type { Preferences } from "../db";
 import { SongsLibrary } from "./SongsLibrary";
 import { SongEditor } from "./SongEditor";
 import { AutoArrange } from "./AutoArrange";
+import { MediaSyncLine } from "./SyncPanel";
 import { SchedulePanel, type ScheduleSlide } from "./SchedulePanel";
 import { weekName, weekSchedules } from "../domain/weeks";
 
@@ -674,6 +675,7 @@ export function Phase2Dashboard({
             ) : tab === 2 ? (
               <MediaLibrary
                 services={mediaServices}
+                syncLine={<MediaSyncLine sync={sync} />}
                 watch={watch}
                 data={data}
                 editable={editable}
@@ -686,6 +688,7 @@ export function Phase2Dashboard({
               <MediaLibrary
                 mode="presentations"
                 services={mediaServices}
+                syncLine={<MediaSyncLine sync={sync} />}
                 data={data}
                 editable={editable}
                 onPreview={(selection) =>
