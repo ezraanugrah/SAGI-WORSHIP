@@ -4,7 +4,7 @@ import type {
   AdvancedSettings,
 } from "../themes/models";
 import { frameText, type Deck, type Style } from "./models";
-import { columnMeasure, type Measure } from "./layout";
+import { SCRIPTURE_FOOTER, columnMeasure, type Measure } from "./layout";
 import type { Workspace } from "../domain/models";
 import type { Selection } from "./generateSlides";
 import type { ThemeRepository } from "../data/themeRepository";
@@ -113,7 +113,7 @@ export function layoutText(
     width = 1920 * (1 - (t.margins.left + t.margins.right) / 100) - padding * 2,
     height =
       1080 * (1 - (t.margins.top + t.margins.bottom) / 100) -
-      (scripture ? 170 : 0) -
+      (scripture ? SCRIPTURE_FOOTER : 0) -
       padding * 2;
   function paginate(size: number) {
     const style: Style & { weight: 400 | 700 | 800; italic: boolean } = {

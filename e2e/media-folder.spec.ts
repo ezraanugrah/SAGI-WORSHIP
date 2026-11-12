@@ -25,10 +25,9 @@ test.beforeEach(async ({ page }) => {
     (
       window as unknown as { showDirectoryPicker: () => Promise<unknown> }
     ).showDirectoryPicker = async () =>
-      (await navigator.storage.getDirectory()).getDirectoryHandle(
-        "Downloads",
-        { create: true },
-      );
+      (await navigator.storage.getDirectory()).getDirectoryHandle("Downloads", {
+        create: true,
+      });
   });
   await page.goto("/");
   await expect(
@@ -43,7 +42,9 @@ test("a file downloaded after choosing the folder is detected and imported with 
   await download(page, "lama.png", "#224466");
   await page.getByRole("tab", { name: /Media/ }).click();
   const watch = page.getByRole("region", { name: "Folder pantauan" });
-  await watch.getByRole("button", { name: "Pilih folder", exact: true }).click();
+  await watch
+    .getByRole("button", { name: "Pilih folder", exact: true })
+    .click();
   await expect(watch).toContainText("Downloads");
   await expect(watch).toContainText("Dipantau · 1 file belum di Media");
   // The old file is not announced as new.
@@ -90,7 +91,9 @@ test("auto-import picks up a finished download, even while another tab is open, 
   test.setTimeout(90000);
   await page.getByRole("tab", { name: /Media/ }).click();
   const watch = page.getByRole("region", { name: "Folder pantauan" });
-  await watch.getByRole("button", { name: "Pilih folder", exact: true }).click();
+  await watch
+    .getByRole("button", { name: "Pilih folder", exact: true })
+    .click();
   await watch.getByLabel("Impor otomatis file baru").check();
   await page.getByRole("tab", { name: /Songs/ }).click();
   await download(page, "otomatis.png", "#33aa77");
@@ -104,7 +107,9 @@ test("auto-import picks up a finished download, even while another tab is open, 
   await expect(again).toContainText("Downloads");
   await expect(again.getByLabel("Impor otomatis file baru")).toBeChecked();
   await expect(again).toContainText("Dipantau · 0 file belum di Media");
-  await again.getByRole("button", { name: "Lepas folder", exact: true }).click();
+  await again
+    .getByRole("button", { name: "Lepas folder", exact: true })
+    .click();
   await expect(
     again.getByRole("button", { name: "Pilih folder", exact: true }),
   ).toBeVisible();

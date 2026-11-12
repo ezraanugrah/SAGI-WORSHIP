@@ -1,3 +1,4 @@
+import { SCRIPTURE_FOOTER, SCRIPTURE_FOOTER_BOX } from "../presentation/layout";
 import { useLayoutEffect, useRef, useState } from "react";
 import { fontStack } from "../presentation/fonts";
 import { cssBackground } from "../themes/builtins";
@@ -141,7 +142,7 @@ export function ThemedFrame({
           left: `calc(${type.margins.left}% + ${pad * scale}px)`,
           right: `calc(${type.margins.right}% + ${pad * scale}px)`,
           top: `calc(${type.margins.top}% + ${pad * scale}px)`,
-          bottom: `calc(${type.margins.bottom}% + ${(pad + (caption ? 170 : 0)) * scale}px)`,
+          bottom: `calc(${type.margins.bottom}% + ${(pad + (caption ? SCRIPTURE_FOOTER : 0)) * scale}px)`,
           justifyContent:
             type.vertical === "top"
               ? "flex-start"
@@ -184,7 +185,7 @@ export function ThemedFrame({
             left: `${Math.max(3, type.margins.left)}%`,
             right: `${Math.max(3, type.margins.right)}%`,
             bottom: `${type.margins.bottom}%`,
-            height: 150 * scale,
+            height: SCRIPTURE_FOOTER_BOX * scale,
             fontFamily: fontStack(type.font),
             visibility: mode === "normal" ? "visible" : "hidden",
             background: "#000",
@@ -194,7 +195,6 @@ export function ThemedFrame({
           <CaptionText
             caption={caption}
             referenceStyle={{ fontSize: 32 * scale }}
-            attributionStyle={{ fontSize: 24 * scale }}
           />
         </div>
       )}

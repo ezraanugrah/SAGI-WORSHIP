@@ -20,15 +20,16 @@ export function SlideText({
     </>
   );
 }
-/** Reference and attribution lines; two-language slides name both editions. */
+/**
+ * The reference line ("Amsal 3:3–6 · AYT · 2024"); two-language slides name
+ * both editions. The licence line is kept in the deck but not drawn.
+ */
 export function CaptionText({
   caption,
   referenceStyle,
-  attributionStyle,
 }: {
   caption: ScriptureCaption;
   referenceStyle?: CSSProperties;
-  attributionStyle?: CSSProperties;
 }) {
   const part = caption.total > 1 ? ` · ${caption.part}/${caption.total}` : "",
     other = caption.parallel;
@@ -55,11 +56,6 @@ export function CaptionText({
             {part}
           </>
         )}
-      </div>
-      <div className="scripture-attribution" style={attributionStyle}>
-        {other
-          ? `${caption.attribution} · ${other.attribution}`
-          : caption.attribution}
       </div>
     </>
   );

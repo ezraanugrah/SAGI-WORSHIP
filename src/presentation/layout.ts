@@ -77,8 +77,14 @@ export const columnMeasure =
   (measure: Measure): Measure =>
   (text, style) =>
     measure(text, style) * PARALLEL_WIDTH;
+/**
+ * Space kept under Scripture text for the reference line (px on 1080p):
+ * the footer box (SCRIPTURE_FOOTER_BOX) plus a gap. The licence line is not
+ * drawn on slides; it stays in the deck data.
+ */
+export const SCRIPTURE_FOOTER = 110;
+export const SCRIPTURE_FOOTER_BOX = 90;
 /** Slice original text at measured page boundaries; concatenation is byte-for-byte identical. */
-export const SCRIPTURE_FOOTER = 170;
 export function paginateExact(
   text: string,
   style: Style,

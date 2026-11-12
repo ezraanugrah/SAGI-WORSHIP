@@ -558,8 +558,9 @@ function Picker({
           </div>
         ))}
       </div>
-      {/* The bundled AYT/KJV need no line here (their attribution is on
-          every slide); TB, TB2 and ESV from the APIs keep their notice. */}
+      {/* The bundled AYT/KJV need no licence line here; TB, TB2 and ESV
+          from the APIs keep their notice in this tab. Slides show only the
+          reference line (edition named, e.g. "· ESV · 2016"). */}
       {(settings.left !== "ayt" || settings.right === "esv") && (
         <p className="field-help">
           {settings.left === "tb"
@@ -578,7 +579,7 @@ function Picker({
           ) : (
             "KJV Public Domain"
           )}
-          . {t("Atribusi ikut tampil di setiap slide.")}
+          .
         </p>
       )}
       <OnlineSources

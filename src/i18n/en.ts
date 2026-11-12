@@ -32,8 +32,6 @@ export const EN: Record<string, string> = {
     "Asset missing/damaged; the previous output is kept.",
   Atas: "Top",
   "atas nama gereja, atau": "for the church, or",
-  "Atribusi ikut tampil di setiap slide.":
-    "Attribution is shown on every slide.",
   Ayat: "Verse",
   "B atau .": "B or .",
   "Background tema: pilih gambar atau video (JPG, PNG, WebP, MP4, WebM).":

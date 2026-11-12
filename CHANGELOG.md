@@ -231,6 +231,11 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 
 - Kalimat "AYT © YLSA · CC BY-NC-SA · KJV Public Domain" tidak lagi tampil di bawah daftar ayat di tab Scriptures. Atribusi tetap tampil di setiap slide (Live Output dan proyektor). Baris ini hanya muncul bila memakai TB/TB2/ESV dari API resmi, karena sumber itu mewajibkan pemberitahuannya.
 
+### Slide ayat tanpa baris lisensi
+
+- Baris "AYT © YLSA · CC BY-NC-SA · Public Domain" (juga TB/TB2/ESV) tidak lagi tampil di bawah ayat di Live Output dan proyektor. Yang tampil hanya baris referensi, mis. "Ulangan 4:4–8 · AYT · 2024" dan "Deuteronomy 4:4–8 · KJV · 1769". Data lisensi tetap tersimpan di materi dan backup.
+- Ruang bawah untuk referensi diperkecil (170 → 110 px pada 1080p), jadi ayat mendapat tempat lebih besar.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

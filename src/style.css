@@ -2352,7 +2352,7 @@ footer > span:last-child {
 }
 .scripture-footer {
   position: absolute;
-  height: 150px;
+  height: 90px;
   color: #fff;
   text-align: center;
   overflow: hidden;
@@ -2363,12 +2363,6 @@ footer > span:last-child {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   margin-bottom: 8px;
-}
-.scripture-attribution {
-  font-size: 24px;
-  line-height: 1.2;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 .scripture-import progress {
   width: 100%;

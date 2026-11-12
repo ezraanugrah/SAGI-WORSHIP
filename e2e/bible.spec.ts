@@ -103,9 +103,9 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   ).toContainText(/¹⁰\s?Allah menyebut/);
   await expect(footer).toContainText("Kejadian 1:3–10 · AYT · 2024");
   await expect(footer).toContainText("Genesis 1:3–10 · KJV · 1769");
-  await expect(footer).toContainText(
-    "AYT © YLSA · CC BY-NC-SA · Public Domain",
-  );
+  // Only the reference line: no licence line on the audience screen.
+  await expect(footer).not.toContainText("©");
+  await expect(footer).not.toContainText("Public Domain");
   // Left column sits left of the right column on the audience screen.
   const left = await projector
     .locator('.slide-column[data-column="left"]')

@@ -1,3 +1,4 @@
+import { SCRIPTURE_FOOTER } from "../presentation/layout";
 import { ThemedFrame } from "./ThemedFrame";
 import {
   DEFAULT_OUTLINE_PX,
@@ -149,7 +150,9 @@ export function SlideCanvas({
             style={{
               inset: `${deck.style.safeMargin}%`,
               ...(caption
-                ? { bottom: `calc(${deck.style.safeMargin}% + 170px)` }
+                ? {
+                    bottom: `calc(${deck.style.safeMargin}% + ${SCRIPTURE_FOOTER}px)`,
+                  }
                 : {}),
               visibility: mode === "normal" ? "visible" : "hidden",
             }}

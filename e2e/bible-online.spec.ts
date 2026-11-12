@@ -140,9 +140,7 @@ test("TB2 left and ESV right from the official APIs, with the church's keys, thr
   const footer = projector.locator(".scripture-footer");
   await expect(footer).toContainText("Kejadian 1:3–5 · TB2 · 2023");
   await expect(footer).toContainText("Genesis 1:3–5 · ESV · 2016");
-  await expect(footer).toContainText(
-    "TB2 © LAI 2023 · ESV® © Crossway · esv.org",
-  );
+  await expect(footer).not.toContainText("©");
 });
 
 test("without internet, verses not fetched yet fall back to AYT / KJV and say so", async ({
@@ -251,7 +249,7 @@ test("TB from Alkitab SABDA in the left column, without an API key", async ({
   await expect(live.locator(".scripture-footer").first()).toContainText(
     "Kejadian 1:3–5 · TB · 1974",
   );
-  await expect(live.locator(".scripture-footer").first()).toContainText(
-    "TB © LAI 1974 · Public Domain",
+  await expect(live.locator(".scripture-footer").first()).not.toContainText(
+    "©",
   );
 });
