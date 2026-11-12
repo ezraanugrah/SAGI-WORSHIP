@@ -22,6 +22,16 @@ import {
   type Song,
   type SongInput,
 } from "../domain/models";
+import {
+  LibraryNotReady,
+  MEDIA_BUCKET,
+  syncMedia,
+  syncThemes,
+  type LibraryRepos,
+  type LibraryResult,
+  type LibraryState,
+  type SyncApi,
+} from "./librarySync";
 
 export type SyncConfig = { url: string; key: string };
 /** Supabase project address and public (anon) key, baked in at build time. */
@@ -54,6 +64,11 @@ export type SyncResult = {
   copies: string[];
   skipped: number;
   songs: number;
+  /** Media library and custom themes, when this laptop syncs them. */
+  media?: LibraryResult;
+  themes?: LibraryResult;
+  /** Things the operator or admin should know (e.g. server not ready). */
+  notes: string[];
 };
 type Row = {
   id: string;
@@ -64,6 +79,8 @@ type Row = {
 };
 const SESSION = "sagi-sync-session",
   STATE = "sagi-sync-state",
+  MEDIA_STATE = "sagi-sync-media",
+  THEME_STATE = "sagi-sync-themes",
   DELETED = "deleted",
   OVERLAP_MS = 60000,
   PAGE = 1000;
@@ -91,11 +108,14 @@ export async function loginRefusal(response: Response) {
   return `Server login menolak (HTTP ${response.status}${text ? `: ${text}` : ""}).`;
 }
 export class OfflineError extends Error {
+  /** Ends the whole run (media/themes do not just skip and retry). */
+  readonly stopsSync = true;
   constructor() {
     super("Offline: perubahan dikirim saat internet tersambung lagi.");
   }
 }
 export class SignedOutError extends Error {
+  readonly stopsSync = true;
   constructor() {
     super("Sesi berakhir. Masuk lagi untuk melanjutkan sinkron.");
   }
@@ -126,6 +146,8 @@ export const songHash = (s: { id: string } & SongInput) =>
   sha256(canonicalJSON(songPayload(s)));
 
 export class SongSync {
+  /** Media and themes to sync too (set by the app; songs always sync). */
+  library: LibraryRepos = {};
   constructor(
     private config: SyncConfig,
     private repo: SyncRepo,
@@ -226,6 +248,118 @@ export class SongSync {
     next.email ||= s.email;
     this.write(SESSION, next);
     return next.access;
+  }
+  /** An authorised call; a refused token is refreshed once. */
+  private async authed(
+    url: string,
+    init: (token: string) => RequestInit,
+  ): Promise<Response> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await this.call(
+        url,
+        init(await this.access(attempt > 0)),
+      );
+      if (response.status === 401 && attempt === 0) continue;
+      return response;
+    }
+    throw new SignedOutError();
+  }
+  /** Tables and Storage for the media/themes sync. */
+  private tables(): SyncApi {
+    const rest = `${this.config.url}/rest/v1`,
+      store = `${this.config.url}/storage/v1/object`,
+      headers = (token: string) => ({
+        apikey: this.config.key,
+        Authorization: `Bearer ${token}`,
+      });
+    return {
+      select: async (table, since, offset, limit) => {
+        const r = await this.authed(
+          `${rest}/${table}?select=id,data,version,deleted,updated_at&order=updated_at.asc,id.asc&limit=${limit}&offset=${offset}${since ? `&updated_at=gte.${encodeURIComponent(since)}` : ""}`,
+          (token) => ({ headers: headers(token) }),
+        );
+        if (r.status === 404) return null; // table not created yet
+        if (r.status === 401) throw new SignedOutError();
+        if (!r.ok)
+          throw new Error(`Server sinkron menolak (HTTP ${r.status}).`);
+        return (await r.json()) as Row[];
+      },
+      insert: (table, row) => this.api(table, "POST", row),
+      update: async (table, id, version, patch) =>
+        (await this.api(
+          `${table}?id=eq.${encodeURIComponent(id)}&version=eq.${version}`,
+          "PATCH",
+          patch,
+        )) ?? [],
+      upload: async (path, blob) => {
+        const r = await this.authed(
+          `${store}/${MEDIA_BUCKET}/${path}`,
+          (token) => ({
+            method: "POST",
+            headers: {
+              ...headers(token),
+              "Content-Type": "application/octet-stream",
+              "x-upsert": "false",
+            },
+            body: blob,
+          }),
+        );
+        if (r.ok) return "ok";
+        const text = await r.text().catch(() => "");
+        // The chunk is there already (named after its content).
+        if (r.status === 409 || /duplicate|already exists/i.test(text))
+          return "ok";
+        if (/bucket not found/i.test(text) || r.status === 404)
+          return "missing";
+        if (r.status === 413 || /quota|exceed|too large|size/i.test(text))
+          return "full";
+        throw new Error(`Penyimpanan media menolak (HTTP ${r.status}).`);
+      },
+      download: async (path) => {
+        const r = await this.authed(
+          `${store}/authenticated/${MEDIA_BUCKET}/${path}`,
+          (token) => ({ headers: headers(token) }),
+        );
+        if (r.status === 400 || r.status === 404) return null;
+        if (!r.ok)
+          throw new Error(`Penyimpanan media menolak (HTTP ${r.status}).`);
+        return await r.blob();
+      },
+    };
+  }
+  private libraryState(key: string, email: string): LibraryState {
+    const s = this.read<LibraryState>(key);
+    return s && s.email === email && s.known && typeof s.cursor === "string"
+      ? s
+      : { email, cursor: "", known: {} };
+  }
+  /** Media first (themes may need their background file), then themes. */
+  private async library_(email: string, result: SyncResult) {
+    const api = this.tables(),
+      { media, themes } = this.library;
+    if (media) {
+      const state = this.libraryState(MEDIA_STATE, email),
+        r: LibraryResult = { pulled: 0, pushed: 0, skipped: 0, count: 0 };
+      try {
+        if (await syncMedia(api, media, state, r))
+          await syncMedia(api, media, state, r);
+      } finally {
+        this.write(MEDIA_STATE, state);
+      }
+      result.media = r;
+      if (r.problem) result.notes.push(`Media/Tema: ${r.problem}`);
+    }
+    if (themes) {
+      const state = this.libraryState(THEME_STATE, email),
+        r: LibraryResult = { pulled: 0, pushed: 0, skipped: 0, count: 0 };
+      try {
+        if (await syncThemes(api, themes, media, state, r))
+          await syncThemes(api, themes, media, state, r);
+      } finally {
+        this.write(THEME_STATE, state);
+      }
+      result.themes = r;
+    }
   }
   private async api(path: string, method = "GET", body?: unknown) {
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -379,6 +513,7 @@ export class SongSync {
         copies: [],
         skipped: 0,
         songs: 0,
+        notes: [],
       };
     try {
       await this.pull(state, result, false);
@@ -389,6 +524,18 @@ export class SongSync {
     } finally {
       this.write(STATE, state);
     }
+    // Media and themes: a problem there never stops the songs.
+    if (this.library.media || this.library.themes)
+      try {
+        await this.library_(session.email, result);
+      } catch (e) {
+        if (e instanceof OfflineError || e instanceof SignedOutError) throw e;
+        result.notes.push(
+          e instanceof LibraryNotReady
+            ? e.message
+            : `Media/Tema: ${(e as Error).message}`,
+        );
+      }
     return result;
   }
 }

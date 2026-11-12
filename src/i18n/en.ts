@@ -277,8 +277,8 @@ export const EN: Record<string, string> = {
   "Kejadian sampai Wahyu, 66 kitab, 31.102 ayat per bahasa. Diunduh sekali (sekitar 3 MB), lalu tersimpan offline di perangkat ini.":
     "Genesis to Revelation, 66 books, 31,102 verses per language. Downloaded once (about 3 MB), then stored offline on this device.",
   Keluar: "Sign out",
-  "Keluar. Lagu di laptop ini tetap ada.":
-    "Signed out. The songs on this laptop stay.",
+  "Keluar. Lagu, media, dan tema di laptop ini tetap ada.":
+    "Signed out. Songs, media and themes stay on this laptop.",
   "Kembalikan semua preferensi ke nilai default? Materi tidak dihapus.":
     "Reset all preferences to their defaults? No material is deleted.",
   "Kembalikan teks sumber": "Restore the source text",
@@ -350,10 +350,12 @@ export const EN: Record<string, string> = {
   "Manual / layar default": "Manual / default screen",
   Masuk: "Sign in",
   masuk: "sign in",
-  "Masuk dengan akun gereja agar lagu di Musik sama di semua laptop.":
-    "Sign in with the church account so Music is the same on every laptop.",
+  "Masuk dengan akun gereja agar lagu, media, dan tema sama di semua laptop.":
+    "Sign in with the church account so songs, media and themes are the same on every laptop.",
   "Masuk…": "Signing in…",
   "Matikan TB": "Turn off TB",
+  "Media & Tema belum aktif di server sinkron. Admin: jalankan supabase/library-sync.sql di Supabase (sekali).":
+    "Media & Themes are not enabled on the sync server yet. Admin: run supabase/library-sync.sql in Supabase (once).",
   "Media baca-saja": "Media is read-only",
   "Media baca-saja; siapkan ulang untuk perubahan.":
     "Media is read-only; prepare it again to change it.",
@@ -366,6 +368,7 @@ export const EN: Record<string, string> = {
   "Media sebelumnya": "Previous media",
   "Media · {n} halaman/frame":
     "Media · {n} page/frame|Media · {n} pages/frames",
+  "Media/Tema: {msg}": "Media/Themes: {msg}",
   Membuka: "Opening",
   "Memeriksa {name}…": "Checking {name}…",
   "Memproses lokal…": "Processing locally…",
@@ -385,7 +388,7 @@ export const EN: Record<string, string> = {
   "Menyiapkan slide…": "Preparing slides…",
   "Menyimpan {name}…": "Saving {name}…",
   "Menyimpan…": "Saving…",
-  "Menyinkron lagu…": "Syncing songs…",
+  "Menyinkron lagu, media, dan tema…": "Syncing songs, media and themes…",
   "Merge · pertahankan data tujuan": "Merge · keep the data already here",
   "Merge · simpan keduanya jika aman": "Merge · keep both when safe",
   "Metadata dan frame awal didekode; playback penuh bergantung codec.":
@@ -431,6 +434,8 @@ export const EN: Record<string, string> = {
   "Penyimpanan bermasalah": "Storage problem",
   "Penyimpanan persisten diberikan browser.":
     "The browser granted persistent storage.",
+  "Penyimpanan Supabase penuh: media baru belum terkirim. Hapus media yang tidak dipakai atau naikkan paket Supabase.":
+    "Supabase storage is full: new media was not sent. Delete unused media or upgrade the Supabase plan.",
   "Periksa dampak restore sebelum konfirmasi.":
     "Check the restore impact before confirming.",
   "Periksa keterbacaan": "Check readability",
@@ -469,6 +474,10 @@ export const EN: Record<string, string> = {
   "Playlist Jadwal": "Schedule playlists",
   "Popup diblokir. Izinkan popup untuk SAGI lalu coba lagi.":
     "Popup blocked. Allow popups for SAGI and try again.",
+  "Potongan file media belum ada di server.":
+    "A piece of a media file is not on the server yet.",
+  "Potongan file media rusak di server.":
+    "A piece of a media file is damaged on the server.",
   "PPTX belum disetujui. Ekspor lokal sebagai PDF/gambar.":
     "PPTX is not supported. Export it as PDF/pictures.",
   "Preferensi video & audio": "Video & audio preferences",
@@ -787,5 +796,16 @@ export const EN_PATTERNS: [RegExp, (...m: string[]) => string][] = [
   [
     /^Staging tervalidasi\. PARSIAL: (.*)$/,
     (m) => `Staging validated. PARTIAL: ${m}`,
+  ],
+  [/^(\d+) media$/, (n) => `${n} media`],
+  [/^(\d+) tema$/, (n) => `${n} ${n === "1" ? "theme" : "themes"}`],
+  [
+    /^Penyimpanan media menolak \(HTTP (\d+)\)\.$/,
+    (n) => `Media storage refused (HTTP ${n}).`,
+  ],
+  [
+    /^(.+): file di laptop ini rusak, tidak dikirim\. Impor ulang file aslinya\.$/,
+    (n) =>
+      `${n}: this laptop's copy is damaged and was not sent. Import the original file again.`,
   ],
 ];

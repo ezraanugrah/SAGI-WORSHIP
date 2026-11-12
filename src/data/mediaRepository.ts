@@ -17,7 +17,12 @@ import {
   type MediaSnapshot,
   type Payload,
 } from "../media/models";
-import { cancelled, verifyPayload, payload } from "../media/integrity";
+import {
+  cancelled,
+  verifyPayload,
+  payload,
+  payloadMatches,
+} from "../media/integrity";
 import type { PreparedMedia } from "../media/importCoordinator";
 import {
   validSchedule,
@@ -99,6 +104,18 @@ export class MediaRepository {
       throw e;
     } finally {
       signal?.removeEventListener("abort", abort);
+      db.close();
+    }
+  }
+  /**
+   * A stored payload and its chunk hashes, for sync upload. Only the chunk
+   * list is checked here (no file read); sync hashes each chunk it sends.
+   */
+  async payload(ref: AssetRef): Promise<Payload> {
+    const db = await openDatabase(this.name);
+    try {
+      return await payloadMatches(await db.get("media_assets", ref.id), ref);
+    } finally {
       db.close();
     }
   }

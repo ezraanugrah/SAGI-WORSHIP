@@ -13,10 +13,11 @@ import { BibleLibrary } from "./BibleLibrary";
 import { applyOnline, loadSettings } from "../scriptures/online";
 import { useFolderWatch } from "../hooks/useFolderWatch";
 import { useSongSync } from "../hooks/useSongSync";
+import { libraryRepos } from "../sync/libraryAdapters";
 import { fileKey, inLibrary } from "../media/folderWatch";
 import { MEDIA_TAB_KINDS } from "../media/importCoordinator";
 import type { useScriptureServices } from "../hooks/useScriptures";
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useMemo, useRef } from "react";
 import { PreviewWorkspace, slideSummary } from "./PreviewWorkspace";
 import type { MediaSelection } from "../media/models";
 import { LiveControls } from "./LiveControls";
@@ -74,7 +75,12 @@ export function Phase2Dashboard({
     [mutationError, setMutationError] = useState("");
   const [previewDirty, setPreviewDirty] = useState(false);
   // Musik library sync between laptops; runs whatever tab is shown.
-  const sync = useSongSync(repo, editable);
+  // Songs, Media and Themes sync with one Supabase account.
+  const library = useMemo(
+    () => libraryRepos(mediaServices.repo, themeServices.repo),
+    [mediaServices.repo, themeServices.repo],
+  );
+  const sync = useSongSync(repo, editable, library);
   // Watched laptop folder: checked while the app is open, whatever tab is shown.
   const watch = useFolderWatch({
     enabled: true,

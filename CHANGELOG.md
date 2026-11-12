@@ -211,6 +211,15 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - Teks Indonesia dipakai sebagai kunci kamus (`src/i18n/en.ts`); pesan yang dibuat saat berjalan (mis. "Tersinkron 11.13 · 25 lagu", "Checkpoint tersimpan · LIVE 4") diterjemahkan dengan pola, termasuk bentuk tunggal/jamak bahasa Inggris.
 - Tes: unit test memastikan setiap teks `t("…")` punya terjemahan Inggris dengan placeholder yang sama; E2E tombol bahasa (lagu dibuat dalam English, lirik tetap, pilihan bertahan setelah muat ulang).
 
+### Sinkron Media dan Themes dengan akun yang sama
+
+- Akun Supabase yang dipakai di **Sinkron antar laptop** kini menyinkronkan **lagu, media, dan tema** sekaligus. Gambar, video, dan PDF di Media serta tema buatan sendiri yang diimpor di satu laptop muncul di laptop lain yang masuk dengan akun gereja; media yang dihapus ikut terhapus.
+- File dikirim ke Supabase Storage (bucket pribadi `sagi-media`) dalam potongan 4 MiB yang dicek SHA-256 saat diterima; file yang sama persis tidak dikirim atau diunduh dua kali. Tema bergambar/video menunggu file latarnya, lalu memakai salinan di laptop itu.
+- **Admin perlu sekali menjalankan `supabase/library-sync.sql`** di Supabase › SQL Editor. Sebelum itu panel menulis "Media & Tema belum aktif di server sinkron" dan lagu tetap tersinkron. Bila penyimpanan penuh, panel memberi tahu dan media tetap aman di laptop.
+- Status sinkron: "Tersinkron 10.42 · 25 lagu · 12 media · 3 tema". Keluar tetap menyimpan lagu, media, dan tema di laptop.
+- File dicek per potongan tepat sebelum dikirim (sekali saja), bukan seluruh video setiap kali sinkron, supaya video LIVE tetap lancar. Salinan yang rusak di laptop pengirim tidak dikirim; panel menyebut file mana yang perlu diimpor ulang.
+- Tes: 6 unit test (gambar + tema ke laptop lain, video 9 MiB dalam potongan, file sama dikenali, hapus dan potongan yang belum ada, salinan rusak tidak dikirim, server belum siap/penuh) dan E2E dua laptop (media + tema bergambar sampai di laptop kedua, gambar terbaca).
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

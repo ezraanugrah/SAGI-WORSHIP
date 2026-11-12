@@ -1,5 +1,6 @@
 import { type Payload, type AssetRef, LIMITS } from "./models";
-const CHUNK = 4 * 1024 * 1024;
+/** Payloads are hashed (and synced) in chunks of this size. */
+export const CHUNK = 4 * 1024 * 1024;
 export function cancelled(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException("Impor dibatalkan", "AbortError");
 }
@@ -61,7 +62,33 @@ export async function payload(
     ...(await fingerprint(blob, signal)),
   };
 }
+/**
+ * The stored payload belongs to `ref` and its chunk list adds up to the
+ * digest, without reading the file. Each chunk can then be checked on its
+ * own (sync sends and receives chunk by chunk).
+ */
+export async function payloadMatches(value: unknown, ref: AssetRef) {
+  checkShape(value, ref);
+  const p = value as Payload;
+  if (
+    (await sha(
+      new TextEncoder().encode(
+        JSON.stringify({ size: p.size, chunks: p.chunks }),
+      ),
+    )) !== ref.digest
+  )
+    throw new Error("Integritas media gagal; data dipertahankan.");
+  return p;
+}
 export async function verifyPayload(value: unknown, ref: AssetRef) {
+  checkShape(value, ref);
+  const p = value as Payload;
+  const got = await fingerprint(p.blob);
+  if (got.digest !== ref.digest || got.chunks.some((h, i) => p.chunks[i] !== h))
+    throw new Error("Integritas media gagal; data dipertahankan.");
+  return p.blob;
+}
+function checkShape(value: unknown, ref: AssetRef) {
   const p = value as Payload;
   if (
     !p ||
@@ -77,8 +104,4 @@ export async function verifyPayload(value: unknown, ref: AssetRef) {
     p.chunks.length !== Math.ceil(p.size / CHUNK)
   )
     throw new Error("Aset hilang/rusak; output sebelumnya dipertahankan.");
-  const got = await fingerprint(p.blob);
-  if (got.digest !== ref.digest || got.chunks.some((h, i) => p.chunks[i] !== h))
-    throw new Error("Integritas media gagal; data dipertahankan.");
-  return p.blob;
 }

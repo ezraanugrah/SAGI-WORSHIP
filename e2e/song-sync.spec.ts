@@ -6,10 +6,18 @@ import {
   type Page,
 } from "@playwright/test";
 import { createFakeSupabase } from "../src/sync/fakeSupabase";
+import { imageFile } from "./mediaFixtures";
+import { createTheme } from "./themeHelpers";
 // Two laptops (two separate browser profiles) share one mocked Supabase
 // server. A song added on one shows up in Musik on the other, and so on.
 const SERVER = "https://sync.test";
 type Fake = ReturnType<typeof createFakeSupabase>;
+const bytes = (data: Uint8Array) =>
+  (
+    globalThis as unknown as {
+      Buffer: { from(data: Uint8Array): string };
+    }
+  ).Buffer.from(data);
 async function laptop(browser: Browser, fake: Fake) {
   const context: BrowserContext = await browser.newContext({
     serviceWorkers: "allow",
@@ -25,17 +33,28 @@ async function laptop(browser: Browser, fake: Fake) {
       cors = {
         "access-control-allow-origin": "*",
         "access-control-allow-headers":
-          "apikey, authorization, content-type, prefer",
+          "apikey, authorization, content-type, prefer, x-upsert",
         "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
       };
     if (request.method() === "OPTIONS")
       return route.fulfill({ status: 204, headers: cors });
+    // Media chunks travel as raw bytes (Supabase Storage); rows as JSON.
+    const storage = new URL(request.url()).pathname.startsWith("/storage/");
     const r = fake.handle(
       request.url(),
       request.method(),
       request.headers(),
-      request.postData(),
+      storage
+        ? (request.postDataBuffer() as Uint8Array | null)
+        : request.postData(),
     );
+    if (r.bytes)
+      return route.fulfill({
+        status: r.status,
+        headers: cors,
+        contentType: "application/octet-stream",
+        body: bytes(r.bytes),
+      });
     await route.fulfill({
       status: r.status,
       headers: cors,
@@ -117,6 +136,75 @@ test("a song added on one laptop appears on the other, and a deletion follows ba
     .click();
   await expect(panel(a.page).getByLabel("Email sinkron")).toBeVisible();
   await expect(row(a.page, "Tetap di laptop")).toHaveCount(1);
+  await a.context.close();
+  await b.context.close();
+});
+
+test("media and themes follow the same account to the other laptop", async ({
+  browser,
+}) => {
+  test.setTimeout(180000);
+  const fake = createFakeSupabase({ "tim@gereja.id": "rahasia" });
+  const a = await laptop(browser, fake),
+    b = await laptop(browser, fake);
+  await signIn(a.page);
+  await signIn(b.page);
+  await expect(panel(a.page)).toContainText("0 media · 0 tema");
+  await expect(panel(b.page)).toContainText("Tersinkron");
+
+  // A picture imported in Media on laptop A…
+  await a.page.getByRole("tab", { name: "Media", exact: true }).click();
+  await a.page
+    .getByLabel("File media", { exact: true })
+    .setInputFiles(await imageFile(a.page, "altar-sinkron.png", "#3a7bd5"));
+  await expect(
+    a.page.getByRole("button", {
+      name: "Pilih media altar-sinkron.png",
+      exact: true,
+    }),
+  ).toBeVisible();
+  // …and a theme with its own picture background.
+  await createTheme(
+    a.page,
+    "Tema Sinkron",
+    "image",
+    await imageFile(a.page, "latar-tema.png", "#2d8a4e"),
+  );
+  await expect.poll(() => fake.tables.themes.size, { timeout: 20000 }).toBe(1);
+  expect(fake.objects.size).toBeGreaterThan(0);
+
+  // Laptop B gets both, files checked, and the theme shows its background.
+  await b.page.getByRole("tab", { name: "Media", exact: true }).click();
+  await expect(
+    b.page.getByRole("button", {
+      name: "Pilih media altar-sinkron.png",
+      exact: true,
+    }),
+  ).toBeVisible({ timeout: 30000 });
+  await b.page.getByRole("tab", { name: /Themes/ }).click();
+  const theme = b.page.getByRole("button", {
+    name: "Pilih tema Tema Sinkron",
+    exact: true,
+  });
+  await expect(theme).toBeVisible({ timeout: 30000 });
+  await theme.click();
+  await b.page.screenshot({ path: test.info().outputPath("media-sync.png") });
+
+  await b.page.getByRole("tab", { name: "Songs", exact: true }).click();
+  await expect(panel(b.page)).toContainText(/\d+ media · 1 tema/);
+  // The copy on B is a real, readable picture (checked chunk by chunk).
+  await b.page.getByRole("tab", { name: "Media", exact: true }).click();
+  await expect
+    .poll(() =>
+      b.page
+        .getByRole("button", {
+          name: "Pilih media altar-sinkron.png",
+          exact: true,
+        })
+        .locator("img")
+        .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth),
+    )
+    .toBeGreaterThan(0);
   await a.context.close();
   await b.context.close();
 });

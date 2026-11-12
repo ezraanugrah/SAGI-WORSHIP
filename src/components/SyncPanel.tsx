@@ -34,7 +34,7 @@ export function SyncPanel({
         >
           <p className="field-help">
             {t(
-              "Masuk dengan akun gereja agar lagu di Musik sama di semua laptop.",
+              "Masuk dengan akun gereja agar lagu, media, dan tema sama di semua laptop.",
             )}
           </p>
           <input
@@ -91,7 +91,11 @@ export function SyncPanel({
         >
           {status.message
             .split(" · ")
-            .map((part) => t(part))
+            .map((part) =>
+              part.startsWith("Media/Tema: ")
+                ? t("Media/Tema: {msg}", { msg: t(part.slice(12)) })
+                : t(part),
+            )
             .join(" · ")}
         </p>
       )}

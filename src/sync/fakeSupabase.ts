@@ -1,7 +1,7 @@
 /**
- * In-memory stand-in for the Supabase endpoints the song sync uses
- * (auth token + the songs table with the rules of supabase/songs-sync.sql).
- * Used only by unit and E2E tests.
+ * In-memory stand-in for the Supabase endpoints the sync uses: auth token,
+ * the songs/media/themes tables with the rules of supabase/*.sql, and the
+ * private Storage bucket of media chunks. Used only by unit and E2E tests.
  */
 type Row = {
   id: string;
@@ -10,9 +10,14 @@ type Row = {
   deleted: boolean;
   updated_at: string;
 };
-export type FakeReply = { status: number; body: unknown };
+export type FakeReply = { status: number; body: unknown; bytes?: Uint8Array };
+const TABLES = ["songs", "media", "themes"] as const;
 export function createFakeSupabase(users: Record<string, string>) {
-  const rows = new Map<string, Row>(),
+  const tables = Object.fromEntries(
+      TABLES.map((name) => [name, new Map<string, Row>()]),
+    ) as Record<(typeof TABLES)[number], Map<string, Row>>,
+    rows = tables.songs,
+    objects = new Map<string, Uint8Array>(),
     tokens = new Set<string>(),
     refresh = new Map<string, string>();
   let tick = 0,
@@ -42,9 +47,16 @@ export function createFakeSupabase(users: Record<string, string>) {
     url: string,
     method: string,
     headers: Record<string, string>,
-    bodyText: string | null,
+    bodyIn: string | Uint8Array | null,
   ): FakeReply {
     const u = new URL(url),
+      bytes = bodyIn instanceof Uint8Array ? bodyIn : null,
+      bodyText =
+        typeof bodyIn === "string"
+          ? bodyIn
+          : bytes && !u.pathname.startsWith("/storage/")
+            ? new TextDecoder().decode(bytes)
+            : null,
       body = bodyText ? JSON.parse(bodyText) : null;
     if (u.pathname === "/auth/v1/token") {
       const grant = u.searchParams.get("grant_type");
@@ -78,11 +90,48 @@ export function createFakeSupabase(users: Record<string, string>) {
       }
       return reply(400, { error: "invalid_grant" });
     }
-    if (u.pathname !== "/rest/v1/songs") return reply(404);
     const auth = (headers.authorization ?? headers.Authorization ?? "").replace(
       /^Bearer /,
       "",
     );
+    // Storage: the private bucket of media chunks.
+    const object = u.pathname.match(
+      /^\/storage\/v1\/object\/(?:authenticated\/)?([^/]+)\/(.+)$/,
+    );
+    if (object) {
+      if (!tokens.has(auth)) return reply(401, { message: "JWT expired" });
+      if (!fake.libraryReady || object[1] !== "sagi-media")
+        return reply(400, {
+          statusCode: "404",
+          error: "Bucket not found",
+          message: "Bucket not found",
+        });
+      const path = decodeURIComponent(object[2]);
+      if (method === "POST") {
+        if (objects.has(path))
+          return reply(400, {
+            statusCode: "409",
+            error: "Duplicate",
+            message: "The resource already exists",
+          });
+        if (fake.storageFull) return reply(413, { error: "Payload too large" });
+        objects.set(path, new Uint8Array(bytes ?? new Uint8Array()));
+        return reply(200, { Key: `sagi-media/${path}` });
+      }
+      const stored = objects.get(path);
+      return stored
+        ? { status: 200, body: null, bytes: stored }
+        : reply(400, { statusCode: "404", error: "not_found" });
+    }
+    const table = u.pathname.match(/^\/rest\/v1\/(\w+)$/)?.[1] as
+      (typeof TABLES)[number] | undefined;
+    if (
+      !table ||
+      !TABLES.includes(table) ||
+      (table !== "songs" && !fake.libraryReady)
+    )
+      return reply(404, { code: "PGRST205" });
+    const rows = tables[table];
     if (!tokens.has(auth)) return reply(401, { message: "JWT expired" });
     const eq = (name: string) =>
       u.searchParams.get(name)?.replace(/^eq\./, "") ?? null;
@@ -123,7 +172,15 @@ export function createFakeSupabase(users: Record<string, string>) {
     return reply(405);
   }
   const fake = {
+    /** The songs table (kept as `rows` for the song tests). */
     rows,
+    tables,
+    /** Storage chunks by path. */
+    objects,
+    /** false: media/themes tables and the bucket are not created yet. */
+    libraryReady: true,
+    /** Storage refuses new uploads (project storage full). */
+    storageFull: false,
     refreshes: 0,
     /** Lifetime of tokens issued at sign-in, in seconds. */
     expiresIn: 3600,
@@ -139,12 +196,16 @@ export function createFakeSupabase(users: Record<string, string>) {
           ([k, v]) => [k.toLowerCase(), v],
         ),
       );
-      const r = handle(
-        String(input),
-        init?.method ?? "GET",
-        headers,
-        (init?.body as string | undefined) ?? null,
-      );
+      const raw = init?.body,
+        body =
+          raw instanceof Blob
+            ? new Uint8Array(await raw.arrayBuffer())
+            : ((raw as string | undefined) ?? null);
+      const r = handle(String(input), init?.method ?? "GET", headers, body);
+      if (r.bytes)
+        return new Response(new Blob([r.bytes as BlobPart]), {
+          status: r.status,
+        });
       return new Response(r.body === null ? null : JSON.stringify(r.body), {
         status: r.status,
       });
