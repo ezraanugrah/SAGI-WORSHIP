@@ -92,6 +92,12 @@ export const number = (v: unknown, min: number, max: number): v is number =>
   typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
 const object = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === "object" && !Array.isArray(v);
+/**
+ * The Scriptures background (tab Scriptures › Latar ayat): stored like a
+ * custom theme so it syncs between laptops, but never listed under Themes
+ * and never used for songs.
+ */
+export const SCRIPTURE_THEME_ID = "theme:scripture";
 export const themeId = (v: unknown): v is string =>
   typeof v === "string" &&
   /^(theme:[a-zA-Z0-9_-]+|builtin:(black|sunset|ocean|purple))$/.test(v);
@@ -166,7 +172,8 @@ export function validTypography(v: unknown): v is Typography {
     ) &&
     Object.values(v.margins).every((n) => number(n, 0, 20)) &&
     Number.isInteger(v.lines) &&
-    number(v.lines, 1, 12) &&
+    // Up to 12 for songs; Scripture slides use more (SCRIPTURE_LINES).
+    number(v.lines, 1, 40) &&
     ["paginate", "shrink"].includes(v.fit as string) &&
     Number.isInteger(v.minSize) &&
     number(v.minSize, 1, v.size as number)

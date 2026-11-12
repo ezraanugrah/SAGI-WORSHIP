@@ -220,6 +220,13 @@ Tata letak mengikuti gambar referensi dengan warna gelap/oranye yang sama. Data,
 - File dicek per potongan tepat sebelum dikirim (sekali saja), bukan seluruh video setiap kali sinkron, supaya video LIVE tetap lancar. Salinan yang rusak di laptop pengirim tidak dikirim; panel menyebut file mana yang perlu diimpor ulang.
 - Tes: 6 unit test (gambar + tema ke laptop lain, video 9 MiB dalam potongan, file sama dikenali, hapus dan potongan yang belum ada, salinan rusak tidak dikirim, server belum siap/penuh) dan E2E dua laptop (media + tema bergambar sampai di laptop kedua, gambar terbaca).
 
+### Scriptures: satu slide per pilihan ayat dan latar ayat sendiri
+
+- **Satu slide untuk seluruh pilihan**: memilih misalnya **Amsal 3:3–6** menampilkan ayat 3–6 sekaligus di Live Output dan proyektor, Indonesia (AYT) di kiri dan English (KJV) di kanan, tiap ayat bernomor. Huruf mengecil otomatis sampai muat (minimal 24 px pada 1080p); hanya pilihan yang terlalu panjang (mis. Mazmur 119:1–40) dibagi rata ke beberapa slide. Satu ayat panjang juga dikecilkan agar muat satu slide.
+- **Latar ayat** di tab Scriptures: impor gambar/video, pilih dari Media, atau **Hitam polos**. Latar ini hanya untuk ayat; tema di Themes tidak lagi mengubah ayat, dan latar ayat tidak mengubah lagu. Video latar berputar tanpa suara. Bila ayat sedang LIVE, latar baru langsung tampil di proyektor; ayat yang belum di-Go Live tetap menunggu. Latar ayat ikut tersinkron antar laptop bersama tema.
+- Diperbaiki: setelah memakai tema buatan sendiri, Live Output tidak lagi salah menampilkan "Sumber berubah/dihapus" (perbandingan tema kini memakai nomor revisi).
+- Tes: unit test Amsal 3:3–6 satu slide dua kolom, ayat panjang satu slide, latar ayat vs tema; E2E Kejadian 1:3–10 satu slide dan latar ayat sampai proyektor lalu kembali hitam.
+
 ## [0.7.1] — 10 November 2026
 
 Perbaikan stabilitas layar proyektor dan kontrol LIVE (P0) dari audit dual-display, untuk pemakaian lewat Chrome di laptop macOS/Windows dengan proyektor dalam mode **Extend Display**. Tidak ada fitur baru di luar cakupan ini.

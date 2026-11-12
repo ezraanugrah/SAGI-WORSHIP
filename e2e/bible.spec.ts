@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { previewPosition } from "./previewHelpers";
 import { APPLY_THEME, createTheme } from "./themeHelpers";
+import { imageFile } from "./mediaFixtures";
 // Scriptures tab: the two-language Bible (AYT left, KJV right) installed
 // from public/scriptures, picked by book / chapter / verse range.
 const bible = (page: Page) =>
@@ -64,10 +65,9 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
   await bible(page)
     .getByRole("button", { name: "Preview", exact: true })
     .click();
-  // The eight verses of Kejadian 1:3–10 share as few slides as possible,
-  // each numbered: two with the bundled default font Montserrat (it is wider
-  // than the old Arial; the bundled font measures the same on every laptop).
-  await expect(previewPosition(page)).toHaveText("Slide 1 of 2");
+  // The whole pick on one slide, each verse numbered, the font shrunk to
+  // fit (bundled Montserrat measures the same on every laptop).
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
   // No Preview monitor: what Go Live shows is checked in Live Output.
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   const live = page.getByRole("region", { name: "LIVE projector control" });
@@ -94,9 +94,11 @@ test("install the two-language Bible, pick Kejadian 1:3-10 and show Indonesian l
     projector.locator('.slide-column[data-column="right"]'),
   ).toContainText(/³\s?And God said, Let there be light/);
   const footer = projector.locator(".scripture-footer");
-  // Slide 1 of 2 holds verses 3–6 (the range is split evenly).
-  await expect(footer).toContainText("Kejadian 1:3–6 · AYT · 2024");
-  await expect(footer).toContainText("Genesis 1:3–6 · KJV · 1769");
+  await expect(
+    projector.locator('.slide-column[data-column="left"]'),
+  ).toContainText(/¹⁰\s?Allah menyebut/);
+  await expect(footer).toContainText("Kejadian 1:3–10 · AYT · 2024");
+  await expect(footer).toContainText("Genesis 1:3–10 · KJV · 1769");
   await expect(footer).toContainText(
     "AYT © YLSA · CC BY-NC-SA · Public Domain",
   );
@@ -232,22 +234,53 @@ test("a failed download explains itself and leaves the Bible uninstalled", async
   await expect(page.getByLabel("Kitab", { exact: true })).toHaveCount(0);
 });
 
-test("a theme keeps the two columns and both references", async ({ page }) => {
+test("verses keep their own background: Themes do not change them, Latar ayat does", async ({
+  page,
+}) => {
   test.setTimeout(180000);
   await install(page);
-  await page.getByLabel("Cari ayat", { exact: true }).fill("Kej 1:3");
+  await page.getByLabel("Cari ayat", { exact: true }).fill("Ams 3:3-6");
   await page.getByRole("button", { name: "Pilih", exact: true }).click();
   await bible(page)
     .getByRole("button", { name: "Preview", exact: true })
     .click();
-  await createTheme(page, "Ibadah");
-  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
-  // The theme goes to Preview and straight on to Live Output.
+  // Amsal 3:3–6 on one slide: verses 3–6 left, the same verses in English right.
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
   const live = page.getByRole("region", { name: "LIVE projector control" });
-  await expect(live.locator(".themed-lines.slide-columns")).toBeVisible();
-  await expect(live.locator('.slide-column[data-column="right"]')).toHaveText(
-    "And God said, Let there be light: and there was light.",
+  await expect(
+    live.locator('.slide-column[data-column="left"]').first(),
+  ).toContainText(/³\s?Kiranya kasih.*⁴.*⁵.*⁶/);
+  await expect(
+    live.locator('.slide-column[data-column="right"]').first(),
+  ).toContainText(/³\s?Let not mercy.*⁴.*⁵.*⁶\s?In all thy ways/);
+
+  // A theme is for songs: the verses stay as they are.
+  await createTheme(page, "Ibadah", "image");
+  await page.getByRole("button", { name: APPLY_THEME, exact: true }).click();
+  await expect(previewPosition(page)).toHaveText("Slide 1 of 1");
+  await expect(live.locator(".themed-lines")).toHaveCount(0);
+
+  // Latar ayat (Scriptures tab): a picture behind the verses only.
+  await scriptures(page);
+  const background = page.getByRole("group", { name: "Latar ayat" });
+  await expect(background.getByTestId("scripture-bg-name")).toHaveText(
+    "Hitam polos",
   );
+  await background
+    .getByLabel("File latar ayat", { exact: true })
+    .setInputFiles(await imageFile(page, "latar-ayat.png", "#2d5a8a"));
+  await expect(background.getByTestId("scripture-bg-name")).toHaveText(
+    "latar-ayat.png",
+  );
+  await expect(live.locator(".themed-lines.slide-columns")).toBeVisible();
+  await expect(live.locator(".themed-footer")).toContainText(
+    "Amsal 3:3–6 · AYT · 2024",
+  );
+  await background.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: test.info().outputPath("bible-latar-ayat-tab.png"),
+  });
+
   const pending = page.waitForEvent("popup");
   await page.getByRole("button", { name: "Live", exact: true }).click();
   const projector = await pending;
@@ -255,13 +288,27 @@ test("a theme keeps the two columns and both references", async ({ page }) => {
   await page.getByRole("button", { name: "Go Live", exact: true }).click();
   await expect(
     projector.locator('.themed-lines .slide-column[data-column="left"]'),
-  ).toHaveText(
-    "Kemudian, Allah berfirman, “Jadilah terang.” Lalu, terang itu jadi.",
-  );
-  await expect(projector.locator(".themed-footer")).toContainText(
-    "Genesis 1:3 · KJV · 1769",
-  );
+  ).toContainText(/³\s?Kiranya kasih.*⁶/);
+  await expect(
+    projector.locator('.themed-lines .slide-column[data-column="right"]'),
+  ).toContainText(/³\s?Let not mercy.*⁶/);
+  const footer = projector.locator(".themed-footer");
+  await expect(footer).toContainText("Amsal 3:3–6 · AYT · 2024");
+  await expect(footer).toContainText("Proverbs 3:3–6 · KJV · 1769");
+  await expect(projector.locator(".theme-dim")).toHaveCount(1);
   await projector.screenshot({
-    path: test.info().outputPath("bible-themed.png"),
+    path: test.info().outputPath("bible-latar-ayat.png"),
   });
+
+  // Back to plain black: the LIVE verses follow at once.
+  await background
+    .getByRole("button", { name: "Hitam polos", exact: true })
+    .click();
+  await expect(background.getByTestId("scripture-bg-name")).toHaveText(
+    "Hitam polos",
+  );
+  await expect(projector.locator(".theme-dim")).toHaveCount(0);
+  await expect(
+    projector.locator('.slide-column[data-column="left"]'),
+  ).toContainText(/³\s?Kiranya kasih/);
 });

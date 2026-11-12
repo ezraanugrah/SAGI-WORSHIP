@@ -2,7 +2,11 @@ import { t } from "../i18n";
 import type { PresentationController } from "../presentation/controller";
 import { useEffect, useState } from "react";
 import type { useThemes } from "../hooks/useThemes";
-import { validAdvanced, advancedDefaults } from "../themes/models";
+import {
+  SCRIPTURE_THEME_ID,
+  validAdvanced,
+  advancedDefaults,
+} from "../themes/models";
 export function AdvancedSettings({
   services,
   editable,
@@ -35,11 +39,13 @@ export function AdvancedSettings({
             }
           >
             <option value="">{t("Tanpa tema (latar hitam)")}</option>
-            {services.themes.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
+            {services.themes
+              .filter((th) => th.id !== SCRIPTURE_THEME_ID)
+              .map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
           </select>
         </label>
         <label>

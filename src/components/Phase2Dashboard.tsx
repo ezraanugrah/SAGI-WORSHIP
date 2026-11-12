@@ -10,6 +10,8 @@ import type { useThemes } from "../hooks/useThemes";
 import { MediaLibrary } from "./MediaLibrary";
 import type { useMedia } from "../hooks/useMedia";
 import { BibleLibrary } from "./BibleLibrary";
+import { ScriptureBackground } from "./ScriptureBackground";
+import { SCRIPTURE_THEME_ID, type ThemeSpec } from "../themes/models";
 import { applyOnline, loadSettings } from "../scriptures/online";
 import { useFolderWatch } from "../hooks/useFolderWatch";
 import { useSongSync } from "../hooks/useSongSync";
@@ -223,6 +225,35 @@ export function Phase2Dashboard({
     const prepared = presentation.snapshot().preview;
     if (ready && prepared) remember(prepared.deck.id, { selection, override });
     return ready;
+  }
+  /**
+   * Scriptures › Latar ayat. Verses on Live Output (and, once LIVE, on the
+   * projector) take the new background at once; songs keep their theme.
+   */
+  async function saveScriptureBackground(spec: ThemeSpec) {
+    const current = (await themeServices.repo.list()).themes.find(
+      (th) => th.id === SCRIPTURE_THEME_ID,
+    );
+    await themeServices.repo.save(
+      SCRIPTURE_THEME_ID,
+      "Latar ayat",
+      spec,
+      current?.revision ?? 0,
+    );
+    await themeServices.reload();
+    const { preview: shown, live } = presentation.snapshot();
+    let selection = lastSelection.current;
+    const itemId = shown?.deck.frames[shown.index]?.itemId;
+    if (selection?.kind === "schedule" && itemId)
+      selection = { ...selection, itemId };
+    if (!selection || shown?.deck.frames[shown.index]?.kind !== "scripture") {
+      setMessage("Latar ayat disimpan. Ayat berikutnya memakai latar ini.");
+      return;
+    }
+    // The verses on Live Output get it now; on the projector only when that
+    // same slide is already LIVE (a verse waiting for Go Live keeps waiting).
+    const onProjector = live?.deck.id === shown.deck.id;
+    if ((await prepare(selection)) && onProjector) await followLive();
   }
   /**
    * After the first Go Live, what the operator picks in Jadwal Ibadah (and a
@@ -608,6 +639,19 @@ export function Phase2Dashboard({
               />
             ) : tab === 1 ? (
               <BibleLibrary
+                background={
+                  <ScriptureBackground
+                    themes={themeServices.themes}
+                    assets={data.mediaAssets ?? []}
+                    editable={editable}
+                    onImport={async (file) => {
+                      const asset = await mediaServices.importBackground(file);
+                      await reload();
+                      return asset;
+                    }}
+                    onSave={saveScriptureBackground}
+                  />
+                }
                 repo={scriptureServices.scriptureRepo}
                 importer={scriptureServices.importer}
                 importState={scriptureServices.importState}

@@ -57,6 +57,13 @@ export const LYRIC_COLOR = "#ffffff";
 export const OUTLINE_COLOR = "#000000";
 /** 100 % font size, in px on the 1080p reference canvas. */
 export const LYRIC_MAX_PX = 160;
+/**
+ * Smallest font for Scripture (px on the 1080p canvas): a picked range is
+ * shrunk down to this to stay on one slide before it is split.
+ */
+export const SCRIPTURE_MIN_PX = 24;
+/** Line limit for Scripture slides: the screen height decides, not this. */
+export const SCRIPTURE_LINES = 40;
 /** 100 % outline width, in px on the 1080p reference canvas. */
 export const OUTLINE_MAX_PX = 12;
 export const DEFAULT_OUTLINE_PX = 3;

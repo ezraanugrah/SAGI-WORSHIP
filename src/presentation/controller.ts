@@ -385,16 +385,16 @@ export class PresentationController {
   }
   observeThemes(themes: { id: string; revision: number; signature: string }[]) {
     const deck = this.state.preview?.deck;
+    // By revision: a deck holds the theme re-signed with the lyric style
+    // (lyricTheme / scriptureTheme), so its signature never equals the
+    // stored one; every save raises the revision.
     if (
       deck?.render &&
       Object.values(deck.render.themes).some(
         (t) =>
           t.id.startsWith("theme:") &&
           !themes.some(
-            (value) =>
-              value.id === t.id &&
-              value.revision === t.revision &&
-              value.signature === t.signature,
+            (value) => value.id === t.id && value.revision === t.revision,
           ),
       )
     )

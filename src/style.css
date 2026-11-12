@@ -1946,6 +1946,62 @@ footer > span:last-child {
   color: #8d9aaa;
   margin-top: 5px;
 }
+/* Scriptures › Latar ayat: the verses' own background. */
+.scripture-bg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #3a424e;
+  background: #161c23;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.scripture-bg-thumb {
+  position: relative;
+  flex: none;
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #3a424e;
+}
+.scripture-bg-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.scripture-bg-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 180px;
+}
+.scripture-bg-text strong {
+  color: #e6e9ef;
+  font-size: 12px;
+}
+.scripture-bg-text small {
+  color: #8d9aaa;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scripture-bg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.scripture-bg-actions select {
+  max-width: 200px;
+}
+.scripture-bg .error-text {
+  flex-basis: 100%;
+}
 .bible-install {
   border: 1px solid #3a424e;
   background: #161c23;

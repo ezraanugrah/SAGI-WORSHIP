@@ -215,8 +215,8 @@ describe("two-language slides", () => {
     expect(validDeck(deck)).toBe(true);
     // All 8 verses, in order, whether they share a slide or not.
     expect(coverage(deck)).toEqual([3, 4, 5, 6, 7, 8, 9, 10]);
-    // Eight verses on two slides, split evenly, with a smaller font.
-    expect(deck.frames).toHaveLength(2);
+    // The whole pick on one slide, with a smaller font.
+    expect(deck.frames).toHaveLength(1);
     const first = deck.frames[0],
       page = deck.pages[first.page];
     expect(
@@ -227,14 +227,14 @@ describe("two-language slides", () => {
         `³\u2009${text(sets.kjv, "Gen", 1, 3)} ⁴\u2009`,
       ),
     ).toBe(true);
-    expect(page.fontSize).toBeGreaterThanOrEqual(32);
+    expect(page.fontSize).toBeGreaterThanOrEqual(24);
     expect(page.fontSize).toBeLessThan(64);
     expect(first.kind === "scripture" && first.scripture).toMatchObject({
-      reference: "Kejadian 1:3–6",
+      reference: "Kejadian 1:3–10",
       translation: "AYT · 2024",
       attribution: "AYT © YLSA · CC BY-NC-SA",
       parallel: {
-        reference: "Genesis 1:3–6",
+        reference: "Genesis 1:3–10",
         translation: "KJV · 1769",
         attribution: "Public Domain",
       },
@@ -278,11 +278,35 @@ describe("two-language slides", () => {
     expect(packedSlides).toBeGreaterThan(0);
     expect(deck.frames.every((_, i) => fitsFrame(deck, i, measure))).toBe(true);
   });
-  it("splits a long verse over several slides, each column keeping its exact text", async () => {
+  it("puts a picked range on one slide: Indonesian verses left, the same English verses right", async () => {
+    const ayt = await repo.importDataset(
+      await subset(sets.ayt, [["Prov", 3]]),
+      true,
+    );
+    await repo.importDataset(await subset(sets.kjv, [["Prov", 3]]), true);
+    const { deck } = await prepare(choose(ayt, "Amsal 3:3-6"));
+    expect(validDeck(deck)).toBe(true);
+    expect(deck.frames).toHaveLength(1);
+    const [frame] = deck.frames,
+      page = deck.pages[frame.page];
+    expect(numbersIn(page.text)).toEqual([3, 4, 5, 6]);
+    expect(numbersIn(page.parallel!)).toEqual([3, 4, 5, 6]);
+    for (const n of [3, 4, 5, 6]) {
+      expect(page.text).toContain(text(sets.ayt, "Prov", 3, n)!.trim());
+      expect(page.parallel).toContain(text(sets.kjv, "Prov", 3, n)!.trim());
+    }
+    expect(frame.kind === "scripture" && frame.scripture).toMatchObject({
+      reference: "Amsal 3:3–6",
+      parallel: { reference: "Proverbs 3:3–6" },
+    });
+    expect(fitsFrame(deck, 0, measure)).toBe(true);
+  });
+  it("shrinks a long verse onto one slide, each column keeping its exact text", async () => {
     const ayt = await repo.importDataset(await subset(sets.ayt, keep), true);
     await repo.importDataset(await subset(sets.kjv, keep), true);
     const { deck } = await prepare(choose(ayt, "Ester 8:9"));
-    expect(deck.frames.length).toBeGreaterThan(2);
+    expect(deck.frames).toHaveLength(1);
+    expect(deck.pages[deck.frames[0].page].fontSize).toBeLessThan(64);
     expect(deck.frames.map((f) => deck.pages[f.page].text).join("")).toBe(
       text(sets.ayt, "Esth", 8, 9),
     );

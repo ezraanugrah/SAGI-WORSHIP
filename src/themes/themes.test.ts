@@ -9,6 +9,7 @@ import { PresentationController } from "../presentation/controller";
 import { writerFixture, songFixture } from "../testHelpers";
 import { openDatabase, defaults } from "../db";
 import {
+  SCRIPTURE_THEME_ID,
   defaultType,
   validSpec,
   validRender,
@@ -339,6 +340,100 @@ it("Scripture themed pages retain all exact text, references and mandatory attri
   if (broken.frames[0].kind === "scripture")
     broken.frames[0].scripture.attribution = "omitted";
   expect(validDeck(broken)).toBe(false);
+});
+it("verses use the Scriptures background (Latar ayat), never the chosen theme; songs keep the theme", async () => {
+  const scriptures = new ScriptureRepository(writer.gate, name),
+    dataset = await scriptures.importDataset(await preparedFixture(), true),
+    selection = {
+      datasetId: dataset.id,
+      checksum: dataset.contentHash,
+      verseIds: resolveReference(dataset, "John 3:16-18"),
+      label: "Synthetic selection",
+    },
+    workspace = await scriptures.resolveWorkspace(await songs.load(), {
+      kind: "scripture",
+      selection,
+    });
+  const red = spec();
+  red.background = { kind: "solid", color: "#aa0000" };
+  const theme = await create("Merah", red);
+  const build = async () => {
+    const ctx = await resolveAppearance(
+      repo,
+      workspace,
+      { kind: "scripture", selection },
+      { id: theme.id, scope: "all" },
+    );
+    return (
+      await generateSlides(
+        workspace,
+        { kind: "scripture", selection },
+        style,
+        measure,
+        () => false,
+        ctx,
+      )
+    ).deck;
+  };
+  // No Latar ayat yet: plain black slides, not the red theme.
+  let deck = await build();
+  expect(validDeck(deck)).toBe(true);
+  const looks = () => Object.values(deck.render?.themes ?? {});
+  expect(looks()).toEqual([]);
+  expect(deck.frames).toHaveLength(1);
+  // All three verses on one slide, the font shrinking (not below 24 px).
+  // A Latar ayat is used for verses, and it is not listed as a theme.
+  const blue = spec();
+  blue.background = { kind: "solid", color: "#0000aa" };
+  await repo.save(SCRIPTURE_THEME_ID, "Latar ayat", blue, 0);
+  deck = await build();
+  expect(validDeck(deck)).toBe(true);
+  expect(looks().map((th) => [th.id, th.spec.background])).toEqual([
+    [SCRIPTURE_THEME_ID, { kind: "solid", color: "#0000aa" }],
+  ]);
+  expect(deck.frames).toHaveLength(1);
+  expect(looks()[0].spec.type).toMatchObject({ fit: "shrink", minSize: 24 });
+  // Songs still take the chosen theme.
+  await songs.createSong("song", songFixture("song"));
+  const data = await songs.load(),
+    song = await generateSlides(
+      data,
+      { kind: "song", songId: "song" },
+      style,
+      measure,
+      () => false,
+      await resolveAppearance(
+        repo,
+        data,
+        { kind: "song", songId: "song" },
+        { id: theme.id, scope: "all" },
+      ),
+    );
+  expect(
+    Object.values(song.deck.render!.themes).map((th) => th.spec.background),
+  ).toEqual([{ kind: "solid", color: "#aa0000" }]);
+  // The deck is not flagged as changed just because the look was re-signed.
+  const controller = new PresentationController(
+    writer.gate,
+    new PresentationRepository(writer.gate, name),
+    measure,
+  );
+  await controller.loadRecovery();
+  await controller.prepare(
+    workspace,
+    { kind: "scripture", selection },
+    style,
+    undefined,
+    await resolveAppearance(repo, workspace, {
+      kind: "scripture",
+      selection,
+    }),
+  );
+  controller.observeThemes((await repo.list()).themes);
+  expect(controller.snapshot().sourceChanged).toBe(false);
+  await repo.save(SCRIPTURE_THEME_ID, "Latar ayat", red, 1);
+  controller.observeThemes((await repo.list()).themes);
+  expect(controller.snapshot().sourceChanged).toBe(true);
 });
 it("unified dependencies retain image backgrounds after library/theme deletion and checkpoint restore", async () => {
   const m = new MediaRepository(writer.gate, name),

@@ -1,5 +1,5 @@
 import { t } from "../i18n";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { BookOpen } from "lucide-react";
 import type { ScriptureRepository } from "../data/scriptureRepository";
 import type {
@@ -70,7 +70,10 @@ export function BibleLibrary({
   onPreview,
   onChanged,
   onTarget,
+  background,
 }: {
+  /** Latar ayat: the verses' own background (not the Themes one). */
+  background?: ReactNode;
   repo: ScriptureRepository;
   importer: ImportCoordinator;
   importState: ImportState;
@@ -101,6 +104,7 @@ export function BibleLibrary({
             </p>
           </div>
         </div>
+        {background}
         {id && en ? (
           <Picker
             repo={repo}

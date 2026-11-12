@@ -63,6 +63,7 @@ export const EN: Record<string, string> = {
     "No pictures or videos yet. Click Import media (JPG, PNG, WebP, MP4, WebM). PDF presentations go in the Presentations tab.",
   "Belum ada gambar. Klik “Impor media” untuk memilih gambar.":
     "No pictures yet. Click “Import media” to choose one.",
+  "Belum ada gambar/video di Media": "No pictures/videos in Media yet",
   "Belum ada lagu di Musik": "No songs in Music yet",
   "Belum ada presentasi. Ekspor PowerPoint/Keynote ke PDF, lalu impor di sini.":
     "No presentations yet. Export PowerPoint/Keynote to PDF, then import it here.",
@@ -196,6 +197,7 @@ export const EN: Record<string, string> = {
   Gambar: "Pictures",
   "Gambar didekode lokal.": "Picture decoded locally.",
   "Gambar diimpor di tab Media.": "Import pictures in the Media tab.",
+  "Gambar latar": "Background picture",
   "Gambar lokal": "Local picture",
   "Gambar/video (JPG · PNG · WebP · MP4 · WebM) jadi background tema · video selalu silent":
     "A picture/video (JPG · PNG · WebP · MP4 · WebM) becomes the theme background · videos are always silent",
@@ -237,9 +239,11 @@ export const EN: Record<string, string> = {
     "Delete “{title}” and its schedule items? LIVE/checkpoints keep the files they need; space may not be freed yet.",
   "hash diperiksa": "hashes checked",
   "Hentikan alert": "Stop alert",
+  "Hitam polos": "Plain black",
   Impor: "Import",
   "Impor dibatalkan; file yang sudah selesai tetap tersimpan.":
     "Import cancelled; finished files stay saved.",
+  "Impor gambar/video": "Import picture/video",
   "Impor media": "Import media",
   "Impor otomatis file baru": "Import new files automatically",
   "Impor presentasi": "Import presentation",
@@ -287,6 +291,8 @@ export const EN: Record<string, string> = {
   "ketentuan ESV API": "ESV API terms",
   "Key ESV dan cache dihapus.": "ESV key and cache cleared.",
   "Key TB2 dan cache dihapus.": "TB2 key and cache cleared.",
+  "Khusus ayat; tidak ikut tema di Themes.":
+    "Verses only; Themes do not change it.",
   Kiri: "Left",
   Kitab: "Book",
   "Klik judul = Preview · Tarik lagu ke Jadwal Ibadah":
@@ -322,6 +328,9 @@ export const EN: Record<string, string> = {
   "Lagu · {n} slide": "Song · {n} slide|Song · {n} slides",
   "Langsung tampil di layar jemaat. Hanya slide ini; lagu di Musik tidak berubah.":
     "Shown on the congregation screen at once. This slide only; the song in Music is not changed.",
+  "Latar ayat": "Verse background",
+  "Latar ayat disimpan. Ayat berikutnya memakai latar ini.":
+    "Verse background saved. The next verses use it.",
   Layar: "Screen",
   "Layar bisa tidur: matikan sleep/screen saver di pengaturan OS":
     "Screen may sleep: turn off sleep/screen saver in the OS settings",
@@ -449,6 +458,7 @@ export const EN: Record<string, string> = {
   Pilih: "Pick",
   "Pilih checkpoint ini untuk tawaran Resume? Checkpoint sebelumnya dipertahankan sebagai kandidat lain; tidak ada Go Live otomatis.":
     "Offer this checkpoint for Resume? The previous checkpoint is kept as another candidate; nothing goes live automatically.",
+  "Pilih dari Media…": "Choose from Media…",
   "Pilih folder": "Choose folder",
   "Pilih folder di laptop (mis. Downloads). File media baru di sana langsung terdeteksi.":
     "Pick a folder on the laptop (e.g. Downloads). New media files there are detected right away.",
@@ -583,6 +593,7 @@ export const EN: Record<string, string> = {
     "Show the prepared slide to the congregation",
   "Tanpa API key. Sesuai": "No API key. Under the",
   "Tanpa internet": "Offline",
+  "tanpa suara, berulang": "no sound, loops",
   "Tanpa tema (latar hitam)": "No theme (black background)",
   "Tarik ke Jadwal Ibadah": "Drag into the Service Schedule",
   "Tarik lagu dari Musik ke sini": "Drag songs from Music here",
@@ -672,6 +683,7 @@ export const EN: Record<string, string> = {
   "Video dari tab Media selalu mulai bersuara (Mute LIVE bisa mematikannya); latar video tema selalu tanpa suara. Default untuk persiapan video berikutnya. LIVE yang sedang berjalan tetap menggunakan snapshot. Di atas 100% = penguat volume di proyektor (maks. 200%); suara bisa pecah jika video sudah keras.":
     "Videos from the Media tab always start with sound (Mute LIVE can turn it off); theme video backgrounds are always silent. Defaults for the next video you prepare; a running LIVE keeps its snapshot. Above 100% = volume boost on the projector (max. 200%); loud videos may distort.",
   "Video diimpor di tab Media.": "Import videos in the Media tab.",
+  "Video latar": "Background video",
   "Video lokal · selalu silent": "Local video · always silent",
   "Video selalu silent.": "Videos are always silent.",
   "Volume >100% menunggu satu klik di jendela proyektor":

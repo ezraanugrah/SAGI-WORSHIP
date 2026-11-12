@@ -1,4 +1,5 @@
 import { fitsAppearance } from "./appearance";
+import { SCRIPTURE_MIN_PX } from "./fonts";
 import type {
   ScriptureSnapshot,
   Translation,
@@ -62,17 +63,16 @@ export const packStyle = (style: Style, fontSize: number): Style => ({
   fontSize,
   lines: 99,
 });
-/** Several verses on one slide never go below half the normal size (min 24 px). */
 export const minPackSize = (style: Style) =>
-  Math.min(style.fontSize, Math.max(24, Math.round(style.fontSize / 2)));
+  Math.min(style.fontSize, SCRIPTURE_MIN_PX);
 /**
- * Adds the selected verses as slides, using as few slides as possible:
- * consecutive verses share a slide (each starting with its number,
- * "⁴ … ⁵ …") with the font shrunk as far as needed, down to half the normal
- * size (themed decks: the theme's minimum), and when more than one slide is
- * needed the verses are spread evenly. A slide holding a single verse shows
- * that verse's exact text at the normal size, continuing over several
- * slides when it is too long.
+ * Adds the selected verses as slides, using as few slides as possible: the
+ * whole pick (e.g. Amsal 3:3–6) goes on one slide, each verse starting with
+ * its number ("³ … ⁴ …"), the font shrunk as far as needed down to
+ * SCRIPTURE_MIN_PX (themed decks: the Scripture theme's minimum). Only a pick
+ * too long for that is split, the verses spread evenly over the fewest
+ * slides. A single verse shows its exact text (no number), shrunk to fit;
+ * only a verse too long even at the minimum continues over several slides.
  * With a parallel translation each slide has two columns (left: the
  * selection's translation, right: the partner) covering the same verses.
  * Returns the font size of every added frame when a themed layout is used.
@@ -173,10 +173,16 @@ export function appendScripture(
     /** Plain style: this slide's own font size (several verses shrunk to fit). */
     fontSize?: number;
   };
-  const texts = (first: number, last: number) => ({
-    left: numbered(snapshot.verses.slice(first, last + 1)),
-    right: two ? numbered(p!.verses.slice(first, last + 1)) : null,
-  });
+  const texts = (first: number, last: number) =>
+    first === last
+      ? {
+          left: snapshot.verses[first].text,
+          right: two ? p!.verses[first].text : null,
+        }
+      : {
+          left: numbered(snapshot.verses.slice(first, last + 1)),
+          right: two ? numbered(p!.verses.slice(first, last + 1)) : null,
+        };
   const fitsPlain = (text: string | null, size: number) =>
     text === null ||
     paginateExact(text, packStyle(style, size), m).length === 1;
@@ -264,13 +270,13 @@ export function appendScripture(
     }
   }
   for (const [first, last] of groups) {
-    const packed = first === last ? null : pack(first, last);
-    if (packed) {
+    if (fitsTogether(first, last)) {
+      const packed = pack(first, last);
       push(first, last, [packed], packed.size);
       continue;
     }
-    // One verse: its exact text at the normal size, over as many slides as
-    // its longer side needs.
+    // One verse too long for one slide even at the minimum size: its exact
+    // text at the normal size, over as many slides as its longer side needs.
     const a = split(snapshot.verses[first].text),
       b = two ? split(p!.verses[first].text) : null,
       count = Math.max(a.pages.length, b?.pages.length ?? 0);

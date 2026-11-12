@@ -1,4 +1,9 @@
-import { layoutText, lyricTheme, type AppearanceContext } from "./appearance";
+import {
+  layoutText,
+  lyricTheme,
+  scriptureTheme,
+  type AppearanceContext,
+} from "./appearance";
 import { builtins } from "../themes/builtins";
 import type { ThemeSnapshot } from "../themes/models";
 import type { MediaSelection } from "../media/models";
@@ -80,24 +85,11 @@ export async function generateSlides(
       style,
     );
   }
-  if (
-    appearance &&
-    (fallback ||
-      Object.keys(appearance.byItem).length ||
-      appearance.settings.reference !== 1080 ||
-      appearance.settings.scaling !== "fit")
-  )
-    deck.render = {
-      version: 2,
-      canvas: {
-        width: appearance.settings.reference === 720 ? 1280 : 1920,
-        height: appearance.settings.reference,
-        scaling: appearance.settings.scaling,
-      },
-      themes: {},
-      frames: {},
-      sizes: {},
-    };
+  // Verses: the Scriptures background (Latar ayat), never a theme's; plain
+  // black until one is chosen.
+  const scriptureLook = appearance?.scripture
+    ? await scriptureTheme(appearance.scripture, style)
+    : undefined;
   function capture(
     theme: ThemeSnapshot | undefined,
     start: number,
@@ -150,6 +142,25 @@ export async function generateSlides(
           : { songId: item.songId, itemId };
     });
   }
+  if (
+    appearance &&
+    (fallback ||
+      Object.keys(appearance.byItem).length ||
+      (scriptureLook && items.some((item) => "scriptureKey" in item)) ||
+      appearance.settings.reference !== 1080 ||
+      appearance.settings.scaling !== "fit")
+  )
+    deck.render = {
+      version: 2,
+      canvas: {
+        width: appearance.settings.reference === 720 ? 1280 : 1920,
+        height: appearance.settings.reference,
+        scaling: appearance.settings.scaling,
+      },
+      themes: {},
+      frames: {},
+      sizes: {},
+    };
   const cached = new Map<string, number[]>();
   let sourceBytes = 0;
   for (const item of items) {
@@ -193,6 +204,7 @@ export async function generateSlides(
     if ("scriptureKey" in item) {
       const snapshot = data.scriptureSnapshots?.[item.scriptureKey];
       if (!snapshot) throw new Error("Sumber Scripture hilang.");
+      const look = appearance ? scriptureLook : theme;
       effectiveSizes.push(
         ...appendScripture(
           deck,
@@ -200,15 +212,15 @@ export async function generateSlides(
           item.itemId,
           style,
           measure,
-          theme
+          look
             ? (text, m) => ({
-                ...layoutText(text, theme.spec, m, true),
-                base: theme.spec.type.size,
+                ...layoutText(text, look.spec, m, true),
+                base: look.spec.type.size,
               })
             : undefined,
         ),
       );
-      capture(theme, start, effectiveSizes);
+      capture(look, start, effectiveSizes);
       continue;
     }
     const song = data.songs.find((s) => s.id === item.songId);

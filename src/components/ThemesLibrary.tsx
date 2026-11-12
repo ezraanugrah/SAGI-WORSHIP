@@ -5,7 +5,7 @@ import type { LyricStyle } from "../presentation/appearance";
 import { useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import type { MediaAsset } from "../media/models";
-import { defaultType } from "../themes/models";
+import { SCRIPTURE_THEME_ID, defaultType } from "../themes/models";
 import type { useThemes } from "../hooks/useThemes";
 import type { Workspace } from "../domain/models";
 import type { ThemeSnapshot } from "../themes/models";
@@ -188,46 +188,48 @@ export function ThemesLibrary({
       ) : (
         <>
           <ul className="theme-library-grid" aria-label="Daftar tema">
-            {services.themes.map((th) => (
-              <li key={th.id}>
-                <button
-                  className="theme-card"
-                  aria-label={`Pilih tema ${th.name}`}
-                  aria-pressed={selected === th.id}
-                  onClick={() => setSelected(th.id)}
-                >
-                  <span
-                    className="theme-card-swatch"
-                    style={{
-                      background: cssBackground(th.spec.background),
-                      color: th.spec.type.color,
-                    }}
+            {services.themes
+              .filter((th) => th.id !== SCRIPTURE_THEME_ID)
+              .map((th) => (
+                <li key={th.id}>
+                  <button
+                    className="theme-card"
+                    aria-label={`Pilih tema ${th.name}`}
+                    aria-pressed={selected === th.id}
+                    onClick={() => setSelected(th.id)}
                   >
-                    {th.spec.background.kind === "image" ||
-                    th.spec.background.kind === "video" ? (
-                      <AssetThumbnail refValue={th.spec.background.poster} />
-                    ) : (
-                      <span
-                        style={{
-                          fontFamily: fontStack(th.spec.type.font),
-                          fontWeight: th.spec.type.weight,
-                        }}
-                      >
-                        Aa
-                      </span>
-                    )}
-                  </span>
-                  <strong>{th.name}</strong>
-                  <small>
-                    {th.id.startsWith("builtin:") ? "Built-in" : "Custom"} ·{" "}
-                    {th.spec.background.kind}
-                    {services.settings.defaultThemeId === th.id
-                      ? ` · ${t("Dipakai")}`
-                      : ""}
-                  </small>
-                </button>
-              </li>
-            ))}
+                    <span
+                      className="theme-card-swatch"
+                      style={{
+                        background: cssBackground(th.spec.background),
+                        color: th.spec.type.color,
+                      }}
+                    >
+                      {th.spec.background.kind === "image" ||
+                      th.spec.background.kind === "video" ? (
+                        <AssetThumbnail refValue={th.spec.background.poster} />
+                      ) : (
+                        <span
+                          style={{
+                            fontFamily: fontStack(th.spec.type.font),
+                            fontWeight: th.spec.type.weight,
+                          }}
+                        >
+                          Aa
+                        </span>
+                      )}
+                    </span>
+                    <strong>{th.name}</strong>
+                    <small>
+                      {th.id.startsWith("builtin:") ? "Built-in" : "Custom"} ·{" "}
+                      {th.spec.background.kind}
+                      {services.settings.defaultThemeId === th.id
+                        ? ` · ${t("Dipakai")}`
+                        : ""}
+                    </small>
+                  </button>
+                </li>
+              ))}
           </ul>
           {theme && (
             <section className="theme-details" aria-label="Detail tema">

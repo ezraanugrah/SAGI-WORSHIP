@@ -14,12 +14,17 @@ import {
   LYRIC_COLOR,
   LYRIC_WEIGHT,
   OUTLINE_COLOR,
+  SCRIPTURE_LINES,
+  SCRIPTURE_MIN_PX,
   lyricFont,
 } from "./fonts";
+import { SCRIPTURE_THEME_ID } from "../themes/models";
 export type AppearanceContext = {
   settings: AdvancedSettings;
   defaultTheme?: ThemeSnapshot;
   byItem: Record<string, ThemeSnapshot>;
+  /** Scriptures' own background (Latar ayat); themes never apply to verses. */
+  scripture?: ThemeSnapshot;
 };
 /**
  * Lyrics and backgrounds are separate: whatever the theme, the lyric font,
@@ -58,6 +63,27 @@ export async function lyricTheme(
   style: LyricStyle,
 ): Promise<ThemeSnapshot> {
   const spec = lyricSpec(theme.spec, style);
+  return { ...theme, spec, signature: await signature(spec) };
+}
+/**
+ * Scripture slides: the Scriptures background with the lyric look, and a
+ * font that shrinks (down to SCRIPTURE_MIN_PX, as many lines as the screen
+ * holds) so a picked range stays on one slide.
+ */
+export async function scriptureTheme(
+  theme: ThemeSnapshot,
+  style: LyricStyle,
+): Promise<ThemeSnapshot> {
+  const base = lyricSpec(theme.spec, style),
+    spec: ThemeSpec = {
+      ...base,
+      type: {
+        ...base.type,
+        fit: "shrink",
+        lines: SCRIPTURE_LINES,
+        minSize: Math.min(SCRIPTURE_MIN_PX, base.type.size),
+      },
+    };
   return { ...theme, spec, signature: await signature(spec) };
 }
 export function themeFor(deck: Deck, index: number) {
@@ -209,5 +235,16 @@ export async function resolveAppearance(
       }
     }
   }
-  return { settings: structuredClone(config), defaultTheme, byItem };
+  // Verses keep their own background whatever theme is chosen.
+  const scripture = (await repo.list()).themes.some(
+    (th) => th.id === SCRIPTURE_THEME_ID,
+  )
+    ? await resolve(SCRIPTURE_THEME_ID)
+    : undefined;
+  return {
+    settings: structuredClone(config),
+    defaultTheme,
+    byItem,
+    ...(scripture ? { scripture } : {}),
+  };
 }

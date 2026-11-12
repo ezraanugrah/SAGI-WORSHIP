@@ -33,7 +33,8 @@ it.each([false, true])(
     const data = fixtureDataset();
     data.translation.license.permissions.export = exportable;
     data.verses[0].text =
-      "Synthetic: Damai café e\u0301 — 漢字 Ελληνικά 😀. ".repeat(20);
+      // Too long for one slide even at the smallest Scripture size.
+      "Synthetic: Damai café e\u0301 — 漢字 Ελληνικά 😀. ".repeat(80);
     const scriptures = new ScriptureRepository(w.gate, name);
     const translation = await scriptures.importDataset(
       await preparedFixture(data),

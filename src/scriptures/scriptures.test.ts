@@ -314,7 +314,7 @@ describe("Scripture persistence, mixed schedules, and immutable snapshots", () =
   it("frozen Scripture LIVE retains exact text/citation/attribution after source deletion", async () => {
     const value = fixtureDataset();
     value.verses[0].text =
-      " Exact original\r\n" + "synthetic long verse ".repeat(80);
+      " Exact original\r\n" + "synthetic long verse ".repeat(400);
     const t = await repo.importDataset(await preparedFixture(value), true),
       selection = {
         datasetId: t.id,
